@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mystery Duo | Beheer</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <a href="index.html" class="logo">
+        <span class="logo-m">M</span>
+        <span>Mystery Duo</span>
+    </a>
+
+    <a href="index.html" class="nav-button">
+        ← Website
+    </a>
+
+</header>
+
+
+<main class="admin-page">
+
+    <div class="admin-container">
+
+        <div class="admin-header">
+
+            <p class="eyebrow">
+                MYSTERY DUO
+            </p>
+
+            <h1>
+                Beheer
+            </h1>
+
+            <p>
+                Beheer hier de inhoud van de Mystery Duo website.
+            </p>
+
+        </div>
+
+
+        <!-- MENU -->
+
+        <div class="admin-menu">
+
+            <button
+                class="admin-button active"
+                onclick="openSection('dashboard', this)">
+                🏠 Dashboard
+            </button>
+
+            <button
+                class="admin-button"
+                onclick="openSection('videos', this)">
+                🎬 Video's
+            </button>
+
+            <button
+                class="admin-button"
+                onclick="openSection('events', this)">
+                🎤 Optredens
+            </button>
+
+            <button
+                class="admin-button"
+                onclick="openSection('news', this)">
+                📰 Nieuws
+            </button>
+
+            <button
+                class="admin-button"
+                onclick="openSection('photos', this)">
+                📸 Foto's
+            </button>
+
+            <button
+                class="admin-button"
+                onclick="openSection('merch', this)">
+                🛍️ Merchandise
+            </button>
+
+            <button
+                class="admin-button"
+                onclick="openSection('live', this)">
+                🔴 Live
+            </button>
+
+            <button
+                class="admin-button"
+                onclick="openSection('settings', this)">
+                ⚙️ Instellingen
+            </button>
+
+        </div>
+
+
+        <!-- CONTENT -->
+
+        <div id="admin-content">
+
+
+            <!-- DASHBOARD -->
+
+            <section class="admin-section">
+
+                <div class="admin-title">
+                    <p class="eyebrow">DASHBOARD</p>
+
+                    <h2>
+                        Welkom bij Mystery Duo
+                    </h2>
+
+                    <p>
+                        Vanuit dit paneel kun je straks de volledige
+                        website beheren.
+                    </p>
+                </div>
+
+
+                <div class="admin-stats">
+
+                    <div class="stat-card">
+                        <span>🎬</span>
+                        <strong id="video-count">0</strong>
+                        <small>Video's</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>🎤</span>
+                        <strong id="event-count">0</strong>
+                        <small>Optredens</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>📰</span>
+                        <strong id="news-count">0</strong>
+                        <small>Nieuwsberichten</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>📸</span>
+                        <strong id="photo-count">0</strong>
+                        <small>Foto's</small>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- VIDEO'S -->
+
+            <section class="admin-section hidden" id="videos-section">
+
+                <div class="admin-title">
+
+                    <p class="eyebrow">
+                        MEDIA
+                    </p>
+
+                    <h2>
+                        Video toevoegen
+                    </h2>
+
+                    <p>
+                        Upload een video van maximaal 1 minuut.
+                    </p>
+
+                </div>
+
+
+                <div class="admin-form">
+
+                    <label>
+                        Titel
+                    </label>
+
+                    <input
+                        type="text"
+                        id="video-title"
+                        placeholder="Bijvoorbeeld: Mystery Duo Live"
+                    >
+
+
+                    <label>
+                        Video
+                    </label>
+
+                    <input
+                        type="file"
+                        id="video-file"
+                        accept="video/*"
+                    >
+
+                    <p id="video-info" class="form-info"></p>
+
+
+                    <button
+                        class="button primary"
+                        onclick="uploadVideo()">
+
+                        🎬 Video controleren
+
+                    </button>
+
+                    <p
+                        id="video-status"
+                        class="status">
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- OPTREDENS -->
+
+            <section class="admin-section hidden" id="events-section">
+
+                <div class="admin-title">
+
+                    <p class="eyebrow">
+                        AGENDA
+                    </p>
+
+                    <h2>
+                        Optreden toevoegen
+                    </h2>
+
+                </div>
+
+
+                <div class="admin-form">
+
+                    <label>
+                        Naam optreden
+                    </label>
+
+                    <input
+                        type="text"
+                        id="event-title"
+                        placeholder="Mystery Duo Live"
+                    >
+
+
+                    <label>
+                        Locatie
+                    </label>
+
+                    <input
+                        type="text"
+                        id="event-location"
+                        placeholder="Blankenberge"
+                    >
+
+
+                    <label>
+                        Datum
+                    </label>
+
+                    <input
+                        type="date"
+                        id="event-date"
+                    >
+
+
+                    <label>
+                        Tijd
+                    </label>
+
+                    <input
+                        type="time"
+                        id="event-time"
+                    >
+
+
+                    <button
+                        class="button primary"
+                        onclick="addEvent()">
+
+                        🎤 Optreden toevoegen
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- NIEUWS -->
+
+            <section class="admin-section hidden" id="news-section">
+
+                <div class="admin-title">
+
+                    <p class="eyebrow">
+                        NIEUWS
+                    </p>
+
+                    <h2>
+                        Nieuwsbericht plaatsen
+                    </h2>
+
+                </div>
+
+
+                <div class="admin-form">
+
+                    <label>
+                        Titel
+                    </label>
+
+                    <input
+                        type="text"
+                        id="news-title"
+                        placeholder="Nieuw optreden aangekondigd!"
+                    >
+
+
+                    <label>
+                        Bericht
+                    </label>
+
+                    <textarea
+                        id="news-text"
+                        placeholder="Schrijf hier je nieuwsbericht..."
+                    ></textarea>
+
+
+                    <button
+                        class="button primary"
+                        onclick="addNews()">
+
+                        📰 Nieuws publiceren
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- FOTO'S -->
+
+            <section class="admin-section hidden" id="photos-section">
+
+                <div class="admin-title">
+
+                    <p class="eyebrow">
+                        GALERIJ
+                    </p>
+
+                    <h2>
+                        Foto toevoegen
+                    </h2>
+
+                </div>
+
+
+                <div class="admin-form">
+
+                    <label>
+                        Foto
+                    </label>
+
+                    <input
+                        type="file"
+                        id="photo-file"
+                        accept="image/*"
+                    >
+
+
+                    <button
+                        class="button primary"
+                        onclick="uploadPhoto()">
+
+                        📸 Foto toevoegen
+
+                    </button>
+
+                    <p
+                        id="photo-status"
+                        class="status">
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- MERCH -->
+
+            <section class="admin-section hidden" id="merch-section">
+
+                <div class="admin-title">
+
+                    <p class="eyebrow">
+                        SHOP
+                    </p>
+
+                    <h2>
+                        Merchandise
+                    </h2>
+
+                </div>
+
+
+                <div class="admin-form">
+
+                    <label>
+                        Productnaam
+                    </label>
+
+                    <input
+                        type="text"
+                        id="product-name"
+                        placeholder="Mystery Duo T-shirt"
+                    >
+
+
+                    <label>
+                        Prijs
+                    </label>
+
+                    <input
+                        type="number"
+                        id="product-price"
+                        placeholder="25"
+                        step="0.01"
+                    >
+
+
+                    <label>
+                        Beschrijving
+                    </label>
+
+                    <textarea
+                        id="product-description"
+                        placeholder="Beschrijving van het product..."
+                    ></textarea>
+
+
+                    <button
+                        class="button primary"
+                        onclick="addProduct()">
+
+                        🛍️ Product toevoegen
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- LIVE -->
+
+            <section class="admin-section hidden" id="live-section">
+
+                <div class="admin-title">
+
+                    <p class="eyebrow">
+                        LIVE
+                    </p>
+
+                    <h2>
+                        Live optreden
+                    </h2>
+
+                    <p>
+                        Beheer hier de live-status van Mystery Duo.
+                    </p>
+
+                </div>
+
+
+                <div class="live-control">
+
+                    <div id="live-status-indicator"
+                         class="offline">
+
+                        ⚪ OFFLINE
+
+                    </div>
+
+
+                    <button
+                        class="button primary"
+                        onclick="toggleLive()">
+
+                        🔴 Live starten / stoppen
+
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- INSTELLINGEN -->
+
+            <section class="admin-section hidden" id="settings-section">
+
+                <div class="admin-title">
+
+                    <p class="eyebrow">
+                        WEBSITE
+                    </p>
+
+                    <h2>
+                        Instellingen
+                    </h2>
+
+                </div>
+
+
+                <div class="admin-form">
+
+                    <label>
+                        Naam website
+                    </label>
+
+                    <input
+                        type="text"
+                        id="site-name"
+                        value="Mystery Duo"
+                    >
+
+
+                    <label>
+                        Logo
+                    </label>
+
+                    <input
+                        type="file"
+                        id="logo-file"
+                        accept="image/*"
+                    >
+
+
+                    <button
+                        class="button primary"
+                        onclick="saveSettings()">
+
+                        ⚙️ Instellingen opslaan
+
+                    </button>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<script src="admin.js"></script>
+
+</body>
+
+</html>
