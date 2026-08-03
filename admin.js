@@ -1,143 +1,137 @@
 // ==========================================
-// MYSTERY DUO ADMIN PLATFORM
+// MYSTERY DUO - ADMIN PLATFORM
 // ==========================================
 
+document.addEventListener("DOMContentLoaded", () => {
 
-// ==========================================
-// DATUM
-// ==========================================
+    // Datum
+    const today = document.getElementById("today");
 
-const todayElement =
-    document.getElementById("today");
+    if (today) {
+        today.textContent = new Date().toLocaleDateString("nl-BE", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+    }
 
-if (todayElement) {
+    // Dashboard standaard tonen
+    showSection("dashboard");
 
-    const date = new Date();
-
-    todayElement.textContent =
-        date.toLocaleDateString(
-            "nl-BE",
-            {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-            }
-        );
-}
+});
 
 
 // ==========================================
 // SECTIES
 // ==========================================
 
-function openSection(section, button) {
+function showSection(sectionName) {
 
-    document
-        .querySelectorAll(".admin-page-section")
-        .forEach(element => {
+    const sections = document.querySelectorAll(".admin-page-section");
 
-            element.classList.add("hidden");
+    sections.forEach(section => {
+        section.classList.add("hidden");
+    });
 
-        });
-
-
-    const selected =
-        document.getElementById(
-            section + "-section"
-        );
-
+    const selected = document.getElementById(
+        sectionName + "-section"
+    );
 
     if (selected) {
-
         selected.classList.remove("hidden");
-
     }
 
+    // Sidebar actieve knop
+    const buttons = document.querySelectorAll(".sidebar-button");
 
-    document
-        .querySelectorAll(".sidebar-button")
-        .forEach(element => {
+    buttons.forEach(button => {
+        button.classList.remove("active");
+    });
 
-            element.classList.remove("active");
+}
 
-        });
 
+// Deze functie wordt gebruikt door de knoppen
+function openSection(sectionName, button) {
+
+    showSection(sectionName);
 
     if (button) {
+        document.querySelectorAll(".sidebar-button")
+            .forEach(btn => btn.classList.remove("active"));
 
         button.classList.add("active");
-
     }
 
 }
 
 
 // ==========================================
-// SNELLE KNOPPEN
+// SNELLE ACTIES
 // ==========================================
 
 function showLive() {
 
-    const button =
-        document.querySelectorAll(
-            ".sidebar-button"
-        )[1];
+    const buttons = document.querySelectorAll(".sidebar-button");
 
-    openSection(
-        "live",
-        button
-    );
+    showSection("live");
+
+    buttons.forEach(btn => btn.classList.remove("active"));
+
+    if (buttons[1]) {
+        buttons[1].classList.add("active");
+    }
 
 }
 
 
 function showVideos() {
 
-    const button =
-        document.querySelectorAll(
-            ".sidebar-button"
-        )[2];
+    const buttons = document.querySelectorAll(".sidebar-button");
 
-    openSection(
-        "videos",
-        button
-    );
+    showSection("videos");
+
+    buttons.forEach(btn => btn.classList.remove("active"));
+
+    if (buttons[2]) {
+        buttons[2].classList.add("active");
+    }
 
 }
 
 
 function showEvents() {
 
-    const button =
-        document.querySelectorAll(
-            ".sidebar-button"
-        )[3];
+    const buttons = document.querySelectorAll(".sidebar-button");
 
-    openSection(
-        "events",
-        button
-    );
+    showSection("events");
+
+    buttons.forEach(btn => btn.classList.remove("active"));
+
+    if (buttons[3]) {
+        buttons[3].classList.add("active");
+    }
 
 }
 
 
 function showNews() {
 
-    const button =
-        document.querySelectorAll(
-            ".sidebar-button"
-        )[4];
+    const buttons = document.querySelectorAll(".sidebar-button");
 
-    openSection(
-        "news",
-        button
-    );
+    showSection("news");
+
+    buttons.forEach(btn => btn.classList.remove("active"));
+
+    if (buttons[4]) {
+        buttons[4].classList.add("active");
+    }
 
 }
 
 
 // ==========================================
-// LIVESTREAM
+// YOUTUBE LIVESTREAM
 // ==========================================
 
 let liveActive = false;
@@ -149,36 +143,41 @@ function getYouTubeID(url) {
         return null;
     }
 
+    // youtube.com/watch?v=
+    let match = url.match(
+        /youtube\.com\/watch\?v=([^&]+)/i
+    );
 
-    // Normale YouTube URL
-
-    const normal =
-        url.match(
-            /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/
-        );
-
-
-    if (normal) {
-
-        return normal[1];
-
+    if (match) {
+        return match[1];
     }
 
+    // youtu.be/
+    match = url.match(
+        /youtu\.be\/([^?&]+)/i
+    );
 
-    // YouTube embed URL
-
-    const embed =
-        url.match(
-            /youtube\.com\/embed\/([^&?/]+)/
-        );
-
-
-    if (embed) {
-
-        return embed[1];
-
+    if (match) {
+        return match[1];
     }
 
+    // youtube.com/live/
+    match = url.match(
+        /youtube\.com\/live\/([^?&]+)/i
+    );
+
+    if (match) {
+        return match[1];
+    }
+
+    // youtube.com/embed/
+    match = url.match(
+        /youtube\.com\/embed\/([^?&]+)/i
+    );
+
+    if (match) {
+        return match[1];
+    }
 
     return null;
 
@@ -187,90 +186,84 @@ function getYouTubeID(url) {
 
 function loadLive() {
 
+    const urlElement =
+        document.getElementById("live-url");
+
+    const player =
+        document.getElementById("live-player");
+
+    const message =
+        document.getElementById("live-message");
+
+
+    if (!urlElement || !player) {
+        return;
+    }
+
+
     const url =
-        document
-            .getElementById("live-url")
-            .value
-            .trim();
+        urlElement.value.trim();
 
 
     const videoID =
         getYouTubeID(url);
 
 
-    const player =
-        document.getElementById(
-            "live-player"
-        );
-
-
-    const message =
-        document.getElementById(
-            "live-message"
-        );
-
-
     if (!videoID) {
 
-        message.textContent =
-            "❌ Dit lijkt geen geldige YouTube-link.";
+        if (message) {
 
-        message.className =
-            "admin-message error";
+            message.textContent =
+                "❌ Ongeldige YouTube-link.";
+
+            message.className =
+                "admin-message error";
+
+        }
 
         return;
-
     }
 
 
     player.innerHTML = `
-
         <iframe
-
-            src="https://www.youtube.com/embed/${videoID}?autoplay=0"
-
-            title="Mystery Duo Livestream"
-
-            allow="
-                autoplay;
-                encrypted-media;
-                picture-in-picture;
-                fullscreen
-            "
-
+            src="https://www.youtube.com/embed/${videoID}"
+            title="Mystery Duo livestream"
+            allow="autoplay; encrypted-media; picture-in-picture"
             allowfullscreen>
-
         </iframe>
-
     `;
 
 
-    message.textContent =
-        "✅ Livestream geladen in de preview.";
+    if (message) {
 
-    message.className =
-        "admin-message success";
+        message.textContent =
+            "✓ Livestream geladen.";
+
+        message.className =
+            "admin-message success";
+
+    }
 
 }
 
 
+// ==========================================
+// LIVE AAN / UIT
+// ==========================================
+
 function toggleLive() {
 
-    liveActive =
-        !liveActive;
+    liveActive = !liveActive;
 
 
     const badge =
-        document.getElementById(
-            "live-badge"
-        );
-
+        document.getElementById("live-badge");
 
     const dashboardStatus =
         document.getElementById(
             "dashboard-live-status"
         );
-
 
     const miniText =
         document.getElementById(
@@ -280,40 +273,39 @@ function toggleLive() {
 
     if (liveActive) {
 
-        badge.textContent =
-            "● LIVE";
+        if (badge) {
+            badge.textContent = "● LIVE";
+            badge.classList.add("active");
+        }
 
-        badge.classList.add("active");
+        if (dashboardStatus) {
+            dashboardStatus.textContent = "LIVE";
+            dashboardStatus.className =
+                "status-pill live";
+        }
 
-
-        dashboardStatus.textContent =
-            "LIVE";
-
-        dashboardStatus.className =
-            "status-pill live";
-
-
-        miniText.textContent =
-            "🔴 Mystery Duo is momenteel LIVE";
-
+        if (miniText) {
+            miniText.textContent =
+                "🔴 Mystery Duo is momenteel LIVE";
+        }
 
     } else {
 
-        badge.textContent =
-            "● OFFLINE";
+        if (badge) {
+            badge.textContent = "● OFFLINE";
+            badge.classList.remove("active");
+        }
 
-        badge.classList.remove("active");
+        if (dashboardStatus) {
+            dashboardStatus.textContent = "OFFLINE";
+            dashboardStatus.className =
+                "status-pill offline";
+        }
 
-
-        dashboardStatus.textContent =
-            "OFFLINE";
-
-        dashboardStatus.className =
-            "status-pill offline";
-
-
-        miniText.textContent =
-            "Geen livestream actief";
+        if (miniText) {
+            miniText.textContent =
+                "Geen livestream actief";
+        }
 
     }
 
@@ -321,58 +313,45 @@ function toggleLive() {
 
 
 // ==========================================
-// VIDEO'S
+// VIDEO TOEVOEGEN
 // ==========================================
 
 function uploadVideo() {
 
     const fileInput =
-        document.getElementById(
-            "video-file"
-        );
+        document.getElementById("video-file");
 
-
-    const title =
-        document.getElementById(
-            "video-title"
-        ).value.trim();
-
+    const titleInput =
+        document.getElementById("video-title");
 
     const status =
-        document.getElementById(
-            "video-status"
-        );
-
+        document.getElementById("video-status");
 
     const info =
-        document.getElementById(
-            "video-info"
+        document.getElementById("video-info");
+
+
+    if (!fileInput || !fileInput.files.length) {
+
+        showMessage(
+            status,
+            "❌ Kies eerst een video.",
+            "error"
         );
 
-
-    if (!fileInput.files.length) {
-
-        status.textContent =
-            "❌ Kies eerst een video.";
-
-        status.className =
-            "admin-message error";
-
         return;
-
     }
 
 
-    if (!title) {
+    if (!titleInput.value.trim()) {
 
-        status.textContent =
-            "❌ Geef de video een titel.";
-
-        status.className =
-            "admin-message error";
+        showMessage(
+            status,
+            "❌ Geef de video een titel.",
+            "error"
+        );
 
         return;
-
     }
 
 
@@ -380,119 +359,103 @@ function uploadVideo() {
         fileInput.files[0];
 
 
-    const video =
-        document.createElement(
-            "video"
+    if (!file.type.startsWith("video/")) {
+
+        showMessage(
+            status,
+            "❌ Dit is geen videobestand.",
+            "error"
         );
 
-
-    video.preload =
-        "metadata";
-
-
-    video.onloadedmetadata =
-        function() {
-
-            URL.revokeObjectURL(
-                video.src
-            );
+        return;
+    }
 
 
-            const duration =
-                video.duration;
+    const video =
+        document.createElement("video");
 
+
+    video.preload = "metadata";
+
+
+    video.onloadedmetadata = () => {
+
+        URL.revokeObjectURL(video.src);
+
+
+        const duration =
+            video.duration;
+
+
+        if (info) {
 
             info.textContent =
                 "Duur: " +
-                formatTime(duration);
+                formatTime(duration) +
+                " • Grootte: " +
+                formatFileSize(file.size);
+
+        }
 
 
-            if (duration > 60) {
+        if (duration > 60) {
 
-                status.textContent =
-                    "❌ Video is langer dan 1 minuut.";
+            showMessage(
+                status,
+                "❌ De video mag maximaal 1 minuut zijn.",
+                "error"
+            );
 
-                status.className =
-                    "admin-message error";
-
-                return;
-
-            }
+            return;
+        }
 
 
-            status.textContent =
-                "✅ Video is geschikt!";
+        showMessage(
+            status,
+            "✓ Video is geschikt en klaar voor upload.",
+            "success"
+        );
 
-            status.className =
-                "admin-message success";
-
-        };
+    };
 
 
     video.src =
-        URL.createObjectURL(
-            file
-        );
+        URL.createObjectURL(file);
 
 }
 
 
 // ==========================================
-// OPTREDENS
+// OPTREDEN TOEVOEGEN
 // ==========================================
 
 function addEvent() {
 
     const title =
-        document
-            .getElementById(
-                "event-title"
-            )
-            .value.trim();
-
+        getValue("event-title");
 
     const location =
-        document
-            .getElementById(
-                "event-location"
-            )
-            .value.trim();
-
+        getValue("event-location");
 
     const date =
-        document
-            .getElementById(
-                "event-date"
-            )
-            .value;
-
+        getValue("event-date");
 
     const time =
-        document
-            .getElementById(
-                "event-time"
-            )
-            .value;
+        getValue("event-time");
 
 
-    if (
-        !title ||
-        !location ||
-        !date ||
-        !time
-    ) {
+    if (!title || !location || !date || !time) {
 
         alert(
-            "Vul alle velden in."
+            "Vul alle gegevens van het optreden in."
         );
 
         return;
-
     }
 
 
     alert(
-        "✅ Optreden ingevuld. De database-koppeling komt in de volgende stap."
+        "✓ Optreden toegevoegd!"
     );
 
 }
@@ -505,34 +468,24 @@ function addEvent() {
 function addNews() {
 
     const title =
-        document
-            .getElementById(
-                "news-title"
-            )
-            .value.trim();
-
+        getValue("news-title");
 
     const text =
-        document
-            .getElementById(
-                "news-text"
-            )
-            .value.trim();
+        getValue("news-text");
 
 
     if (!title || !text) {
 
         alert(
-            "Vul de titel en tekst in."
+            "Vul een titel en tekst in."
         );
 
         return;
-
     }
 
 
     alert(
-        "✅ Nieuwsbericht klaar om te publiceren."
+        "✓ Nieuwsbericht gepubliceerd!"
     );
 
 }
@@ -545,74 +498,77 @@ function addNews() {
 function uploadPhoto() {
 
     const input =
-        document.getElementById(
-            "photo-file"
-        );
-
+        document.getElementById("photo-file");
 
     const status =
-        document.getElementById(
-            "photo-status"
+        document.getElementById("photo-status");
+
+
+    if (!input || !input.files.length) {
+
+        showMessage(
+            status,
+            "❌ Kies eerst een foto.",
+            "error"
         );
 
-
-    if (!input.files.length) {
-
-        status.textContent =
-            "❌ Kies eerst een foto.";
-
-        status.className =
-            "admin-message error";
-
         return;
-
     }
 
 
-    status.textContent =
-        "✅ Foto geselecteerd.";
+    const file =
+        input.files[0];
 
-    status.className =
-        "admin-message success";
+
+    if (!file.type.startsWith("image/")) {
+
+        showMessage(
+            status,
+            "❌ Dit bestand is geen foto.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    showMessage(
+        status,
+        "✓ Foto geselecteerd en klaar voor upload.",
+        "success"
+    );
 
 }
 
 
 // ==========================================
-// MERCH
+// MERCHANDISE
 // ==========================================
 
 function addProduct() {
 
     const name =
-        document
-            .getElementById(
-                "product-name"
-            )
-            .value.trim();
-
+        getValue("product-name");
 
     const price =
-        document
-            .getElementById(
-                "product-price"
-            )
-            .value;
+        getValue("product-price");
+
+    const description =
+        getValue("product-description");
 
 
-    if (!name || !price) {
+    if (!name || !price || !description) {
 
         alert(
-            "Vul de productnaam en prijs in."
+            "Vul alle productgegevens in."
         );
 
         return;
-
     }
 
 
     alert(
-        "✅ Product klaar om toe te voegen."
+        "✓ Product toegevoegd!"
     );
 
 }
@@ -625,11 +581,7 @@ function addProduct() {
 function saveSettings() {
 
     const name =
-        document
-            .getElementById(
-                "site-name"
-            )
-            .value.trim();
+        getValue("site-name");
 
 
     if (!name) {
@@ -639,7 +591,6 @@ function saveSettings() {
         );
 
         return;
-
     }
 
 
@@ -650,7 +601,7 @@ function saveSettings() {
 
 
     alert(
-        "✅ Instellingen opgeslagen."
+        "✓ Instellingen opgeslagen!"
     );
 
 }
@@ -660,15 +611,42 @@ function saveSettings() {
 // HULPFUNCTIES
 // ==========================================
 
+function getValue(id) {
+
+    const element =
+        document.getElementById(id);
+
+    if (!element) {
+        return "";
+    }
+
+    return element.value.trim();
+
+}
+
+
+function showMessage(element, text, type) {
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent =
+        text;
+
+    element.className =
+        "admin-message " + type;
+
+}
+
+
 function formatTime(seconds) {
 
     const minutes =
         Math.floor(seconds / 60);
 
-
     const remaining =
         Math.floor(seconds % 60);
-
 
     return (
         minutes +
@@ -677,5 +655,15 @@ function formatTime(seconds) {
             .toString()
             .padStart(2, "0")
     );
+
+}
+
+
+function formatFileSize(bytes) {
+
+    const mb =
+        bytes / (1024 * 1024);
+
+    return mb.toFixed(2) + " MB";
 
 }
