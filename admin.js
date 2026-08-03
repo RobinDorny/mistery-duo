@@ -1,374 +1,439 @@
-// ==========================================
-// MYSTERY DUO - ADMIN PLATFORM
-// ==========================================
+/* =========================================
+   MYSTERY DUO ADMIN
+========================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
 
-    // Datum
-    const today = document.getElementById("today");
+    setupNavigation();
+    setupDashboard();
+    setupLive();
+    setupVideos();
+    setupEvents();
+    setupNews();
+    setupPhotos();
+    setupMerchandise();
+    setupSettings();
 
-    if (today) {
-        today.textContent = new Date().toLocaleDateString("nl-BE", {
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-        });
-    }
-
-    // Dashboard standaard tonen
-    showSection("dashboard");
+    loadEverything();
 
 });
 
 
-// ==========================================
-// SECTIES
-// ==========================================
+/* =========================================
+   NAVIGATIE
+========================================= */
 
-function showSection(sectionName) {
+function setupNavigation() {
 
-    const sections = document.querySelectorAll(".admin-page-section");
+    const buttons =
+        document.querySelectorAll(".menu-btn");
 
-    sections.forEach(section => {
-        section.classList.add("hidden");
+    buttons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            const page =
+                button.dataset.page;
+
+            openPage(page);
+
+        });
+
     });
 
-    const selected = document.getElementById(
-        sectionName + "-section"
-    );
+
+    const quickButtons =
+        document.querySelectorAll("[data-goto]");
+
+    quickButtons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            openPage(
+                button.dataset.goto
+            );
+
+        });
+
+    });
+
+}
+
+
+function openPage(pageName) {
+
+    const pages =
+        document.querySelectorAll(".page");
+
+    pages.forEach(function (page) {
+
+        page.classList.remove("active");
+
+    });
+
+
+    const selected =
+        document.getElementById(pageName);
 
     if (selected) {
-        selected.classList.remove("hidden");
+
+        selected.classList.add("active");
+
     }
 
-    // Sidebar actieve knop
-    const buttons = document.querySelectorAll(".sidebar-button");
 
-    buttons.forEach(button => {
+    const menuButtons =
+        document.querySelectorAll(".menu-btn");
+
+    menuButtons.forEach(function (button) {
+
         button.classList.remove("active");
+
+        if (button.dataset.page === pageName) {
+
+            button.classList.add("active");
+
+        }
+
     });
 
 }
 
 
-// Deze functie wordt gebruikt door de knoppen
-function openSection(sectionName, button) {
+/* =========================================
+   DATUM
+========================================= */
 
-    showSection(sectionName);
+function setupDashboard() {
 
-    if (button) {
-        document.querySelectorAll(".sidebar-button")
-            .forEach(btn => btn.classList.remove("active"));
+    const today =
+        document.getElementById("today");
 
-        button.classList.add("active");
+    if (today) {
+
+        today.textContent =
+            new Date().toLocaleDateString(
+                "nl-BE",
+                {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+
     }
 
 }
 
 
-// ==========================================
-// SNELLE ACTIES
-// ==========================================
+/* =========================================
+   LIVESTREAM
+========================================= */
 
-function showLive() {
+let live = false;
 
-    const buttons = document.querySelectorAll(".sidebar-button");
 
-    showSection("live");
+function setupLive() {
 
-    buttons.forEach(btn => btn.classList.remove("active"));
+    const loadButton =
+        document.getElementById("loadLive");
 
-    if (buttons[1]) {
-        buttons[1].classList.add("active");
+    const toggleButton =
+        document.getElementById("toggleLive");
+
+
+    if (loadButton) {
+
+        loadButton.addEventListener(
+            "click",
+            loadLivestream
+        );
+
+    }
+
+
+    if (toggleButton) {
+
+        toggleButton.addEventListener(
+            "click",
+            toggleLivestream
+        );
+
     }
 
 }
 
 
-function showVideos() {
+function getYoutubeId(url) {
 
-    const buttons = document.querySelectorAll(".sidebar-button");
-
-    showSection("videos");
-
-    buttons.forEach(btn => btn.classList.remove("active"));
-
-    if (buttons[2]) {
-        buttons[2].classList.add("active");
-    }
-
-}
+    if (!url) return null;
 
 
-function showEvents() {
+    let match =
+        url.match(
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/|youtube\.com\/embed\/)([^&?/\s]+)/
+        );
 
-    const buttons = document.querySelectorAll(".sidebar-button");
-
-    showSection("events");
-
-    buttons.forEach(btn => btn.classList.remove("active"));
-
-    if (buttons[3]) {
-        buttons[3].classList.add("active");
-    }
-
-}
-
-
-function showNews() {
-
-    const buttons = document.querySelectorAll(".sidebar-button");
-
-    showSection("news");
-
-    buttons.forEach(btn => btn.classList.remove("active"));
-
-    if (buttons[4]) {
-        buttons[4].classList.add("active");
-    }
-
-}
-
-
-// ==========================================
-// YOUTUBE LIVESTREAM
-// ==========================================
-
-let liveActive = false;
-
-
-function getYouTubeID(url) {
-
-    if (!url) {
-        return null;
-    }
-
-    // youtube.com/watch?v=
-    let match = url.match(
-        /youtube\.com\/watch\?v=([^&]+)/i
-    );
 
     if (match) {
+
         return match[1];
+
     }
 
-    // youtu.be/
-    match = url.match(
-        /youtu\.be\/([^?&]+)/i
-    );
-
-    if (match) {
-        return match[1];
-    }
-
-    // youtube.com/live/
-    match = url.match(
-        /youtube\.com\/live\/([^?&]+)/i
-    );
-
-    if (match) {
-        return match[1];
-    }
-
-    // youtube.com/embed/
-    match = url.match(
-        /youtube\.com\/embed\/([^?&]+)/i
-    );
-
-    if (match) {
-        return match[1];
-    }
 
     return null;
 
 }
 
 
-function loadLive() {
+function loadLivestream() {
 
-    const urlElement =
-        document.getElementById("live-url");
+    const input =
+        document.getElementById("youtubeUrl");
 
     const player =
-        document.getElementById("live-player");
+        document.getElementById("player");
 
     const message =
-        document.getElementById("live-message");
-
-
-    if (!urlElement || !player) {
-        return;
-    }
+        document.getElementById("liveMessage");
 
 
     const url =
-        urlElement.value.trim();
+        input.value.trim();
 
 
-    const videoID =
-        getYouTubeID(url);
+    const id =
+        getYoutubeId(url);
 
 
-    if (!videoID) {
-
-        if (message) {
-
-            message.textContent =
-                "❌ Ongeldige YouTube-link.";
-
-            message.className =
-                "admin-message error";
-
-        }
-
-        return;
-    }
-
-
-    player.innerHTML = `
-        <iframe
-            src="https://www.youtube.com/embed/${videoID}"
-            title="Mystery Duo livestream"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowfullscreen>
-        </iframe>
-    `;
-
-
-    if (message) {
-
-        message.textContent =
-            "✓ Livestream geladen.";
-
-        message.className =
-            "admin-message success";
-
-    }
-
-}
-
-
-// ==========================================
-// LIVE AAN / UIT
-// ==========================================
-
-function toggleLive() {
-
-    liveActive = !liveActive;
-
-
-    const badge =
-        document.getElementById("live-badge");
-
-    const dashboardStatus =
-        document.getElementById(
-            "dashboard-live-status"
-        );
-
-    const miniText =
-        document.getElementById(
-            "mini-live-text"
-        );
-
-
-    if (liveActive) {
-
-        if (badge) {
-            badge.textContent = "● LIVE";
-            badge.classList.add("active");
-        }
-
-        if (dashboardStatus) {
-            dashboardStatus.textContent = "LIVE";
-            dashboardStatus.className =
-                "status-pill live";
-        }
-
-        if (miniText) {
-            miniText.textContent =
-                "🔴 Mystery Duo is momenteel LIVE";
-        }
-
-    } else {
-
-        if (badge) {
-            badge.textContent = "● OFFLINE";
-            badge.classList.remove("active");
-        }
-
-        if (dashboardStatus) {
-            dashboardStatus.textContent = "OFFLINE";
-            dashboardStatus.className =
-                "status-pill offline";
-        }
-
-        if (miniText) {
-            miniText.textContent =
-                "Geen livestream actief";
-        }
-
-    }
-
-}
-
-
-// ==========================================
-// VIDEO TOEVOEGEN
-// ==========================================
-
-function uploadVideo() {
-
-    const fileInput =
-        document.getElementById("video-file");
-
-    const titleInput =
-        document.getElementById("video-title");
-
-    const status =
-        document.getElementById("video-status");
-
-    const info =
-        document.getElementById("video-info");
-
-
-    if (!fileInput || !fileInput.files.length) {
+    if (!id) {
 
         showMessage(
-            status,
-            "❌ Kies eerst een video.",
+            message,
+            "❌ Geen geldige YouTube-link.",
             "error"
         );
 
         return;
+
     }
 
 
-    if (!titleInput.value.trim()) {
+    player.innerHTML = `
+
+        <iframe
+            src="https://www.youtube.com/embed/${id}"
+            title="Mystery Duo Live"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+
+    `;
+
+
+    localStorage.setItem(
+        "mysteryDuoLiveUrl",
+        url
+    );
+
+
+    showMessage(
+        message,
+        "✓ Livestream geladen.",
+        "success"
+    );
+
+}
+
+
+function toggleLivestream() {
+
+    live = !live;
+
+
+    localStorage.setItem(
+        "mysteryDuoLive",
+        live
+    );
+
+
+    updateLiveStatus();
+
+}
+
+
+function updateLiveStatus() {
+
+    const badge =
+        document.getElementById("liveBadge");
+
+    const dashboard =
+        document.getElementById("dashboardLive");
+
+    const dashboardText =
+        document.getElementById(
+            "dashboardLiveText"
+        );
+
+
+    if (live) {
+
+        badge.textContent =
+            "● LIVE";
+
+        badge.className =
+            "badge live";
+
+
+        dashboard.textContent =
+            "LIVE";
+
+        dashboard.className =
+            "badge live";
+
+
+        dashboardText.textContent =
+            "🔴 Mystery Duo is momenteel LIVE";
+
+    } else {
+
+        badge.textContent =
+            "● OFFLINE";
+
+        badge.className =
+            "badge offline";
+
+
+        dashboard.textContent =
+            "OFFLINE";
+
+        dashboard.className =
+            "badge offline";
+
+
+        dashboardText.textContent =
+            "Geen livestream actief";
+
+    }
+
+}
+
+
+/* =========================================
+   VIDEO'S
+========================================= */
+
+function setupVideos() {
+
+    const button =
+        document.getElementById("checkVideo");
+
+    const input =
+        document.getElementById("videoFile");
+
+
+    if (button) {
+
+        button.addEventListener(
+            "click",
+            checkVideo
+        );
+
+    }
+
+
+    if (input) {
+
+        input.addEventListener(
+            "change",
+            previewVideo
+        );
+
+    }
+
+}
+
+
+function previewVideo() {
+
+    const input =
+        document.getElementById("videoFile");
+
+    const preview =
+        document.getElementById("videoPreview");
+
+
+    if (!input.files.length) {
+
+        preview.innerHTML = "";
+
+        return;
+
+    }
+
+
+    const file =
+        input.files[0];
+
+
+    const url =
+        URL.createObjectURL(file);
+
+
+    preview.innerHTML = `
+
+        <video
+            src="${url}"
+            controls>
+        </video>
+
+    `;
+
+}
+
+
+function checkVideo() {
+
+    const input =
+        document.getElementById("videoFile");
+
+    const title =
+        document.getElementById("videoTitle");
+
+    const message =
+        document.getElementById("videoMessage");
+
+
+    if (!title.value.trim()) {
 
         showMessage(
-            status,
+            message,
             "❌ Geef de video een titel.",
             "error"
         );
 
         return;
+
     }
 
 
-    const file =
-        fileInput.files[0];
-
-
-    if (!file.type.startsWith("video/")) {
+    if (!input.files.length) {
 
         showMessage(
-            status,
-            "❌ Dit is geen videobestand.",
+            message,
+            "❌ Selecteer eerst een video.",
             "error"
         );
 
         return;
+
     }
+
+
+    const file =
+        input.files[0];
 
 
     const video =
@@ -378,43 +443,65 @@ function uploadVideo() {
     video.preload = "metadata";
 
 
-    video.onloadedmetadata = () => {
-
-        URL.revokeObjectURL(video.src);
-
+    video.onloadedmetadata = function () {
 
         const duration =
             video.duration;
 
 
-        if (info) {
-
-            info.textContent =
-                "Duur: " +
-                formatTime(duration) +
-                " • Grootte: " +
-                formatFileSize(file.size);
-
-        }
-
-
         if (duration > 60) {
 
             showMessage(
-                status,
-                "❌ De video mag maximaal 1 minuut zijn.",
+                message,
+                "❌ De video is langer dan 1 minuut.",
                 "error"
             );
 
             return;
+
         }
 
 
+        const videos =
+            getData("videos");
+
+
+        videos.push({
+
+            title: title.value.trim(),
+
+            fileName: file.name,
+
+            duration: Math.round(duration),
+
+            date: new Date().toLocaleDateString("nl-BE")
+
+        });
+
+
+        saveData(
+            "videos",
+            videos
+        );
+
+
         showMessage(
-            status,
-            "✓ Video is geschikt en klaar voor upload.",
+            message,
+            "✓ Video toegevoegd aan het beheer.",
             "success"
         );
+
+
+        title.value = "";
+
+        input.value = "";
+
+        document.getElementById(
+            "videoPreview"
+        ).innerHTML = "";
+
+
+        updateCounters();
 
     };
 
@@ -425,136 +512,412 @@ function uploadVideo() {
 }
 
 
-// ==========================================
-// OPTREDEN TOEVOEGEN
-// ==========================================
+/* =========================================
+   OPTREDENS
+========================================= */
 
-function addEvent() {
+function setupEvents() {
 
-    const title =
-        getValue("event-title");
-
-    const location =
-        getValue("event-location");
-
-    const date =
-        getValue("event-date");
-
-    const time =
-        getValue("event-time");
-
-
-    if (!title || !location || !date || !time) {
-
-        alert(
-            "Vul alle gegevens van het optreden in."
+    document
+        .getElementById("addEvent")
+        ?.addEventListener(
+            "click",
+            addEvent
         );
-
-        return;
-    }
-
-
-    alert(
-        "✓ Optreden toegevoegd!"
-    );
 
 }
 
 
-// ==========================================
-// NIEUWS
-// ==========================================
+function addEvent() {
+
+    const name =
+        value("eventName");
+
+    const location =
+        value("eventLocation");
+
+    const date =
+        value("eventDate");
+
+    const time =
+        value("eventTime");
+
+
+    if (!name || !location || !date || !time) {
+
+        alert(
+            "Vul alle gegevens in."
+        );
+
+        return;
+
+    }
+
+
+    const events =
+        getData("events");
+
+
+    events.push({
+
+        name,
+        location,
+        date,
+        time
+
+    });
+
+
+    saveData(
+        "events",
+        events
+    );
+
+
+    document.getElementById(
+        "eventName"
+    ).value = "";
+
+    document.getElementById(
+        "eventLocation"
+    ).value = "";
+
+    document.getElementById(
+        "eventDate"
+    ).value = "";
+
+    document.getElementById(
+        "eventTime"
+    ).value = "";
+
+
+    renderEvents();
+
+    updateCounters();
+
+}
+
+
+function renderEvents() {
+
+    const list =
+        document.getElementById("eventList");
+
+    const events =
+        getData("events");
+
+
+    list.innerHTML = "";
+
+
+    events.forEach(function (event, index) {
+
+        list.innerHTML += `
+
+            <div class="saved-item">
+
+                <div>
+
+                    <strong>
+                        ${escapeHTML(event.name)}
+                    </strong>
+
+                    <small>
+                        📍 ${escapeHTML(event.location)}
+                        · ${event.date}
+                        · ${event.time}
+                    </small>
+
+                </div>
+
+                <button
+                    onclick="deleteItem('events', ${index})">
+                    Verwijder
+                </button>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================
+   NIEUWS
+========================================= */
+
+function setupNews() {
+
+    document
+        .getElementById("addNews")
+        ?.addEventListener(
+            "click",
+            addNews
+        );
+
+}
+
 
 function addNews() {
 
     const title =
-        getValue("news-title");
+        value("newsTitle");
 
     const text =
-        getValue("news-text");
+        value("newsText");
 
 
     if (!title || !text) {
 
         alert(
-            "Vul een titel en tekst in."
+            "Vul de titel en tekst in."
         );
 
         return;
+
     }
+
+
+    const news =
+        getData("news");
+
+
+    news.push({
+
+        title,
+        text,
+
+        date:
+            new Date().toLocaleDateString(
+                "nl-BE"
+            )
+
+    });
+
+
+    saveData(
+        "news",
+        news
+    );
+
+
+    document.getElementById(
+        "newsTitle"
+    ).value = "";
+
+    document.getElementById(
+        "newsText"
+    ).value = "";
+
+
+    renderNews();
+
+    updateCounters();
 
 
     alert(
-        "✓ Nieuwsbericht gepubliceerd!"
+        "✓ Nieuwsbericht gepubliceerd."
     );
 
 }
 
 
-// ==========================================
-// FOTO'S
-// ==========================================
+function renderNews() {
 
-function uploadPhoto() {
+    const list =
+        document.getElementById("newsList");
+
+    const news =
+        getData("news");
+
+
+    list.innerHTML = "";
+
+
+    news.forEach(function (item, index) {
+
+        list.innerHTML += `
+
+            <div class="saved-item">
+
+                <div>
+
+                    <strong>
+                        ${escapeHTML(item.title)}
+                    </strong>
+
+                    <small>
+                        ${escapeHTML(item.date)}
+                    </small>
+
+                </div>
+
+                <button
+                    onclick="deleteItem('news', ${index})">
+                    Verwijder
+                </button>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================
+   FOTO'S
+========================================= */
+
+function setupPhotos() {
 
     const input =
-        document.getElementById("photo-file");
+        document.getElementById("photoFile");
 
-    const status =
-        document.getElementById("photo-status");
+    const button =
+        document.getElementById("addPhoto");
 
 
-    if (!input || !input.files.length) {
+    input?.addEventListener(
+        "change",
+        previewPhoto
+    );
+
+
+    button?.addEventListener(
+        "click",
+        addPhoto
+    );
+
+}
+
+
+function previewPhoto() {
+
+    const input =
+        document.getElementById("photoFile");
+
+    const preview =
+        document.getElementById("photoPreview");
+
+
+    if (!input.files.length) {
+
+        preview.innerHTML = "";
+
+        return;
+
+    }
+
+
+    const url =
+        URL.createObjectURL(
+            input.files[0]
+        );
+
+
+    preview.innerHTML = `
+
+        <img src="${url}" alt="Voorbeeld">
+
+    `;
+
+}
+
+
+function addPhoto() {
+
+    const input =
+        document.getElementById("photoFile");
+
+    const message =
+        document.getElementById("photoMessage");
+
+
+    if (!input.files.length) {
 
         showMessage(
-            status,
-            "❌ Kies eerst een foto.",
+            message,
+            "❌ Selecteer eerst een foto.",
             "error"
         );
 
         return;
+
     }
 
 
-    const file =
-        input.files[0];
+    const photos =
+        getData("photos");
 
 
-    if (!file.type.startsWith("image/")) {
+    photos.push({
 
-        showMessage(
-            status,
-            "❌ Dit bestand is geen foto.",
-            "error"
-        );
+        name:
+            input.files[0].name,
 
-        return;
-    }
+        date:
+            new Date().toLocaleDateString(
+                "nl-BE"
+            )
+
+    });
+
+
+    saveData(
+        "photos",
+        photos
+    );
+
+
+    input.value = "";
+
+    document.getElementById(
+        "photoPreview"
+    ).innerHTML = "";
 
 
     showMessage(
-        status,
-        "✓ Foto geselecteerd en klaar voor upload.",
+        message,
+        "✓ Foto toegevoegd.",
         "success"
     );
+
+
+    updateCounters();
 
 }
 
 
-// ==========================================
-// MERCHANDISE
-// ==========================================
+/* =========================================
+   MERCHANDISE
+========================================= */
+
+function setupMerchandise() {
+
+    document
+        .getElementById("addProduct")
+        ?.addEventListener(
+            "click",
+            addProduct
+        );
+
+}
+
 
 function addProduct() {
 
     const name =
-        getValue("product-name");
+        value("productName");
 
     const price =
-        getValue("product-price");
+        value("productPrice");
 
     const description =
-        getValue("product-description");
+        value("productDescription");
 
 
     if (!name || !price || !description) {
@@ -564,106 +927,355 @@ function addProduct() {
         );
 
         return;
+
     }
 
 
-    alert(
-        "✓ Product toegevoegd!"
+    const products =
+        getData("products");
+
+
+    products.push({
+
+        name,
+        price,
+        description
+
+    });
+
+
+    saveData(
+        "products",
+        products
     );
+
+
+    document.getElementById(
+        "productName"
+    ).value = "";
+
+    document.getElementById(
+        "productPrice"
+    ).value = "";
+
+    document.getElementById(
+        "productDescription"
+    ).value = "";
+
+
+    renderProducts();
 
 }
 
 
-// ==========================================
-// INSTELLINGEN
-// ==========================================
+function renderProducts() {
+
+    const list =
+        document.getElementById(
+            "productList"
+        );
+
+    const products =
+        getData("products");
+
+
+    list.innerHTML = "";
+
+
+    products.forEach(function (product, index) {
+
+        list.innerHTML += `
+
+            <div class="saved-item">
+
+                <div>
+
+                    <strong>
+                        ${escapeHTML(product.name)}
+                    </strong>
+
+                    <small>
+                        € ${escapeHTML(product.price)}
+                    </small>
+
+                </div>
+
+                <button
+                    onclick="deleteItem('products', ${index})">
+                    Verwijder
+                </button>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================
+   INSTELLINGEN
+========================================= */
+
+function setupSettings() {
+
+    document
+        .getElementById("saveSettings")
+        ?.addEventListener(
+            "click",
+            saveSettings
+        );
+
+
+    document
+        .getElementById("logoFile")
+        ?.addEventListener(
+            "change",
+            previewLogo
+        );
+
+}
+
 
 function saveSettings() {
 
     const name =
-        getValue("site-name");
+        value("siteName");
+
+    const message =
+        document.getElementById(
+            "settingsMessage"
+        );
 
 
     if (!name) {
 
-        alert(
-            "Vul een naam in."
+        showMessage(
+            message,
+            "❌ Vul een naam in.",
+            "error"
         );
 
         return;
+
     }
 
 
     localStorage.setItem(
-        "mysteryDuoSiteName",
+        "mysteryDuoName",
         name
     );
 
 
-    alert(
-        "✓ Instellingen opgeslagen!"
+    showMessage(
+        message,
+        "✓ Instellingen opgeslagen.",
+        "success"
     );
 
 }
 
 
-// ==========================================
-// HULPFUNCTIES
-// ==========================================
+function previewLogo() {
 
-function getValue(id) {
+    const input =
+        document.getElementById("logoFile");
+
+    const preview =
+        document.getElementById("logoPreview");
+
+
+    if (!input.files.length) {
+
+        preview.innerHTML = "";
+
+        return;
+
+    }
+
+
+    const url =
+        URL.createObjectURL(
+            input.files[0]
+        );
+
+
+    preview.innerHTML = `
+
+        <img
+            src="${url}"
+            alt="Logo voorbeeld">
+
+    `;
+
+}
+
+
+/* =========================================
+   DATA
+========================================= */
+
+function getData(key) {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(
+                "mysteryDuo_" + key
+            )
+        ) || [];
+
+    } catch {
+
+        return [];
+
+    }
+
+}
+
+
+function saveData(key, data) {
+
+    localStorage.setItem(
+        "mysteryDuo_" + key,
+        JSON.stringify(data)
+    );
+
+}
+
+
+function deleteItem(key, index) {
+
+    const data =
+        getData(key);
+
+
+    data.splice(
+        index,
+        1
+    );
+
+
+    saveData(
+        key,
+        data
+    );
+
+
+    loadEverything();
+
+}
+
+
+/* =========================================
+   ALLES LADEN
+========================================= */
+
+function loadEverything() {
+
+    live =
+        localStorage.getItem(
+            "mysteryDuoLive"
+        ) === "true";
+
+
+    const liveUrl =
+        localStorage.getItem(
+            "mysteryDuoLiveUrl"
+        );
+
+
+    if (liveUrl) {
+
+        document.getElementById(
+            "youtubeUrl"
+        ).value = liveUrl;
+
+    }
+
+
+    updateLiveStatus();
+
+    renderEvents();
+
+    renderNews();
+
+    renderProducts();
+
+    updateCounters();
+
+}
+
+
+/* =========================================
+   TELLERS
+========================================= */
+
+function updateCounters() {
+
+    document.getElementById(
+        "videoCount"
+    ).textContent =
+        getData("videos").length;
+
+
+    document.getElementById(
+        "eventCount"
+    ).textContent =
+        getData("events").length;
+
+
+    document.getElementById(
+        "newsCount"
+    ).textContent =
+        getData("news").length;
+
+
+    document.getElementById(
+        "photoCount"
+    ).textContent =
+        getData("photos").length;
+
+}
+
+
+/* =========================================
+   HULPFUNCTIES
+========================================= */
+
+function value(id) {
 
     const element =
         document.getElementById(id);
 
-    if (!element) {
-        return "";
-    }
-
-    return element.value.trim();
+    return element
+        ? element.value.trim()
+        : "";
 
 }
 
 
 function showMessage(element, text, type) {
 
-    if (!element) {
-        return;
-    }
+    if (!element) return;
 
-    element.textContent =
-        text;
+    element.textContent = text;
 
     element.className =
-        "admin-message " + type;
+        "message " + type;
 
 }
 
 
-function formatTime(seconds) {
+function escapeHTML(text) {
 
-    const minutes =
-        Math.floor(seconds / 60);
+    const div =
+        document.createElement("div");
 
-    const remaining =
-        Math.floor(seconds % 60);
+    div.textContent =
+        text;
 
-    return (
-        minutes +
-        ":" +
-        remaining
-            .toString()
-            .padStart(2, "0")
-    );
-
-}
-
-
-function formatFileSize(bytes) {
-
-    const mb =
-        bytes / (1024 * 1024);
-
-    return mb.toFixed(2) + " MB";
+    return div.innerHTML;
 
 }
