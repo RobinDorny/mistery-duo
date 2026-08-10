@@ -1,3536 +1,667 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Mistery Duo — Beheer</title>
+    <meta charset="UTF-8">
 
-<style>
-:root{
-    --bg:#08090d;
-    --panel:#11131a;
-    --panel2:#171a23;
-    --border:rgba(255,255,255,.08);
-    --text:#fff;
-    --muted:#9ca3af;
-    --accent:#a855f7;
-    --accent2:#ec4899;
-    --green:#22c55e;
-    --red:#ef4444;
-    --orange:#f59e0b;
-    --shadow:0 20px 60px rgba(0,0,0,.35);
-}
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
+    <title>Mistery Duo Beheer</title>
 
-html{
-    scroll-behavior:smooth;
-}
+    <link
+        rel="stylesheet"
+        href="admin.css"
+    >
 
-body{
-    font-family:Inter,Arial,sans-serif;
-    background:
-        radial-gradient(circle at 10% 0%,rgba(168,85,247,.12),transparent 30%),
-        radial-gradient(circle at 90% 10%,rgba(236,72,153,.10),transparent 30%),
-        var(--bg);
-    color:var(--text);
-    min-height:100vh;
-}
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
 
-button,
-input,
-textarea,
-select{
-    font:inherit;
-}
-
-button{
-    cursor:pointer;
-}
-
-.app{
-    display:flex;
-    min-height:100vh;
-}
-
-/* SIDEBAR */
-
-.sidebar{
-    width:270px;
-    position:fixed;
-    top:0;
-    bottom:0;
-    left:0;
-    background:rgba(12,13,18,.95);
-    border-right:1px solid var(--border);
-    padding:25px 18px;
-    z-index:100;
-    overflow-y:auto;
-}
-
-.brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:5px 8px 25px;
-}
-
-.brand-logo{
-    width:48px;
-    height:48px;
-    border-radius:15px;
-    object-fit:cover;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));
-    box-shadow:0 10px 30px rgba(168,85,247,.25);
-}
-
-.brand-text strong{
-    display:block;
-    font-size:17px;
-}
-
-.brand-text span{
-    color:var(--muted);
-    font-size:12px;
-}
-
-.nav-title{
-    color:#666b78;
-    font-size:11px;
-    font-weight:800;
-    letter-spacing:1.5px;
-    margin:20px 10px 8px;
-    text-transform:uppercase;
-}
-
-.nav button{
-    width:100%;
-    border:0;
-    background:transparent;
-    color:#aeb3bf;
-    padding:12px 13px;
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    text-align:left;
-    margin-bottom:4px;
-    transition:.2s;
-}
-
-.nav button:hover,
-.nav button.active{
-    color:white;
-    background:linear-gradient(
-        90deg,
-        rgba(168,85,247,.18),
-        rgba(236,72,153,.08)
-    );
-}
-
-.nav-icon{
-    width:28px;
-    text-align:center;
-    font-size:17px;
-}
-
-/* MAIN */
-
-.main{
-    margin-left:270px;
-    width:calc(100% - 270px);
-    padding:30px;
-}
-
-.topbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:20px;
-    margin-bottom:30px;
-}
-
-.top-title h1{
-    font-size:30px;
-    letter-spacing:-1px;
-}
-
-.top-title p{
-    color:var(--muted);
-    margin-top:5px;
-}
-
-.status{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:10px 15px;
-    background:rgba(34,197,94,.08);
-    border:1px solid rgba(34,197,94,.2);
-    border-radius:999px;
-    color:#86efac;
-    font-size:13px;
-}
-
-.status-dot{
-    width:8px;
-    height:8px;
-    background:var(--green);
-    border-radius:50%;
-    box-shadow:0 0 12px var(--green);
-}
-
-/* SECTIONS */
-
-.section{
-    display:none;
-    animation:fade .25s ease;
-}
-
-.section.active{
-    display:block;
-}
-
-@keyframes fade{
-    from{
-        opacity:0;
-        transform:translateY(8px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-.section-header{
-    margin-bottom:20px;
-}
-
-.section-header h2{
-    font-size:25px;
-}
-
-.section-header p{
-    color:var(--muted);
-    margin-top:5px;
-}
-
-/* DASHBOARD */
-
-.stats{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:16px;
-    margin-bottom:22px;
-}
-
-.stat{
-    background:linear-gradient(
-        145deg,
-        rgba(255,255,255,.06),
-        rgba(255,255,255,.025)
-    );
-    border:1px solid var(--border);
-    border-radius:20px;
-    padding:22px;
-    box-shadow:var(--shadow);
-}
-
-.stat-icon{
-    font-size:25px;
-    margin-bottom:14px;
-}
-
-.stat-number{
-    font-size:30px;
-    font-weight:800;
-}
-
-.stat-label{
-    color:var(--muted);
-    font-size:13px;
-    margin-top:4px;
-}
-
-/* CARDS */
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:18px;
-}
-
-.card{
-    background:rgba(17,19,26,.86);
-    border:1px solid var(--border);
-    border-radius:22px;
-    padding:22px;
-    box-shadow:var(--shadow);
-}
-
-.card h3{
-    font-size:18px;
-    margin-bottom:5px;
-}
-
-.card-description{
-    color:var(--muted);
-    font-size:13px;
-    margin-bottom:20px;
-}
-
-/* FORMS */
-
-.form-group{
-    margin-bottom:15px;
-}
-
-label{
-    display:block;
-    font-size:13px;
-    font-weight:700;
-    margin-bottom:7px;
-}
-
-input,
-textarea,
-select{
-    width:100%;
-    background:#0c0e13;
-    color:white;
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:12px 13px;
-    outline:none;
-    transition:.2s;
-}
-
-input:focus,
-textarea:focus,
-select:focus{
-    border-color:rgba(168,85,247,.7);
-    box-shadow:0 0 0 3px rgba(168,85,247,.1);
-}
-
-textarea{
-    min-height:120px;
-    resize:vertical;
-}
-
-.row{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-}
-
-/* BUTTONS */
-
-.btn{
-    border:0;
-    border-radius:12px;
-    padding:11px 16px;
-    color:white;
-    background:#242833;
-    transition:.2s;
-    font-weight:700;
-}
-
-.btn:hover{
-    transform:translateY(-1px);
-    filter:brightness(1.1);
-}
-
-.btn-primary{
-    background:linear-gradient(135deg,var(--accent),var(--accent2));
-    box-shadow:0 8px 25px rgba(168,85,247,.2);
-}
-
-.btn-green{
-    background:#15803d;
-}
-
-.btn-red{
-    background:#991b1b;
-}
-
-.btn-orange{
-    background:#a16207;
-}
-
-.btn-small{
-    padding:8px 11px;
-    font-size:12px;
-}
-
-.actions{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-}
-
-/* LOGO */
-
-.logo-preview{
-    width:150px;
-    height:150px;
-    border-radius:28px;
-    object-fit:cover;
-    display:block;
-    margin-bottom:15px;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));
-    border:1px solid var(--border);
-}
-
-/* ITEMS */
-
-.items{
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-}
-
-.item{
-    background:#0d0f14;
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:15px;
-    display:flex;
-    justify-content:space-between;
-    gap:15px;
-    align-items:center;
-}
-
-.item-main{
-    min-width:0;
-}
-
-.item-title{
-    font-weight:800;
-    margin-bottom:4px;
-}
-
-.item-text{
-    color:var(--muted);
-    font-size:13px;
-    white-space:pre-wrap;
-    overflow-wrap:anywhere;
-}
-
-.item-actions{
-    display:flex;
-    gap:6px;
-    flex-shrink:0;
-}
-
-.item-image{
-    width:75px;
-    height:55px;
-    object-fit:cover;
-    border-radius:10px;
-    flex-shrink:0;
-}
-
-/* MEDIA */
-
-.media-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:14px;
-}
-
-.media-card{
-    background:#0d0f14;
-    border:1px solid var(--border);
-    border-radius:16px;
-    overflow:hidden;
-}
-
-.media-card img,
-.media-card video{
-    width:100%;
-    height:180px;
-    display:block;
-    object-fit:cover;
-    background:#050505;
-}
-
-.media-info{
-    padding:12px;
-}
-
-.media-info strong{
-    display:block;
-    margin-bottom:7px;
-}
-
-.media-info small{
-    color:var(--muted);
-}
-
-/* LIVE */
-
-.live-box{
-    border-radius:22px;
-    padding:25px;
-    background:
-        radial-gradient(circle at 80% 20%,rgba(239,68,68,.18),transparent 30%),
-        #11131a;
-    border:1px solid var(--border);
-}
-
-.live-status{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:18px;
-}
-
-.live-light{
-    width:12px;
-    height:12px;
-    border-radius:50%;
-    background:#555;
-}
-
-.live-light.on{
-    background:#ef4444;
-    box-shadow:0 0 18px #ef4444;
-}
-
-.live-preview{
-    width:100%;
-    min-height:300px;
-    border-radius:18px;
-    background:#050505;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-    margin-top:18px;
-}
-
-.live-preview iframe{
-    width:100%;
-    height:500px;
-    border:0;
-}
-
-.live-placeholder{
-    text-align:center;
-    color:#666;
-}
-
-.live-placeholder div{
-    font-size:50px;
-    margin-bottom:10px;
-}
-
-/* BOOKINGS */
-
-.booking{
-    border:1px solid var(--border);
-    border-radius:17px;
-    background:#0d0f14;
-    padding:17px;
-}
-
-.booking + .booking{
-    margin-top:10px;
-}
-
-.booking-head{
-    display:flex;
-    justify-content:space-between;
-    gap:15px;
-    align-items:flex-start;
-}
-
-.booking-name{
-    font-weight:800;
-    font-size:16px;
-}
-
-.booking-date{
-    color:var(--muted);
-    font-size:12px;
-    margin-top:4px;
-}
-
-.badge{
-    display:inline-flex;
-    padding:5px 9px;
-    border-radius:999px;
-    font-size:11px;
-    font-weight:800;
-}
-
-.badge-new{
-    background:rgba(245,158,11,.12);
-    color:#fbbf24;
-}
-
-.badge-ok{
-    background:rgba(34,197,94,.12);
-    color:#86efac;
-}
-
-.badge-no{
-    background:rgba(239,68,68,.12);
-    color:#fca5a5;
-}
-
-.booking-info{
-    margin-top:12px;
-    color:#c5c8d0;
-    line-height:1.6;
-    font-size:13px;
-}
-
-/* TOAST */
-
-.toast{
-    position:fixed;
-    right:25px;
-    bottom:25px;
-    background:#171a23;
-    border:1px solid var(--border);
-    box-shadow:0 20px 60px rgba(0,0,0,.5);
-    padding:14px 18px;
-    border-radius:14px;
-    z-index:9999;
-    transform:translateY(100px);
-    opacity:0;
-    pointer-events:none;
-    transition:.3s;
-}
-
-.toast.show{
-    transform:translateY(0);
-    opacity:1;
-}
-
-.toast.success{
-    border-color:rgba(34,197,94,.4);
-}
-
-.toast.error{
-    border-color:rgba(239,68,68,.4);
-}
-
-/* MOBILE */
-
-.mobile-menu{
-    display:none;
-}
-
-@media(max-width:1050px){
-    .stats{
-        grid-template-columns:repeat(2,1fr);
-    }
-
-    .media-grid{
-        grid-template-columns:repeat(2,1fr);
-    }
-}
-
-@media(max-width:800px){
-    .sidebar{
-        transform:translateX(-100%);
-        transition:.25s;
-    }
-
-    .sidebar.open{
-        transform:translateX(0);
-    }
-
-    .main{
-        margin-left:0;
-        width:100%;
-        padding:20px;
-    }
-
-    .mobile-menu{
-        display:block;
-        position:fixed;
-        top:15px;
-        left:15px;
-        z-index:200;
-        border:0;
-        background:#171a23;
-        color:white;
-        width:45px;
-        height:45px;
-        border-radius:13px;
-        font-size:20px;
-    }
-
-    .topbar{
-        padding-left:58px;
-        align-items:flex-start;
-    }
-
-    .top-title h1{
-        font-size:24px;
-    }
-
-    .status{
-        display:none;
-    }
-
-    .grid{
-        grid-template-columns:1fr;
-    }
-
-    .media-grid{
-        grid-template-columns:1fr;
-    }
-
-    .row{
-        grid-template-columns:1fr;
-    }
-}
-
-@media(max-width:500px){
-    .stats{
-        grid-template-columns:1fr 1fr;
-        gap:10px;
-    }
-
-    .stat{
-        padding:15px;
-    }
-
-    .stat-number{
-        font-size:24px;
-    }
-
-    .card{
-        padding:17px;
-    }
-
-    .item{
-        flex-direction:column;
-        align-items:flex-start;
-    }
-
-    .item-actions{
-        width:100%;
-    }
-}
-</style>
 </head>
 
 <body>
 
-<button class="mobile-menu" onclick="toggleSidebar()">☰</button>
-
-<div class="app">
-
-<!-- SIDEBAR -->
-
-<aside class="sidebar" id="sidebar">
-
-    <div class="brand">
-        <img id="sidebarLogo"
-             class="brand-logo"
-             src=""
-             alt="Mistery Duo">
-
-        <div class="brand-text">
-            <strong>Mistery Duo</strong>
-            <span>Beheerplatform</span>
-        </div>
-    </div>
-
-    <div class="nav-title">Overzicht</div>
-
-    <nav class="nav">
-
-        <button class="active" onclick="showSection('dashboard',this)">
-            <span class="nav-icon">⌂</span>
-            Dashboard
-        </button>
-
-        <button onclick="showSection('logo',this)">
-            <span class="nav-icon">◈</span>
-            Logo & branding
-        </button>
-
-        <button onclick="showSection('nieuws',this)">
-            <span class="nav-icon">📰</span>
-            Nieuws
-        </button>
-
-        <button onclick="showSection('optredens',this)">
-            <span class="nav-icon">🎤</span>
-            Optredens
-        </button>
-
-        <button onclick="showSection('boekingen',this)">
-            <span class="nav-icon">📩</span>
-            Boekingen
-        </button>
-
-        <button onclick="showSection('fotos',this)">
-            <span class="nav-icon">📸</span>
-            Foto's
-        </button>
-
-        <button onclick="showSection('videos',this)">
-            <span class="nav-icon">🎬</span>
-            Video's
-        </button>
-
-        <button onclick="showSection('live',this)">
-            <span class="nav-icon">🔴</span>
-            Livestream
-        </button>
-
-        <button onclick="showSection('merch',this)">
-            <span class="nav-icon">🛍️</span>
-            Merchandise
-        </button>
-
-        <button onclick="showSection('instellingen',this)">
-            <span class="nav-icon">⚙️</span>
-            Instellingen
-        </button>
-
-    </nav>
-
-</aside>
+<div class="admin-layout">
 
 
-<!-- MAIN -->
+    <aside class="sidebar">
 
-<main class="main">
+        <div class="admin-brand">
 
-<header class="topbar">
+            <div class="admin-logo">
+                M
+            </div>
 
-    <div class="top-title">
-        <h1 id="pageTitle">Dashboard</h1>
-        <p id="pageDescription">
-            Beheer alles van Mistery Duo op één plek.
-        </p>
-    </div>
-
-    <div class="status">
-        <span class="status-dot"></span>
-        Alles lokaal opgeslagen
-    </div>
-
-</header>
-
-
-<!-- DASHBOARD -->
-
-<section id="dashboard" class="section active">
-
-    <div class="stats">
-
-        <div class="stat">
-            <div class="stat-icon">📰</div>
-            <div class="stat-number" id="statNews">0</div>
-            <div class="stat-label">Nieuwsberichten</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-icon">🎤</div>
-            <div class="stat-number" id="statShows">0</div>
-            <div class="stat-label">Optredens</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-icon">📸</div>
-            <div class="stat-number" id="statPhotos">0</div>
-            <div class="stat-label">Foto's</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-icon">📩</div>
-            <div class="stat-number" id="statBookings">0</div>
-            <div class="stat-label">Boekingsaanvragen</div>
-        </div>
-
-    </div>
-
-    <div class="grid">
-
-        <div class="card">
-
-            <h3>Welkom bij het beheerplatform</h3>
-
-            <p class="card-description">
-                Hier beheer je de inhoud van de Mistery Duo website.
-            </p>
-
-            <div class="actions">
-
-                <button class="btn btn-primary"
-                        onclick="showSectionByName('nieuws')">
-                    + Nieuws toevoegen
-                </button>
-
-                <button class="btn"
-                        onclick="showSectionByName('optredens')">
-                    + Optreden toevoegen
-                </button>
-
+            <div>
+                <strong>MISTERY DUO</strong>
+                <span>BEHEER</span>
             </div>
 
         </div>
 
 
-        <div class="card">
-
-            <h3>Snelle acties</h3>
-
-            <p class="card-description">
-                Ga meteen naar de onderdelen die je vaak gebruikt.
-            </p>
-
-            <div class="actions">
-
-                <button class="btn"
-                        onclick="showSectionByName('fotos')">
-                    📸 Foto uploaden
-                </button>
-
-                <button class="btn"
-                        onclick="showSectionByName('videos')">
-                    🎬 Video uploaden
-                </button>
-
-                <button class="btn"
-                        onclick="showSectionByName('live')">
-                    🔴 Livestream
-                </button>
-
-                <button class="btn"
-                        onclick="showSectionByName('boekingen')">
-                    📩 Boekingen
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- LOGO -->
-
-<section id="logo" class="section">
-
-    <div class="section-header">
-        <h2>Logo & branding</h2>
-        <p>Wijzig hier het logo dat in het beheerplatform wordt gebruikt.</p>
-    </div>
-
-    <div class="grid">
-
-        <div class="card">
-
-            <h3>Huidig logo</h3>
-
-            <p class="card-description">
-                Upload een nieuwe afbeelding.
-            </p>
-
-            <img id="logoPreview"
-                 class="logo-preview"
-                 src=""
-                 alt="Logo">
-
-            <input
-                type="file"
-                id="logoInput"
-                accept="image/*">
-
-            <br><br>
-
-            <button class="btn btn-primary"
-                    onclick="saveLogo()">
-                Logo opslaan
-            </button>
-
-            <button class="btn btn-red"
-                    onclick="removeLogo()">
-                Logo verwijderen
-            </button>
-
-        </div>
-
-        <div class="card">
-
-            <h3>Naam</h3>
-
-            <p class="card-description">
-                De naam die in het beheerplatform wordt gebruikt.
-            </p>
-
-            <div class="form-group">
-
-                <label>Naam van de artiesten</label>
-
-                <input
-                    id="duoName"
-                    value="Mistery Duo">
-
-            </div>
-
-            <button class="btn btn-primary"
-                    onclick="saveName()">
-                Naam opslaan
-            </button>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- NIEUWS -->
-
-<section id="nieuws" class="section">
-
-    <div class="section-header">
-        <h2>Nieuws</h2>
-        <p>Maak nieuwsberichten voor de website.</p>
-    </div>
-
-    <div class="card">
-
-        <h3>Nieuw bericht</h3>
-
-        <br>
-
-        <div class="form-group">
-
-            <label>Titel</label>
-
-            <input
-                id="newsTitle"
-                placeholder="Bijvoorbeeld: Nieuwe show aangekondigd!">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>Bericht</label>
-
-            <textarea
-                id="newsText"
-                placeholder="Schrijf hier je nieuwsbericht..."></textarea>
-
-        </div>
-
-        <button class="btn btn-primary"
-                onclick="addNews()">
-            Nieuws publiceren
-        </button>
-
-    </div>
-
-    <br>
-
-    <div class="card">
-
-        <h3>Gepubliceerde berichten</h3>
-
-        <br>
-
-        <div id="newsList" class="items"></div>
-
-    </div>
-
-</section>
-
-
-<!-- OPTREDENS -->
-
-<section id="optredens" class="section">
-
-    <div class="section-header">
-        <h2>Optredens</h2>
-        <p>Beheer geplande optredens.</p>
-    </div>
-
-    <div class="card">
-
-        <h3>Optreden toevoegen</h3>
-
-        <br>
-
-        <div class="row">
-
-            <div class="form-group">
-
-                <label>Naam evenement</label>
-
-                <input
-                    id="showName"
-                    placeholder="Bijvoorbeeld: Zomerfestival">
-
-            </div>
-
-            <div class="form-group">
-
-                <label>Datum</label>
-
-                <input
-                    id="showDate"
-                    type="date">
-
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <div class="form-group">
-
-                <label>Locatie</label>
-
-                <input
-                    id="showLocation"
-                    placeholder="Blankенberge">
-
-            </div>
-
-            <div class="form-group">
-
-                <label>Tijdstip</label>
-
-                <input
-                    id="showTime"
-                    type="time">
-
-            </div>
-
-        </div>
-
-        <div class="form-group">
-
-            <label>Extra informatie</label>
-
-            <textarea
-                id="showInfo"
-                placeholder="Extra informatie over het optreden..."></textarea>
-
-        </div>
-
-        <button class="btn btn-primary"
-                onclick="addShow()">
-            Optreden toevoegen
-        </button>
-
-    </div>
-
-    <br>
-
-    <div class="card">
-
-        <h3>Geplande optredens</h3>
-
-        <br>
-
-        <div id="showsList" class="items"></div>
-
-    </div>
-
-</section>
-
-
-<!-- BOEKINGEN -->
-
-<section id="boekingen" class="section">
-
-    <div class="section-header">
-        <h2>Boekingsaanvragen</h2>
-        <p>Bekijk aanvragen voor Mistery Duo.</p>
-    </div>
-
-    <div class="card">
-
-        <h3>Aanvragen</h3>
-
-        <br>
-
-        <div id="bookingsList"></div>
-
-        <br>
-
-        <button class="btn btn-red"
-                onclick="clearBookings()">
-            Alle aanvragen verwijderen
-        </button>
-
-    </div>
-
-</section>
-
-
-<!-- FOTO'S -->
-
-<section id="fotos" class="section">
-
-    <div class="section-header">
-        <h2>Foto's</h2>
-        <p>Upload foto's voor de galerij.</p>
-    </div>
-
-    <div class="card">
-
-        <h3>Foto toevoegen</h3>
-
-        <br>
-
-        <div class="form-group">
-
-            <label>Beschrijving</label>
-
-            <input
-                id="photoTitle"
-                placeholder="Bijvoorbeeld: Mistery Duo live in Blankenberge">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>Foto</label>
-
-            <input
-                type="file"
-                id="photoInput"
-                accept="image/*">
-
-        </div>
-
-        <button class="btn btn-primary"
-                onclick="addPhoto()">
-            Foto uploaden
-        </button>
-
-    </div>
-
-    <br>
-
-    <div class="card">
-
-        <h3>Galerij</h3>
-
-        <br>
-
-        <div id="photosGrid" class="media-grid"></div>
-
-    </div>
-
-</section>
-
-
-<!-- VIDEO'S -->
-
-<section id="videos" class="section">
-
-    <div class="section-header">
-        <h2>Video's</h2>
-        <p>Voeg korte video's toe voor de website.</p>
-    </div>
-
-    <div class="card">
-
-        <h3>Video toevoegen</h3>
-
-        <br>
-
-        <div class="form-group">
-
-            <label>Titel</label>
-
-            <input
-                id="videoTitle"
-                placeholder="Bijvoorbeeld: Mistery Duo live">
-
-        </div>
-
-        <div class="form-group">
-
-            <label>Video</label>
-
-            <input
-                type="file"
-                id="videoInput"
-                accept="video/*">
-
-        </div>
-
-        <button class="btn btn-primary"
-                onclick="addVideo()">
-            Video uploaden
-        </button>
-
-        <p style="color:#fbbf24;font-size:12px;margin-top:12px;">
-            Tip: gebruik korte video's. Grote video's kunnen veel browseropslag gebruiken.
-        </p>
-
-    </div>
-
-    <br>
-
-    <div class="card">
-
-        <h3>Video's</h3>
-
-        <br>
-
-        <div id="videosGrid" class="media-grid"></div>
-
-    </div>
-
-</section>
-
-
-<!-- LIVESTREAM -->
-
-<section id="live" class="section">
-
-    <div class="section-header">
-        <h2>Livestream</h2>
-        <p>Beheer de livestream die bezoekers kunnen bekijken.</p>
-    </div>
-
-    <div class="live-box">
-
-        <div class="live-status">
-
-            <span id="liveLight" class="live-light"></span>
-
-            <strong id="liveText">
-                Livestream staat uit
-            </strong>
-
-        </div>
-
-        <div class="form-group">
-
-            <label>Livestream URL</label>
-
-            <input
-                id="liveUrl"
-                placeholder="https://www.youtube.com/embed/...">
-
-        </div>
-
-        <div class="actions">
+        <nav>
 
             <button
-                class="btn btn-primary"
-                onclick="saveLive()">
-                Livestream opslaan
+                class="menu active"
+                data-section="dashboard"
+            >
+                📊 Dashboard
             </button>
 
             <button
-                class="btn btn-red"
-                onclick="disableLive()">
-                Livestream stoppen
+                class="menu"
+                data-section="news"
+            >
+                📰 Nieuws
             </button>
 
-        </div>
+            <button
+                class="menu"
+                data-section="shows"
+            >
+                🎤 Optredens
+            </button>
 
-        <div class="live-preview" id="livePreview">
+            <button
+                class="menu"
+                data-section="bookings"
+            >
+                📩 Boekingen
+            </button>
 
-            <div class="live-placeholder">
+            <button
+                class="menu"
+                data-section="photos"
+            >
+                📸 Foto's
+            </button>
 
-                <div>🔴</div>
+            <button
+                class="menu"
+                data-section="videos"
+            >
+                🎬 Video's
+            </button>
+
+            <button
+                class="menu"
+                data-section="merch"
+            >
+                🛍 Merchandise
+            </button>
+
+            <button
+                class="menu"
+                data-section="live"
+            >
+                🔴 Livestream
+            </button>
+
+            <button
+                class="menu"
+                data-section="settings"
+            >
+                ⚙️ Instellingen
+            </button>
+
+        </nav>
+
+
+        <a
+            href="index.html"
+            target="_blank"
+            class="website-button"
+        >
+            🌐 Bekijk website
+        </a>
+
+    </aside>
+
+
+    <main class="admin-main">
+
+
+        <header class="admin-header">
+
+            <div>
+
+                <p>BEHEERPLATFORM</p>
+
+                <h1 id="pageTitle">
+                    Dashboard
+                </h1>
+
+            </div>
+
+            <div class="status">
+
+                <span></span>
+
+                Online
+
+            </div>
+
+        </header>
+
+
+        <!-- DASHBOARD -->
+
+        <section
+            id="dashboard"
+            class="panel active"
+        >
+
+            <div class="stats">
+
+                <div class="stat">
+
+                    <span>📰</span>
+
+                    <strong id="statNews">
+                        0
+                    </strong>
+
+                    <p>Nieuws</p>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <span>🎤</span>
+
+                    <strong id="statShows">
+                        0
+                    </strong>
+
+                    <p>Optredens</p>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <span>📩</span>
+
+                    <strong id="statBookings">
+                        0
+                    </strong>
+
+                    <p>Boekingen</p>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <span>📸</span>
+
+                    <strong id="statPhotos">
+                        0
+                    </strong>
+
+                    <p>Foto's</p>
+
+                </div>
+
+            </div>
+
+
+            <div class="welcome">
+
+                <p class="small-title">
+                    MISTERY DUO
+                </p>
+
+                <h2>
+                    Welkom in het beheerplatform.
+                </h2>
 
                 <p>
-                    Geen livestream actief
+                    Vanaf hier kun je de inhoud van de
+                    Mistery Duo-website beheren.
                 </p>
 
             </div>
 
-        </div>
-
-    </div>
-
-</section>
+        </section>
 
 
-<!-- MERCH -->
+        <!-- NIEUWS -->
 
-<section id="merch" class="section">
+        <section
+            id="news"
+            class="panel"
+        >
 
-    <div class="section-header">
-        <h2>Merchandise</h2>
-        <p>Beheer merchandiseproducten.</p>
-    </div>
+            <div class="panel-title">
 
-    <div class="card">
-
-        <h3>Product toevoegen</h3>
-
-        <br>
-
-        <div class="row">
-
-            <div class="form-group">
-
-                <label>Productnaam</label>
-
-                <input
-                    id="productName"
-                    placeholder="Mistery Duo T-shirt">
+                <div>
+                    <p>WEBSITE</p>
+                    <h2>Nieuws beheren</h2>
+                </div>
 
             </div>
 
-            <div class="form-group">
 
-                <label>Prijs (€)</label>
+            <form id="newsForm" class="form">
 
                 <input
-                    id="productPrice"
+                    id="newsTitle"
+                    placeholder="Titel"
+                    required
+                >
+
+                <textarea
+                    id="newsContent"
+                    placeholder="Nieuwsbericht"
+                    required
+                ></textarea>
+
+                <input
+                    id="newsImage"
+                    type="url"
+                    placeholder="Afbeelding URL (optioneel)"
+                >
+
+                <button class="save">
+                    Nieuws publiceren
+                </button>
+
+            </form>
+
+
+            <div
+                id="newsList"
+                class="admin-list"
+            ></div>
+
+        </section>
+
+
+        <!-- OPTREDENS -->
+
+        <section
+            id="shows"
+            class="panel"
+        >
+
+            <div class="panel-title">
+
+                <div>
+                    <p>AGENDA</p>
+                    <h2>Optredens</h2>
+                </div>
+
+            </div>
+
+
+            <form
+                id="showForm"
+                class="form"
+            >
+
+                <input
+                    id="showName"
+                    placeholder="Naam optreden"
+                    required
+                >
+
+                <input
+                    id="showDate"
+                    type="date"
+                    required
+                >
+
+                <input
+                    id="showTime"
+                    placeholder="Tijd"
+                >
+
+                <input
+                    id="showLocation"
+                    placeholder="Locatie"
+                >
+
+                <textarea
+                    id="showInfo"
+                    placeholder="Extra informatie"
+                ></textarea>
+
+                <button class="save">
+                    Optreden toevoegen
+                </button>
+
+            </form>
+
+
+            <div
+                id="showsList"
+                class="admin-list"
+            ></div>
+
+        </section>
+
+
+        <!-- BOEKINGEN -->
+
+        <section
+            id="bookings"
+            class="panel"
+        >
+
+            <div class="panel-title">
+
+                <div>
+                    <p>AANVRAGEN</p>
+                    <h2>Boekingen</h2>
+                </div>
+
+            </div>
+
+
+            <div
+                id="bookingsList"
+                class="admin-list"
+            ></div>
+
+        </section>
+
+
+        <!-- FOTO'S -->
+
+        <section
+            id="photos"
+            class="panel"
+        >
+
+            <div class="panel-title">
+
+                <div>
+                    <p>MEDIA</p>
+                    <h2>Foto's</h2>
+                </div>
+
+            </div>
+
+
+            <form
+                id="photoForm"
+                class="form"
+            >
+
+                <input
+                    id="photoTitle"
+                    placeholder="Naam van de foto"
+                >
+
+                <input
+                    id="photoFile"
+                    type="file"
+                    accept="image/*"
+                    required
+                >
+
+                <button class="save">
+                    Foto uploaden
+                </button>
+
+            </form>
+
+
+            <div
+                id="photosList"
+                class="admin-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- VIDEO'S -->
+
+        <section
+            id="videos"
+            class="panel"
+        >
+
+            <div class="panel-title">
+
+                <div>
+                    <p>MEDIA</p>
+                    <h2>Video's</h2>
+                </div>
+
+            </div>
+
+
+            <form
+                id="videoForm"
+                class="form"
+            >
+
+                <input
+                    id="videoTitle"
+                    placeholder="Naam van de video"
+                >
+
+                <input
+                    id="videoFile"
+                    type="file"
+                    accept="video/*"
+                    required
+                >
+
+                <button class="save">
+                    Video uploaden
+                </button>
+
+            </form>
+
+
+            <div
+                id="videosList"
+                class="admin-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- MERCH -->
+
+        <section
+            id="merch"
+            class="panel"
+        >
+
+            <div class="panel-title">
+
+                <div>
+                    <p>SHOP</p>
+                    <h2>Merchandise</h2>
+                </div>
+
+            </div>
+
+
+            <form
+                id="merchForm"
+                class="form"
+            >
+
+                <input
+                    id="merchName"
+                    placeholder="Productnaam"
+                    required
+                >
+
+                <input
+                    id="merchPrice"
                     type="number"
                     step="0.01"
-                    placeholder="25">
+                    placeholder="Prijs"
+                >
+
+                <textarea
+                    id="merchDescription"
+                    placeholder="Beschrijving"
+                ></textarea>
+
+                <input
+                    id="merchImage"
+                    type="url"
+                    placeholder="Afbeelding URL"
+                >
+
+                <button class="save">
+                    Product toevoegen
+                </button>
+
+            </form>
+
+
+            <div
+                id="merchList"
+                class="admin-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- LIVESTREAM -->
+
+        <section
+            id="live"
+            class="panel"
+        >
+
+            <div class="panel-title">
+
+                <div>
+                    <p>LIVE</p>
+                    <h2>Livestream</h2>
+                </div>
 
             </div>
 
-        </div>
 
-        <div class="form-group">
+            <form
+                id="liveForm"
+                class="form"
+            >
 
-            <label>Beschrijving</label>
+                <label class="switch-row">
 
-            <textarea
-                id="productDescription"
-                placeholder="Beschrijving van het product..."></textarea>
+                    <input
+                        id="liveActive"
+                        type="checkbox"
+                    >
 
-        </div>
+                    Livestream actief
 
-        <div class="form-group">
-
-            <label>Productfoto</label>
-
-            <input
-                type="file"
-                id="productImage"
-                accept="image/*">
-
-        </div>
-
-        <button class="btn btn-primary"
-                onclick="addProduct()">
-            Product toevoegen
-        </button>
-
-    </div>
-
-    <br>
-
-    <div class="card">
-
-        <h3>Producten</h3>
-
-        <br>
-
-        <div id="productsList" class="items"></div>
-
-    </div>
-
-</section>
+                </label>
 
 
-<!-- INSTELLINGEN -->
-
-<section id="instellingen" class="section">
-
-    <div class="section-header">
-        <h2>Instellingen</h2>
-        <p>Beheer lokale gegevens.</p>
-    </div>
-
-    <div class="grid">
-
-        <div class="card">
-
-            <h3>Gegevens exporteren</h3>
-
-            <p class="card-description">
-                Maak een back-up van de gegevens.
-            </p>
-
-            <button class="btn btn-primary"
-                    onclick="exportData()">
-                ⬇️ Back-up maken
-            </button>
-
-        </div>
-
-        <div class="card">
-
-            <h3>Gegevens wissen</h3>
-
-            <p class="card-description">
-                Hiermee verwijder je alle lokale gegevens.
-            </p>
-
-            <button class="btn btn-red"
-                    onclick="resetEverything()">
-                Alles wissen
-            </button>
-
-        </div>
-
-    </div>
-
-</section>
+                <input
+                    id="liveTitle"
+                    placeholder="Titel"
+                >
 
 
-</main>
+                <input
+                    id="liveUrl"
+                    type="url"
+                    placeholder="Livestream embed URL"
+                >
+
+
+                <button class="save">
+                    Livestream opslaan
+                </button>
+
+            </form>
+
+
+            <div
+                id="livePreview"
+                class="live-preview"
+            ></div>
+
+        </section>
+
+
+        <!-- INSTELLINGEN -->
+
+        <section
+            id="settings"
+            class="panel"
+        >
+
+            <div class="panel-title">
+
+                <div>
+                    <p>WEBSITE</p>
+                    <h2>Instellingen</h2>
+                </div>
+
+            </div>
+
+
+            <form
+                id="settingsForm"
+                class="form"
+            >
+
+                <input
+                    id="siteName"
+                    placeholder="Naam website"
+                >
+
+
+                <label>
+                    Nieuw logo
+                </label>
+
+                <input
+                    id="logoFile"
+                    type="file"
+                    accept="image/*"
+                >
+
+
+                <img
+                    id="currentLogo"
+                    class="current-logo"
+                    alt="Huidig logo"
+                >
+
+
+                <button class="save">
+                    Instellingen opslaan
+                </button>
+
+            </form>
+
+        </section>
+
+
+    </main>
 
 </div>
 
 
-<!-- TOAST -->
+<div
+    id="toast"
+    class="toast"
+></div>
 
-<div id="toast" class="toast"></div>
 
-
-<script>
-
-/* =========================================================
-   MISTERY DUO BEHEER
-   Alles in één bestand
-========================================================= */
-
-
-/* -----------------------------
-   BASIS DATA
------------------------------ */
-
-const defaultData = {
-
-    name: "Mistery Duo",
-
-    logo: "",
-
-    news: [],
-
-    shows: [],
-
-    photos: [],
-
-    videos: [],
-
-    products: [],
-
-    bookings: [],
-
-    live: {
-        active: false,
-        url: ""
-    }
-
-};
-
-
-/* -----------------------------
-   DATA LADEN
------------------------------ */
-
-let data = loadData();
-
-
-function loadData(){
-
-    try{
-
-        const saved = localStorage.getItem("misteryDuoAdmin");
-
-        if(saved){
-
-            const parsed = JSON.parse(saved);
-
-            return {
-                ...defaultData,
-                ...parsed
-            };
-
-        }
-
-    }catch(error){
-
-        console.error(error);
-
-    }
-
-    return JSON.parse(JSON.stringify(defaultData));
-
-}
-
-
-/* -----------------------------
-   DATA OPSLAAN
------------------------------ */
-
-function saveData(){
-
-    try{
-
-        localStorage.setItem(
-            "misteryDuoAdmin",
-            JSON.stringify(data)
-        );
-
-    }catch(error){
-
-        alert(
-            "De browseropslag is vol. Vooral grote video's kunnen hiervoor zorgen."
-        );
-
-        console.error(error);
-
-    }
-
-    updateAll();
-
-}
-
-
-/* -----------------------------
-   TOAST
------------------------------ */
-
-function toast(message,type="success"){
-
-    const element =
-        document.getElementById("toast");
-
-    element.textContent = message;
-
-    element.className =
-        "toast show " + type;
-
-    setTimeout(()=>{
-
-        element.className =
-            "toast";
-
-    },2500);
-
-}
-
-
-/* -----------------------------
-   SIDEBAR
------------------------------ */
-
-function toggleSidebar(){
-
-    document
-        .getElementById("sidebar")
-        .classList.toggle("open");
-
-}
-
-
-/* -----------------------------
-   SECTIE TONEN
------------------------------ */
-
-const titles = {
-
-    dashboard:[
-        "Dashboard",
-        "Beheer alles van Mistery Duo op één plek."
-    ],
-
-    logo:[
-        "Logo & branding",
-        "Beheer het logo en de naam."
-    ],
-
-    nieuws:[
-        "Nieuws",
-        "Beheer nieuwsberichten."
-    ],
-
-    optredens:[
-        "Optredens",
-        "Beheer geplande optredens."
-    ],
-
-    boekingen:[
-        "Boekingsaanvragen",
-        "Bekijk aanvragen voor Mistery Duo."
-    ],
-
-    fotos:[
-        "Foto's",
-        "Beheer foto's."
-    ],
-
-    videos:[
-        "Video's",
-        "Beheer korte video's."
-    ],
-
-    live:[
-        "Livestream",
-        "Beheer de livestream."
-    ],
-
-    merch:[
-        "Merchandise",
-        "Beheer merchandise."
-    ],
-
-    instellingen:[
-        "Instellingen",
-        "Beheer lokale gegevens."
-    ]
-
-};
-
-
-function showSection(name,button){
-
-    document
-        .querySelectorAll(".section")
-        .forEach(section=>{
-
-            section.classList.remove("active");
-
-        });
-
-
-    const target =
-        document.getElementById(name);
-
-    if(target){
-
-        target.classList.add("active");
-
-    }
-
-
-    document
-        .querySelectorAll(".nav button")
-        .forEach(btn=>{
-
-            btn.classList.remove("active");
-
-        });
-
-
-    if(button){
-
-        button.classList.add("active");
-
-    }
-
-
-    if(titles[name]){
-
-        document.getElementById("pageTitle")
-            .textContent = titles[name][0];
-
-        document.getElementById("pageDescription")
-            .textContent = titles[name][1];
-
-    }
-
-
-    document
-        .getElementById("sidebar")
-        .classList.remove("open");
-
-
-    window.scrollTo({
-        top:0,
-        behavior:"smooth"
-    });
-
-}
-
-
-function showSectionByName(name){
-
-    const buttons =
-        document.querySelectorAll(".nav button");
-
-    let found = null;
-
-    buttons.forEach(button=>{
-
-        const text =
-            button.textContent.toLowerCase();
-
-        if(
-            text.includes(name.toLowerCase())
-        ){
-
-            found = button;
-
-        }
-
-    });
-
-
-    showSection(name,found);
-
-}
-
-
-/* -----------------------------
-   LOGO
------------------------------ */
-
-function saveLogo(){
-
-    const input =
-        document.getElementById("logoInput");
-
-    const file =
-        input.files[0];
-
-    if(!file){
-
-        toast(
-            "Selecteer eerst een afbeelding.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload = function(event){
-
-        data.logo =
-            event.target.result;
-
-        saveData();
-
-        input.value = "";
-
-        toast("Logo opgeslagen!");
-
-    };
-
-
-    reader.readAsDataURL(file);
-
-}
-
-
-function removeLogo(){
-
-    if(
-        !confirm(
-            "Wil je het logo verwijderen?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    data.logo = "";
-
-    saveData();
-
-    toast("Logo verwijderd.");
-
-}
-
-
-function saveName(){
-
-    const name =
-        document
-        .getElementById("duoName")
-        .value
-        .trim();
-
-
-    if(!name){
-
-        toast(
-            "Vul een naam in.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    data.name = name;
-
-    saveData();
-
-    toast("Naam opgeslagen.");
-
-}
-
-
-/* -----------------------------
-   NIEUWS
------------------------------ */
-
-function addNews(){
-
-    const title =
-        document
-        .getElementById("newsTitle")
-        .value
-        .trim();
-
-    const text =
-        document
-        .getElementById("newsText")
-        .value
-        .trim();
-
-
-    if(!title || !text){
-
-        toast(
-            "Vul een titel en bericht in.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    data.news.unshift({
-
-        id:Date.now(),
-
-        title:title,
-
-        text:text,
-
-        date:new Date()
-            .toLocaleDateString("nl-BE")
-
-    });
-
-
-    document.getElementById("newsTitle").value = "";
-
-    document.getElementById("newsText").value = "";
-
-
-    saveData();
-
-    toast("Nieuwsbericht gepubliceerd.");
-
-}
-
-
-function deleteNews(id){
-
-    if(
-        !confirm(
-            "Dit nieuwsbericht verwijderen?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    data.news =
-        data.news.filter(
-            item=>item.id !== id
-        );
-
-
-    saveData();
-
-    toast("Nieuwsbericht verwijderd.");
-
-}
-
-
-/* -----------------------------
-   OPTREDENS
------------------------------ */
-
-function addShow(){
-
-    const name =
-        document
-        .getElementById("showName")
-        .value
-        .trim();
-
-    const date =
-        document
-        .getElementById("showDate")
-        .value;
-
-    const location =
-        document
-        .getElementById("showLocation")
-        .value
-        .trim();
-
-    const time =
-        document
-        .getElementById("showTime")
-        .value;
-
-    const info =
-        document
-        .getElementById("showInfo")
-        .value
-        .trim();
-
-
-    if(!name || !date || !location){
-
-        toast(
-            "Naam, datum en locatie zijn verplicht.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    data.shows.push({
-
-        id:Date.now(),
-
-        name,
-
-        date,
-
-        location,
-
-        time,
-
-        info
-
-    });
-
-
-    document.getElementById("showName").value = "";
-
-    document.getElementById("showDate").value = "";
-
-    document.getElementById("showLocation").value = "";
-
-    document.getElementById("showTime").value = "";
-
-    document.getElementById("showInfo").value = "";
-
-
-    saveData();
-
-    toast("Optreden toegevoegd.");
-
-}
-
-
-function deleteShow(id){
-
-    if(
-        !confirm(
-            "Dit optreden verwijderen?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    data.shows =
-        data.shows.filter(
-            item=>item.id !== id
-        );
-
-
-    saveData();
-
-    toast("Optreden verwijderd.");
-
-}
-
-
-/* -----------------------------
-   FOTO'S
------------------------------ */
-
-function addPhoto(){
-
-    const input =
-        document.getElementById("photoInput");
-
-    const file =
-        input.files[0];
-
-    const title =
-        document
-        .getElementById("photoTitle")
-        .value
-        .trim();
-
-
-    if(!file){
-
-        toast(
-            "Selecteer eerst een foto.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload = function(event){
-
-        data.photos.unshift({
-
-            id:Date.now(),
-
-            title:
-                title ||
-                "Mistery Duo foto",
-
-            src:event.target.result
-
-        });
-
-
-        input.value = "";
-
-        document.getElementById("photoTitle").value = "";
-
-
-        saveData();
-
-        toast("Foto toegevoegd.");
-
-    };
-
-
-    reader.readAsDataURL(file);
-
-}
-
-
-function deletePhoto(id){
-
-    if(
-        !confirm(
-            "Deze foto verwijderen?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    data.photos =
-        data.photos.filter(
-            item=>item.id !== id
-        );
-
-
-    saveData();
-
-    toast("Foto verwijderd.");
-
-}
-
-
-/* -----------------------------
-   VIDEO'S
------------------------------ */
-
-function addVideo(){
-
-    const input =
-        document.getElementById("videoInput");
-
-    const file =
-        input.files[0];
-
-    const title =
-        document
-        .getElementById("videoTitle")
-        .value
-        .trim();
-
-
-    if(!file){
-
-        toast(
-            "Selecteer eerst een video.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    if(file.size > 40 * 1024 * 1024){
-
-        toast(
-            "Deze video is groter dan 40 MB. Gebruik een kortere video.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload = function(event){
-
-        data.videos.unshift({
-
-            id:Date.now(),
-
-            title:
-                title ||
-                "Mistery Duo video",
-
-            src:event.target.result
-
-        });
-
-
-        input.value = "";
-
-        document.getElementById("videoTitle").value = "";
-
-
-        saveData();
-
-        toast("Video toegevoegd.");
-
-    };
-
-
-    reader.readAsDataURL(file);
-
-}
-
-
-function deleteVideo(id){
-
-    if(
-        !confirm(
-            "Deze video verwijderen?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    data.videos =
-        data.videos.filter(
-            item=>item.id !== id
-        );
-
-
-    saveData();
-
-    toast("Video verwijderd.");
-
-}
-
-
-/* -----------------------------
-   LIVESTREAM
------------------------------ */
-
-function saveLive(){
-
-    const url =
-        document
-        .getElementById("liveUrl")
-        .value
-        .trim();
-
-
-    if(!url){
-
-        toast(
-            "Vul een livestream URL in.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    data.live = {
-
-        active:true,
-
-        url:url
-
-    };
-
-
-    saveData();
-
-    toast("Livestream geactiveerd.");
-
-}
-
-
-function disableLive(){
-
-    data.live.active = false;
-
-    saveData();
-
-    toast("Livestream gestopt.");
-
-}
-
-
-/* -----------------------------
-   MERCHANDISE
------------------------------ */
-
-function addProduct(){
-
-    const name =
-        document
-        .getElementById("productName")
-        .value
-        .trim();
-
-    const price =
-        document
-        .getElementById("productPrice")
-        .value;
-
-    const description =
-        document
-        .getElementById("productDescription")
-        .value
-        .trim();
-
-    const input =
-        document
-        .getElementById("productImage");
-
-    const file =
-        input.files[0];
-
-
-    if(!name || !price){
-
-        toast(
-            "Naam en prijs zijn verplicht.",
-            "error"
-        );
-
-        return;
-
-    }
-
-
-    if(file){
-
-        const reader =
-            new FileReader();
-
-
-        reader.onload = function(event){
-
-            createProduct(
-                name,
-                price,
-                description,
-                event.target.result
-            );
-
-        };
-
-
-        reader.readAsDataURL(file);
-
-    }else{
-
-        createProduct(
-            name,
-            price,
-            description,
-            ""
-        );
-
-    }
-
-}
-
-
-function createProduct(
-    name,
-    price,
-    description,
-    image
-){
-
-    data.products.push({
-
-        id:Date.now(),
-
-        name,
-
-        price,
-
-        description,
-
-        image
-
-    });
-
-
-    document.getElementById("productName").value = "";
-
-    document.getElementById("productPrice").value = "";
-
-    document.getElementById("productDescription").value = "";
-
-    document.getElementById("productImage").value = "";
-
-
-    saveData();
-
-    toast("Product toegevoegd.");
-
-}
-
-
-function deleteProduct(id){
-
-    if(
-        !confirm(
-            "Dit product verwijderen?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    data.products =
-        data.products.filter(
-            item=>item.id !== id
-        );
-
-
-    saveData();
-
-    toast("Product verwijderd.");
-
-}
-
-
-/* -----------------------------
-   BOEKINGEN
------------------------------ */
-
-function deleteBooking(id){
-
-    if(
-        !confirm(
-            "Deze boekingsaanvraag verwijderen?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    data.bookings =
-        data.bookings.filter(
-            item=>item.id !== id
-        );
-
-
-    saveData();
-
-    toast("Aanvraag verwijderd.");
-
-}
-
-
-function setBookingStatus(id,status){
-
-    const booking =
-        data.bookings.find(
-            item=>item.id === id
-        );
-
-
-    if(!booking){
-
-        return;
-
-    }
-
-
-    booking.status = status;
-
-    saveData();
-
-    toast("Status aangepast.");
-
-}
-
-
-function clearBookings(){
-
-    if(
-        !confirm(
-            "ALLE boekingsaanvragen verwijderen?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    data.bookings = [];
-
-    saveData();
-
-    toast("Alle aanvragen verwijderd.");
-
-}
-
-
-/* -----------------------------
-   RENDER NIEUWS
------------------------------ */
-
-function renderNews(){
-
-    const container =
-        document.getElementById("newsList");
-
-
-    if(!data.news.length){
-
-        container.innerHTML =
-            emptyMessage(
-                "Nog geen nieuwsberichten."
-            );
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        data.news.map(item=>`
-
-            <div class="item">
-
-                <div class="item-main">
-
-                    <div class="item-title">
-                        ${escapeHTML(item.title)}
-                    </div>
-
-                    <div class="item-text">
-                        ${escapeHTML(item.text)}
-                    </div>
-
-                    <small style="color:#666;">
-                        ${escapeHTML(item.date)}
-                    </small>
-
-                </div>
-
-                <div class="item-actions">
-
-                    <button
-                        class="btn btn-red btn-small"
-                        onclick="deleteNews(${item.id})">
-                        Verwijderen
-                    </button>
-
-                </div>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* -----------------------------
-   RENDER OPTREDENS
------------------------------ */
-
-function renderShows(){
-
-    const container =
-        document.getElementById("showsList");
-
-
-    if(!data.shows.length){
-
-        container.innerHTML =
-            emptyMessage(
-                "Nog geen optredens toegevoegd."
-            );
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        data.shows.map(item=>`
-
-            <div class="item">
-
-                <div class="item-main">
-
-                    <div class="item-title">
-                        🎤 ${escapeHTML(item.name)}
-                    </div>
-
-                    <div class="item-text">
-
-                        📅 ${formatDate(item.date)}
-
-                        ${item.time
-                            ? " • ⏰ " + escapeHTML(item.time)
-                            : ""
-                        }
-
-                        <br>
-
-                        📍 ${escapeHTML(item.location)}
-
-                        ${
-                            item.info
-                            ? "<br>" + escapeHTML(item.info)
-                            : ""
-                        }
-
-                    </div>
-
-                </div>
-
-                <div class="item-actions">
-
-                    <button
-                        class="btn btn-red btn-small"
-                        onclick="deleteShow(${item.id})">
-                        Verwijderen
-                    </button>
-
-                </div>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* -----------------------------
-   RENDER FOTO'S
------------------------------ */
-
-function renderPhotos(){
-
-    const container =
-        document.getElementById("photosGrid");
-
-
-    if(!data.photos.length){
-
-        container.innerHTML =
-            emptyMessage(
-                "Nog geen foto's."
-            );
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        data.photos.map(item=>`
-
-            <div class="media-card">
-
-                <img
-                    src="${item.src}"
-                    alt="${escapeHTML(item.title)}">
-
-                <div class="media-info">
-
-                    <strong>
-                        ${escapeHTML(item.title)}
-                    </strong>
-
-                    <button
-                        class="btn btn-red btn-small"
-                        onclick="deletePhoto(${item.id})">
-                        Verwijderen
-                    </button>
-
-                </div>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* -----------------------------
-   RENDER VIDEO'S
------------------------------ */
-
-function renderVideos(){
-
-    const container =
-        document.getElementById("videosGrid");
-
-
-    if(!data.videos.length){
-
-        container.innerHTML =
-            emptyMessage(
-                "Nog geen video's."
-            );
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        data.videos.map(item=>`
-
-            <div class="media-card">
-
-                <video
-                    controls
-                    preload="metadata"
-                    src="${item.src}">
-                </video>
-
-                <div class="media-info">
-
-                    <strong>
-                        ${escapeHTML(item.title)}
-                    </strong>
-
-                    <button
-                        class="btn btn-red btn-small"
-                        onclick="deleteVideo(${item.id})">
-                        Verwijderen
-                    </button>
-
-                </div>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* -----------------------------
-   RENDER MERCH
------------------------------ */
-
-function renderProducts(){
-
-    const container =
-        document.getElementById("productsList");
-
-
-    if(!data.products.length){
-
-        container.innerHTML =
-            emptyMessage(
-                "Nog geen merchandise."
-            );
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        data.products.map(item=>`
-
-            <div class="item">
-
-                ${
-                    item.image
-                    ? `
-                        <img
-                            class="item-image"
-                            src="${item.image}"
-                            alt="">
-                      `
-                    : ""
-                }
-
-                <div class="item-main">
-
-                    <div class="item-title">
-                        ${escapeHTML(item.name)}
-                    </div>
-
-                    <div class="item-text">
-
-                        € ${escapeHTML(
-                            String(item.price)
-                        )}
-
-                        ${
-                            item.description
-                            ? "<br>" +
-                              escapeHTML(item.description)
-                            : ""
-                        }
-
-                    </div>
-
-                </div>
-
-                <div class="item-actions">
-
-                    <button
-                        class="btn btn-red btn-small"
-                        onclick="deleteProduct(${item.id})">
-                        Verwijderen
-                    </button>
-
-                </div>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* -----------------------------
-   RENDER BOEKINGEN
------------------------------ */
-
-function renderBookings(){
-
-    const container =
-        document.getElementById("bookingsList");
-
-
-    if(!data.bookings.length){
-
-        container.innerHTML =
-            emptyMessage(
-                "Er zijn nog geen boekingsaanvragen."
-            );
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        data.bookings.map(item=>{
-
-            const status =
-                item.status || "new";
-
-
-            let badge =
-                `<span class="badge badge-new">
-                    Nieuw
-                 </span>`;
-
-
-            if(status === "accepted"){
-
-                badge =
-                    `<span class="badge badge-ok">
-                        Goedgekeurd
-                     </span>`;
-
-            }
-
-
-            if(status === "rejected"){
-
-                badge =
-                    `<span class="badge badge-no">
-                        Afgewezen
-                     </span>`;
-
-            }
-
-
-            return `
-
-                <div class="booking">
-
-                    <div class="booking-head">
-
-                        <div>
-
-                            <div class="booking-name">
-                                ${escapeHTML(
-                                    item.name || "Onbekend"
-                                )}
-                            </div>
-
-                            <div class="booking-date">
-
-                                ${escapeHTML(
-                                    item.date || ""
-                                )}
-
-                            </div>
-
-                        </div>
-
-                        ${badge}
-
-                    </div>
-
-                    <div class="booking-info">
-
-                        ${
-                            item.email
-                            ? "📧 " +
-                              escapeHTML(item.email) +
-                              "<br>"
-                            : ""
-                        }
-
-                        ${
-                            item.phone
-                            ? "📞 " +
-                              escapeHTML(item.phone) +
-                              "<br>"
-                            : ""
-                        }
-
-                        ${
-                            item.location
-                            ? "📍 " +
-                              escapeHTML(item.location) +
-                              "<br>"
-                            : ""
-                        }
-
-                        ${
-                            item.message
-                            ? "<br>" +
-                              escapeHTML(item.message)
-                            : ""
-                        }
-
-                    </div>
-
-                    <br>
-
-                    <div class="actions">
-
-                        <button
-                            class="btn btn-green btn-small"
-                            onclick="setBookingStatus(${item.id},'accepted')">
-                            ✓ Goedkeuren
-                        </button>
-
-                        <button
-                            class="btn btn-orange btn-small"
-                            onclick="setBookingStatus(${item.id},'rejected')">
-                            Afwijzen
-                        </button>
-
-                        <button
-                            class="btn btn-red btn-small"
-                            onclick="deleteBooking(${item.id})">
-                            Verwijderen
-                        </button>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }).join("");
-
-}
-
-
-/* -----------------------------
-   LIVE RENDER
------------------------------ */
-
-function renderLive(){
-
-    const input =
-        document.getElementById("liveUrl");
-
-    const light =
-        document.getElementById("liveLight");
-
-    const text =
-        document.getElementById("liveText");
-
-    const preview =
-        document.getElementById("livePreview");
-
-
-    input.value =
-        data.live.url || "";
-
-
-    if(data.live.active && data.live.url){
-
-        light.classList.add("on");
-
-        text.textContent =
-            "Livestream is actief";
-
-
-        preview.innerHTML = `
-
-            <iframe
-                src="${escapeAttribute(
-                    convertToEmbed(data.live.url)
-                )}"
-                allow="autoplay; encrypted-media"
-                allowfullscreen>
-            </iframe>
-
-        `;
-
-    }else{
-
-        light.classList.remove("on");
-
-        text.textContent =
-            "Livestream staat uit";
-
-
-        preview.innerHTML = `
-
-            <div class="live-placeholder">
-
-                <div>🔴</div>
-
-                <p>
-                    Geen livestream actief
-                </p>
-
-            </div>
-
-        `;
-
-    }
-
-}
-
-
-/* -----------------------------
-   STATISTIEKEN
------------------------------ */
-
-function updateStats(){
-
-    document.getElementById("statNews")
-        .textContent =
-        data.news.length;
-
-
-    document.getElementById("statShows")
-        .textContent =
-        data.shows.length;
-
-
-    document.getElementById("statPhotos")
-        .textContent =
-        data.photos.length;
-
-
-    document.getElementById("statBookings")
-        .textContent =
-        data.bookings.length;
-
-}
-
-
-/* -----------------------------
-   ALLES UPDATEN
------------------------------ */
-
-function updateAll(){
-
-    renderNews();
-
-    renderShows();
-
-    renderPhotos();
-
-    renderVideos();
-
-    renderProducts();
-
-    renderBookings();
-
-    renderLive();
-
-    updateStats();
-
-    updateLogo();
-
-    updateName();
-
-}
-
-
-/* -----------------------------
-   LOGO UPDATE
------------------------------ */
-
-function updateLogo(){
-
-    const fallback =
-        createDefaultLogo();
-
-
-    const src =
-        data.logo || fallback;
-
-
-    document.getElementById("logoPreview")
-        .src = src;
-
-
-    document.getElementById("sidebarLogo")
-        .src = src;
-
-}
-
-
-/* -----------------------------
-   NAAM UPDATE
------------------------------ */
-
-function updateName(){
-
-    document.getElementById("duoName")
-        .value =
-        data.name || "Mistery Duo";
-
-
-    document.querySelector(".brand-text strong")
-        .textContent =
-        data.name || "Mistery Duo";
-
-}
-
-
-/* -----------------------------
-   DEFAULT LOGO
------------------------------ */
-
-function createDefaultLogo(){
-
-    const canvas =
-        document.createElement("canvas");
-
-    canvas.width = 300;
-
-    canvas.height = 300;
-
-
-    const ctx =
-        canvas.getContext("2d");
-
-
-    const gradient =
-        ctx.createLinearGradient(
-            0,
-            0,
-            300,
-            300
-        );
-
-
-    gradient.addColorStop(
-        0,
-        "#a855f7"
-    );
-
-    gradient.addColorStop(
-        1,
-        "#ec4899"
-    );
-
-
-    ctx.fillStyle =
-        gradient;
-
-    ctx.fillRect(
-        0,
-        0,
-        300,
-        300
-    );
-
-
-    ctx.fillStyle =
-        "white";
-
-    ctx.font =
-        "bold 115px Arial";
-
-    ctx.textAlign =
-        "center";
-
-    ctx.textBaseline =
-        "middle";
-
-    ctx.fillText(
-        "M",
-        150,
-        150
-    );
-
-
-    return canvas.toDataURL();
-
-}
-
-
-/* -----------------------------
-   EMPTY
------------------------------ */
-
-function emptyMessage(text){
-
-    return `
-
-        <div style="
-            color:#666;
-            text-align:center;
-            padding:30px;
-            border:1px dashed rgba(255,255,255,.08);
-            border-radius:15px;
-            width:100%;
-        ">
-
-            ${text}
-
-        </div>
-
-    `;
-
-}
-
-
-/* -----------------------------
-   DATUM
------------------------------ */
-
-function formatDate(date){
-
-    if(!date){
-
-        return "";
-
-    }
-
-
-    try{
-
-        return new Date(
-            date + "T00:00:00"
-        ).toLocaleDateString(
-            "nl-BE",
-            {
-                day:"2-digit",
-                month:"2-digit",
-                year:"numeric"
-            }
-        );
-
-    }catch{
-
-        return date;
-
-    }
-
-}
-
-
-/* -----------------------------
-   YOUTUBE / LIVESTREAM
------------------------------ */
-
-function convertToEmbed(url){
-
-    try{
-
-        const parsed =
-            new URL(url);
-
-
-        if(
-            parsed.hostname.includes("youtube.com")
-        ){
-
-            if(
-                parsed.pathname.startsWith("/embed/")
-            ){
-
-                return url;
-
-            }
-
-
-            const videoId =
-                parsed.searchParams.get("v");
-
-
-            if(videoId){
-
-                return "https://www.youtube.com/embed/" +
-                       videoId +
-                       "?autoplay=1";
-
-            }
-
-        }
-
-
-        if(
-            parsed.hostname === "youtu.be"
-        ){
-
-            const id =
-                parsed.pathname.substring(1);
-
-
-            return "https://www.youtube.com/embed/" +
-                   id;
-
-        }
-
-
-        return url;
-
-    }catch{
-
-        return url;
-
-    }
-
-}
-
-
-/* -----------------------------
-   HTML VEILIGHEID
------------------------------ */
-
-function escapeHTML(value){
-
-    return String(value)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-
-}
-
-
-function escapeAttribute(value){
-
-    return String(value)
-        .replaceAll("&","&amp;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;");
-
-}
-
-
-/* -----------------------------
-   EXPORT
------------------------------ */
-
-function exportData(){
-
-    const blob =
-        new Blob(
-            [
-                JSON.stringify(
-                    data,
-                    null,
-                    2
-                )
-            ],
-            {
-                type:"application/json"
-            }
-        );
-
-
-    const url =
-        URL.createObjectURL(blob);
-
-
-    const a =
-        document.createElement("a");
-
-
-    a.href = url;
-
-    a.download =
-        "mistery-duo-backup.json";
-
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    a.remove();
-
-
-    URL.revokeObjectURL(url);
-
-
-    toast("Back-up gedownload.");
-
-}
-
-
-/* -----------------------------
-   ALLES RESETTEN
------------------------------ */
-
-function resetEverything(){
-
-    const answer =
-        confirm(
-            "LET OP!\n\n" +
-            "Hiermee verwijder je alle lokale " +
-            "Mistery Duo gegevens.\n\n" +
-            "Doorgaan?"
-        );
-
-
-    if(!answer){
-
-        return;
-
-    }
-
-
-    localStorage.removeItem(
-        "misteryDuoAdmin"
-    );
-
-
-    data =
-        JSON.parse(
-            JSON.stringify(defaultData)
-        );
-
-
-    updateAll();
-
-    toast(
-        "Alle gegevens zijn verwijderd."
-    );
-
-}
-
-
-/* -----------------------------
-   START
------------------------------ */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function(){
-
-        updateAll();
-
-    }
-);
-
-
-/* -----------------------------
-   DEMO BOEKING
-   Alleen als er nog geen
-   aanvragen zijn.
------------------------------ */
-
-/*
-   Ik voeg bewust GEEN nepboeking toe.
-   Boekingen komen later vanuit
-   je openbare boekingsformulier.
-*/
-
-
-</script>
+<script src="admin.js"></script>
 
 </body>
+
 </html>
