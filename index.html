@@ -4,146 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Mistery Duo — Muziek van toen & nu</title>
-
-    <meta name="description"
-          content="Mistery Duo uit Blankenberge — muziek van toen & nu. Bekijk optredens, video's, nieuws, foto's en boek Mistery Duo.">
+    <title>Mistery Duo</title>
 
     <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
-<!-- =====================================================
-     LOADER
-===================================================== -->
+<header class="navbar">
 
-<div class="loader" id="loader">
-    <img src="logo.jpg" alt="Mistery Duo">
-    <div class="loader-line"></div>
-</div>
-
-
-<!-- =====================================================
-     NAVIGATION
-===================================================== -->
-
-<header class="navbar" id="navbar">
-
-    <a href="#home" class="logo-link">
-        <img src="logo.jpg" alt="Mistery Duo logo">
-        <span>MISTERY <b>DUO</b></span>
+    <a href="#home" class="brand">
+        <img id="siteLogo" class="logo" src="" alt="Mistery Duo">
+        <span>Mistery Duo</span>
     </a>
 
-    <nav class="desktop-nav">
+    <nav>
         <a href="#home">Home</a>
-        <a href="#optredens">Optredens</a>
-        <a href="#videos">Video's</a>
-        <a href="#live">Live</a>
         <a href="#nieuws">Nieuws</a>
+        <a href="#optredens">Optredens</a>
+        <a href="#live">Live</a>
+        <a href="#videos">Video</a>
         <a href="#fotos">Foto's</a>
         <a href="#merch">Merch</a>
+        <a href="#boeken" class="nav-button">Boek ons</a>
     </nav>
-
-    <a href="#boeken" class="nav-button">
-        Boek ons
-        <span>↗</span>
-    </a>
-
-    <button class="mobile-menu-button" id="menuButton" aria-label="Menu">
-        <span></span>
-        <span></span>
-    </button>
 
 </header>
 
 
-<!-- MOBILE MENU -->
-
-<div class="mobile-menu" id="mobileMenu">
-
-    <a href="#home">Home</a>
-    <a href="#optredens">Optredens</a>
-    <a href="#videos">Video's</a>
-    <a href="#live">Live</a>
-    <a href="#nieuws">Nieuws</a>
-    <a href="#fotos">Foto's</a>
-    <a href="#merch">Merchandise</a>
-
-    <a href="#boeken" class="mobile-book">
-        Boek Mistery Duo ↗
-    </a>
-
-</div>
-
-
-<!-- =====================================================
-     HERO
-===================================================== -->
-
 <main>
 
-<section class="hero" id="home">
-
-    <div class="hero-noise"></div>
-
-    <div class="hero-light hero-light-one"></div>
-    <div class="hero-light hero-light-two"></div>
+<section id="home" class="hero">
 
     <div class="hero-content">
 
-        <div class="hero-logo-wrap reveal">
-
-            <div class="logo-ring"></div>
-
-            <img
-                src="logo.jpg"
-                alt="Mistery Duo"
-                class="hero-logo"
-            >
-
-        </div>
-
-        <p class="eyebrow reveal delay-1">
-            BLANKENBERGE • BELGIË
+        <p class="eyebrow">
+            LIVE • MUZIEK • ENTERTAINMENT
         </p>
 
-        <h1 class="reveal delay-2">
-            Muziek van
-            <span>toen & nu.</span>
+        <h1>
+            MISTERY<br>
+            <span>DUO</span>
         </h1>
 
-        <p class="hero-description reveal delay-3">
-            Herkenbare klassiekers, moderne hits en live muziek
-            samengebracht door Mistery Duo.
+        <p>
+            Muziek uit het verleden én het heden.
+            Beleef Mistery Duo live.
         </p>
 
-        <div class="hero-actions reveal delay-4">
-
-            <a href="#boeken" class="gold-button">
-                <span>Boek Mistery Duo</span>
-                <strong>↗</strong>
+        <div class="hero-buttons">
+            <a href="#optredens" class="button primary">
+                Bekijk optredens
             </a>
 
-            <a href="#videos" class="outline-button">
-                <span class="play-small">▶</span>
-                Bekijk video's
+            <a href="#boeken" class="button secondary">
+                Boek Mistery Duo
             </a>
-
-        </div>
-
-    </div>
-
-    <div class="hero-bottom">
-
-        <div class="hero-scroll">
-            <span class="scroll-line"></span>
-            Scroll om te ontdekken
-        </div>
-
-        <div class="hero-location">
-            <span></span>
-            BLANKENBERGE
         </div>
 
     </div>
@@ -151,865 +69,157 @@
 </section>
 
 
-<!-- =====================================================
-     INTRO
-===================================================== -->
+<section id="nieuws" class="section">
 
-<section class="intro section">
-
-    <div class="intro-small">
-        MISTERY DUO
+    <div class="section-heading">
+        <p class="eyebrow">LAATSTE UPDATES</p>
+        <h2>Nieuws</h2>
     </div>
 
-    <div class="intro-grid">
-
-        <h2>
-            Een avond.
-            <br>
-            <em>Duizend</em> herinneringen.
-        </h2>
-
-        <div class="intro-text">
-
-            <p class="large-text">
-                Mistery Duo brengt muziek die generaties
-                samenbrengt.
-            </p>
-
-            <p>
-                Van nummers die je al jaren kent tot muziek
-                van vandaag. Een optreden vol sfeer, herkenning
-                en momenten die je wilt blijven herinneren.
-            </p>
-
-            <a href="#boeken" class="gold-link">
-                Ontdek wat we voor jouw evenement kunnen doen
-                <span>→</span>
-            </a>
-
-        </div>
-
-    </div>
-
-    <div class="intro-divider"></div>
-
-    <div class="intro-stats">
-
-        <div>
-            <strong>01</strong>
-            <span>MUZIEK VAN TOEN</span>
-        </div>
-
-        <div>
-            <strong>02</strong>
-            <span>MUZIEK VAN NU</span>
-        </div>
-
-        <div>
-            <strong>03</strong>
-            <span>LIVE ENTERTAINMENT</span>
-        </div>
-
+    <div id="newsContainer" class="cards">
+        <p class="loading">Nieuws wordt geladen...</p>
     </div>
 
 </section>
 
 
-<!-- =====================================================
-     NEXT PERFORMANCE
-===================================================== -->
+<section id="optredens" class="section dark">
 
-<section class="next-show section" id="optredens">
-
-    <div class="section-top">
-
-        <div>
-            <p class="eyebrow">AGENDA</p>
-
-            <h2>
-                Binnenkort
-                <span>live.</span>
-            </h2>
-        </div>
-
-        <p>
-            Ontdek waar je Mistery Duo binnenkort
-            op het podium kunt zien.
-        </p>
-
+    <div class="section-heading">
+        <p class="eyebrow">LIVE OP HET PODIUM</p>
+        <h2>Optredens</h2>
     </div>
 
-
-    <div class="featured-event reveal-on-scroll">
-
-        <div class="event-image">
-
-            <div class="event-glow"></div>
-
-            <div class="event-number">
-                <small>AUG</small>
-                <strong>15</strong>
-            </div>
-
-            <span class="event-image-label">
-                MISTERY DUO LIVE
-            </span>
-
-        </div>
-
-
-        <div class="event-details">
-
-            <div class="event-status">
-                VOLGEND OPTREDEN
-            </div>
-
-            <h3>
-                Mistery Duo
-                <br>
-                <span>Live</span>
-            </h3>
-
-            <div class="event-meta">
-
-                <div>
-                    <small>DATUM</small>
-                    <strong>15 augustus</strong>
-                </div>
-
-                <div>
-                    <small>LOCATIE</small>
-                    <strong>Blankenberge</strong>
-                </div>
-
-                <div>
-                    <small>TIJD</small>
-                    <strong>20:00</strong>
-                </div>
-
-            </div>
-
-            <p>
-                Een avond vol muziek van toen en nu.
-                Meer informatie over het evenement volgt binnenkort.
-            </p>
-
-            <a href="#boeken" class="dark-button">
-                Optreden boeken
-                <span>↗</span>
-            </a>
-
-        </div>
-
-    </div>
-
-
-    <div class="events-list">
-
-        <div class="event-row">
-
-            <div class="event-row-date">
-                <strong>29</strong>
-                <span>AUG</span>
-            </div>
-
-            <div class="event-row-info">
-                <span>LIVE OPTREDEN</span>
-                <h3>Mistery Duo</h3>
-                <p>België</p>
-            </div>
-
-            <div class="event-row-arrow">
-                →
-            </div>
-
-        </div>
-
-
-        <div class="event-row">
-
-            <div class="event-row-date">
-                <strong>—</strong>
-                <span>—</span>
-            </div>
-
-            <div class="event-row-info">
-                <span>BINNENKORT</span>
-                <h3>Nieuw optreden</h3>
-                <p>Wordt binnenkort aangekondigd</p>
-            </div>
-
-            <div class="event-row-arrow">
-                →
-            </div>
-
-        </div>
-
+    <div id="showsContainer" class="shows">
+        <p class="loading">Optredens worden geladen...</p>
     </div>
 
 </section>
 
 
-<!-- =====================================================
-     LIVE
-===================================================== -->
+<section id="live" class="section live-section">
 
-<section class="live-section section" id="live">
-
-    <div class="live-header">
-
-        <div>
-            <p class="eyebrow red">
-                LIVE
-            </p>
-
-            <h2>
-                Beleef het
-                <span>moment.</span>
-            </h2>
-        </div>
-
-        <div class="live-indicator">
-            <span></span>
-            MOMENTEEL NIET LIVE
-        </div>
-
+    <div class="section-heading">
+        <p class="eyebrow">LIVE</p>
+        <h2>Mistery Duo Live</h2>
     </div>
 
-
-    <div class="live-player">
-
-        <div class="player-grid"></div>
-
-        <div class="player-content">
-
-            <div class="player-icon">
-                ▶
-            </div>
-
-            <h3>
-                Mistery Duo Live
-            </h3>
-
-            <p>
-                Wanneer Mistery Duo live gaat,
-                verschijnt de livestream hier.
-            </p>
-
-        </div>
-
-        <div class="player-corner">
-            MISTERY DUO
-        </div>
-
+    <div id="liveContainer" class="live-box">
+        <p>Livestream wordt geladen...</p>
     </div>
 
 </section>
 
 
-<!-- =====================================================
-     VIDEO'S
-===================================================== -->
+<section id="videos" class="section dark">
 
-<section class="videos section" id="videos">
-
-    <div class="section-top">
-
-        <div>
-            <p class="eyebrow">MOMENTEN</p>
-
-            <h2>
-                Bekijk
-                <span>Mistery Duo.</span>
-            </h2>
-        </div>
-
-        <p>
-            Korte fragmenten van maximaal één minuut.
-            De beste momenten van onze optredens.
-        </p>
-
+    <div class="section-heading">
+        <p class="eyebrow">BELEEF HET MEE</p>
+        <h2>Video's</h2>
     </div>
 
-
-    <div class="video-grid">
-
-        <article class="video-card large">
-
-            <div class="video-visual">
-
-                <div class="video-number">
-                    01
-                </div>
-
-                <div class="video-play">
-                    ▶
-                </div>
-
-                <div class="video-duration">
-                    00:45
-                </div>
-
-            </div>
-
-            <div class="video-card-info">
-
-                <span>LIVE</span>
-
-                <h3>
-                    Mistery Duo Live
-                </h3>
-
-                <p>
-                    Een moment vanop het podium.
-                </p>
-
-            </div>
-
-        </article>
-
-
-        <article class="video-card">
-
-            <div class="video-visual visual-two">
-
-                <div class="video-number">
-                    02
-                </div>
-
-                <div class="video-play">
-                    ▶
-                </div>
-
-                <div class="video-duration">
-                    00:38
-                </div>
-
-            </div>
-
-            <div class="video-card-info">
-
-                <span>MUZIEK</span>
-
-                <h3>
-                    Muziek van toen
-                </h3>
-
-                <p>
-                    Herkenbare klassiekers.
-                </p>
-
-            </div>
-
-        </article>
-
-
-        <article class="video-card">
-
-            <div class="video-visual visual-three">
-
-                <div class="video-number">
-                    03
-                </div>
-
-                <div class="video-play">
-                    ▶
-                </div>
-
-                <div class="video-duration">
-                    00:52
-                </div>
-
-            </div>
-
-            <div class="video-card-info">
-
-                <span>LIVE</span>
-
-                <h3>
-                    Muziek van nu
-                </h3>
-
-                <p>
-                    Hits van vandaag.
-                </p>
-
-            </div>
-
-        </article>
-
+    <div id="videosContainer" class="video-grid">
+        <p class="loading">Video's worden geladen...</p>
     </div>
 
 </section>
 
 
-<!-- =====================================================
-     QUOTE
-===================================================== -->
+<section id="fotos" class="section">
 
-<section class="quote-section">
-
-    <div class="quote-mark">“</div>
-
-    <blockquote>
-        Muziek gaat niet alleen
-        <span>over luisteren.</span>
-        Het gaat over voelen,
-        herinneren en samen beleven.
-    </blockquote>
-
-    <div class="quote-line"></div>
-
-    <p>
-        — MISTERY DUO
-    </p>
-
-</section>
-
-
-<!-- =====================================================
-     NEWS
-===================================================== -->
-
-<section class="news section" id="nieuws">
-
-    <div class="section-top">
-
-        <div>
-            <p class="eyebrow">NIEUWS</p>
-
-            <h2>
-                Vanuit de wereld
-                <span>van Mistery Duo.</span>
-            </h2>
-        </div>
-
+    <div class="section-heading">
+        <p class="eyebrow">MOMENTEN</p>
+        <h2>Foto's</h2>
     </div>
 
-
-    <div class="news-grid">
-
-        <article class="news-card main-news">
-
-            <div class="news-image news-one">
-                <span>01</span>
-            </div>
-
-            <div class="news-info">
-
-                <small>
-                    NIEUW • 02 AUGUSTUS 2026
-                </small>
-
-                <h3>
-                    Welkom op de nieuwe
-                    website van Mistery Duo
-                </h3>
-
-                <p>
-                    Ontdek onze optredens, video's,
-                    foto's, merchandise en meer.
-                </p>
-
-                <a href="#" class="gold-link">
-                    Lees het verhaal →
-                </a>
-
-            </div>
-
-        </article>
-
-
-        <article class="news-card">
-
-            <div class="news-image news-two">
-                <span>02</span>
-            </div>
-
-            <div class="news-info">
-
-                <small>
-                    OPTREDENS
-                </small>
-
-                <h3>
-                    Nieuwe optredens
-                    binnenkort aangekondigd
-                </h3>
-
-                <a href="#optredens" class="gold-link">
-                    Bekijk agenda →
-                </a>
-
-            </div>
-
-        </article>
-
-
-        <article class="news-card">
-
-            <div class="news-image news-three">
-                <span>03</span>
-            </div>
-
-            <div class="news-info">
-
-                <small>
-                    MISTERY DUO
-                </small>
-
-                <h3>
-                    Blijf op de hoogte
-                </h3>
-
-                <a href="#boeken" class="gold-link">
-                    Neem contact op →
-                </a>
-
-            </div>
-
-        </article>
-
+    <div id="photosContainer" class="photo-grid">
+        <p class="loading">Foto's worden geladen...</p>
     </div>
 
 </section>
 
 
-<!-- =====================================================
-     FOTO'S
-===================================================== -->
+<section id="merch" class="section dark">
 
-<section class="gallery section" id="fotos">
-
-    <div class="gallery-header">
-
-        <div>
-            <p class="eyebrow">GALERIJ</p>
-
-            <h2>
-                Mistery Duo
-                <span>in beeld.</span>
-            </h2>
-        </div>
-
-        <p>
-            Een verzameling van momenten
-            op en naast het podium.
-        </p>
-
+    <div class="section-heading">
+        <p class="eyebrow">MISTERY DUO SHOP</p>
+        <h2>Merchandise</h2>
     </div>
 
-
-    <div class="gallery-grid">
-
-        <div class="gallery-item gallery-large">
-            <div>
-                <span>01</span>
-                <strong>LIVE</strong>
-            </div>
-        </div>
-
-        <div class="gallery-item gallery-two">
-            <div>
-                <span>02</span>
-                <strong>OPTREDEN</strong>
-            </div>
-        </div>
-
-        <div class="gallery-item gallery-three">
-            <div>
-                <span>03</span>
-                <strong>MUZIEK</strong>
-            </div>
-        </div>
-
-        <div class="gallery-item gallery-four">
-            <div>
-                <span>04</span>
-                <strong>ACHTER DE SCHERMEN</strong>
-            </div>
-        </div>
-
-        <div class="gallery-item gallery-five">
-            <div>
-                <span>05</span>
-                <strong>MOMENTEN</strong>
-            </div>
-        </div>
-
+    <div id="merchContainer" class="cards">
+        <p class="loading">Merchandise wordt geladen...</p>
     </div>
 
 </section>
 
 
-<!-- =====================================================
-     MERCH
-===================================================== -->
+<section id="boeken" class="section booking-section">
 
-<section class="merch section" id="merch">
+    <div class="booking-container">
 
-    <div class="section-top">
-
-        <div>
-            <p class="eyebrow">OFFICIAL</p>
-
-            <h2>
-                Mistery Duo
-                <span>Merch.</span>
-            </h2>
-        </div>
-
-        <p>
-            Binnenkort verkrijgbaar.
-        </p>
-
-    </div>
-
-
-    <div class="merch-grid">
-
-        <article class="merch-card">
-
-            <div class="merch-image shirt">
-                <div class="merch-logo">
-                    <img src="logo.jpg" alt="">
-                </div>
-            </div>
-
-            <div class="merch-info">
-
-                <div>
-                    <span>APPAREL</span>
-
-                    <h3>
-                        Mistery Duo T-shirt
-                    </h3>
-                </div>
-
-                <strong>
-                    € XX,XX
-                </strong>
-
-            </div>
-
-            <button class="merch-button">
-                Binnenkort beschikbaar
-            </button>
-
-        </article>
-
-
-        <article class="merch-card">
-
-            <div class="merch-image hoodie">
-                <div class="merch-logo">
-                    <img src="logo.jpg" alt="">
-                </div>
-            </div>
-
-            <div class="merch-info">
-
-                <div>
-                    <span>APPAREL</span>
-
-                    <h3>
-                        Mistery Duo Hoodie
-                    </h3>
-                </div>
-
-                <strong>
-                    € XX,XX
-                </strong>
-
-            </div>
-
-            <button class="merch-button">
-                Binnenkort beschikbaar
-            </button>
-
-        </article>
-
-
-        <article class="merch-card">
-
-            <div class="merch-image cap">
-                <div class="merch-logo">
-                    <img src="logo.jpg" alt="">
-                </div>
-            </div>
-
-            <div class="merch-info">
-
-                <div>
-                    <span>ACCESSOIRES</span>
-
-                    <h3>
-                        Mistery Duo Pet
-                    </h3>
-                </div>
-
-                <strong>
-                    € XX,XX
-                </strong>
-
-            </div>
-
-            <button class="merch-button">
-                Binnenkort beschikbaar
-            </button>
-
-        </article>
-
-    </div>
-
-</section>
-
-
-<!-- =====================================================
-     BOOKING
-===================================================== -->
-
-<section class="booking section" id="boeken">
-
-    <div class="booking-inner">
-
-        <div class="booking-copy">
+        <div class="booking-info">
 
             <p class="eyebrow">
-                BOEKINGEN
+                BOEKING
             </p>
 
             <h2>
-                Jouw evenement.
-                <br>
-                <span>Onze muziek.</span>
+                Boek<br>
+                Mistery Duo
             </h2>
 
             <p>
-                Wil je Mistery Duo op jouw feest,
-                evenement, huwelijk of andere gelegenheid?
-                Stuur ons jouw aanvraag.
+                Wil je Mistery Duo op jouw evenement?
+                Vul het formulier in en stuur je aanvraag.
             </p>
-
-            <div class="booking-features">
-
-                <div>
-                    <span>01</span>
-                    <p>Muziek van toen & nu</p>
-                </div>
-
-                <div>
-                    <span>02</span>
-                    <p>Live entertainment</p>
-                </div>
-
-                <div>
-                    <span>03</span>
-                    <p>Blankenberge & omgeving</p>
-                </div>
-
-            </div>
 
         </div>
 
 
-        <form class="booking-form" id="bookingForm">
+        <form id="bookingForm" class="booking-form">
 
-            <div class="form-title">
-                <span>01</span>
-                <h3>Vertel ons over jouw evenement.</h3>
-            </div>
+            <input
+                id="bookingName"
+                type="text"
+                placeholder="Naam"
+                required
+            >
 
-            <label>
-                Naam / organisatie
-                <input type="text" name="name" required>
-            </label>
+            <input
+                id="bookingEmail"
+                type="email"
+                placeholder="E-mailadres"
+                required
+            >
 
-            <label>
-                E-mailadres
-                <input type="email" name="email" required>
-            </label>
+            <input
+                id="bookingPhone"
+                type="tel"
+                placeholder="Telefoonnummer"
+            >
 
-            <label>
-                Telefoonnummer
-                <input type="tel" name="phone">
-            </label>
+            <input
+                id="bookingDate"
+                type="date"
+            >
 
-            <div class="form-row">
+            <input
+                id="bookingLocation"
+                type="text"
+                placeholder="Locatie"
+            >
 
-                <label>
-                    Gewenste datum
-                    <input type="date" name="date" required>
-                </label>
+            <textarea
+                id="bookingMessage"
+                placeholder="Vertel iets over het evenement..."
+                rows="6"
+            ></textarea>
 
-                <label>
-                    Locatie
-                    <input type="text" name="location" required>
-                </label>
-
-            </div>
-
-            <label>
-                Type evenement
-
-                <select name="event" required>
-
-                    <option value="">
-                        Selecteer...
-                    </option>
-
-                    <option>
-                        Feest
-                    </option>
-
-                    <option>
-                        Huwelijk
-                    </option>
-
-                    <option>
-                        Bedrijfsevenement
-                    </option>
-
-                    <option>
-                        Festival
-                    </option>
-
-                    <option>
-                        Privé-evenement
-                    </option>
-
-                    <option>
-                        Andere
-                    </option>
-
-                </select>
-
-            </label>
-
-            <label>
-                Bericht
-
-                <textarea
-                    name="message"
-                    rows="5"
-                    placeholder="Vertel ons iets meer..."
-                ></textarea>
-
-            </label>
-
-            <button type="submit" class="submit-button">
-
-                <span>
-                    Verstuur aanvraag
-                </span>
-
-                <strong>
-                    ↗
-                </strong>
-
+            <button type="submit" class="button primary">
+                Aanvraag versturen
             </button>
 
-            <div id="formMessage"></div>
+            <p id="bookingMessageResult"></p>
 
         </form>
 
@@ -1020,77 +230,19 @@
 </main>
 
 
-<!-- =====================================================
-     FOOTER
-===================================================== -->
-
 <footer>
 
-    <div class="footer-top">
-
-        <div class="footer-brand">
-
-            <img src="logo.jpg" alt="Mistery Duo">
-
-            <h2>
-                MISTERY
-                <span>DUO</span>
-            </h2>
-
-            <p>
-                Muziek van toen & nu.
-            </p>
-
-        </div>
-
-
-        <div class="footer-nav">
-
-            <div>
-                <small>NAVIGATIE</small>
-
-                <a href="#home">Home</a>
-                <a href="#optredens">Optredens</a>
-                <a href="#videos">Video's</a>
-                <a href="#live">Live</a>
-            </div>
-
-            <div>
-                <small>ONTDEK</small>
-
-                <a href="#nieuws">Nieuws</a>
-                <a href="#fotos">Foto's</a>
-                <a href="#merch">Merchandise</a>
-                <a href="#boeken">Boeken</a>
-            </div>
-
-        </div>
-
+    <div>
+        <strong>MISTERY DUO</strong>
+        <p>Muziek uit het verleden en het heden.</p>
     </div>
 
-
-    <div class="footer-bottom">
-
-        <span>
-            © <span id="year"></span> Mistery Duo
-        </span>
-
-        <span>
-            BLANKENBERGE • BELGIË
-        </span>
-
-        <span>
-            Muziek van toen & nu
-        </span>
-
-    </div>
+    <p>
+        © <span id="year"></span> Mistery Duo
+    </p>
 
 </footer>
 
-
-<!-- =====================================================
-     JAVASCRIPT
-===================================================== -->
 
 <script src="script.js"></script>
 
