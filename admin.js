@@ -1,773 +1,1401 @@
-document.addEventListener("DOMContentLoaded", () => {
+const SUPABASE_URL =
+    "https://msvesugylaeffjqiizzm.supabase.co";
 
-    // =========================
-    // NAVIGATIE
-    // =========================
+const SUPABASE_KEY =
+    "sb_publishable__cDajfEACOoUZ9xOU8ZtYQ_Q5XFtp5B";
 
-    const menuButtons = document.querySelectorAll(".menu-btn");
-    const pages = document.querySelectorAll(".page");
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
-    function openPage(name) {
 
-        pages.forEach(page => {
-            page.classList.remove("active");
-        });
+/* =========================
+   HULPFUNCTIES
+========================= */
 
-        const page = document.getElementById(name);
+const $ = (id) => document.getElementById(id);
 
-        if (page) {
-            page.classList.add("active");
-        }
+function escapeHTML(value) {
+    return String(value ?? "").replace(
+        /[&<>"']/g,
+        (char) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        })[char]
+    );
+}
 
-        menuButtons.forEach(button => {
-            button.classList.remove("active");
+function showToast(message) {
+    const toast = $("toast");
 
-            if (button.dataset.page === name) {
-                button.classList.add("active");
-            }
-        });
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2200);
+}
+
+function showStatus(id, message, success = false) {
+    const element = $(id);
+
+    if (!element) return;
+
+    element.textContent = message;
+    element.className =
+        "status " + (success ? "ok" : "error");
+}
+
+
+/* =========================
+   PAGINA NAVIGATIE
+========================= */
+
+const pageTitles = {
+    dashboard: "Dashboard",
+    logo: "Logo beheren",
+    live: "Livestream",
+    videos: "Video's",
+    events: "Optredens",
+    news: "Nieuws",
+    photos: "Foto's",
+    merch: "Merchandise",
+    bookings: "Boekingen"
+};
+
+document.querySelectorAll(".nav-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+        showPage(button.dataset.page);
+    });
+});
+
+function showPage(page) {
+
+    document.querySelectorAll(".page").forEach((section) => {
+        section.classList.remove("active");
+    });
+
+    const target = $(page);
+
+    if (target) {
+        target.classList.add("active");
     }
 
-    menuButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            openPage(button.dataset.page);
-        });
+    document.querySelectorAll(".nav-btn").forEach((button) => {
+        button.classList.toggle(
+            "active",
+            button.dataset.page === page
+        );
     });
 
-    document.querySelectorAll("[data-goto]").forEach(button => {
-        button.addEventListener("click", () => {
-            openPage(button.dataset.goto);
+    $("pageTitle").textContent =
+        pageTitles[page] || "Dashboard";
+
+    if (page === "dashboard") loadCounts();
+    if (page === "logo") loadLogo();
+    if (page === "live") loadLive();
+    if (page === "videos") loadVideos();
+    if (page === "events") loadEvents();
+    if (page === "news") loadNews();
+    if (page === "photos") loadPhotos();
+    if (page === "merch") loadProducts();
+    if (page === "bookings") loadBookings();
+}
+
+
+/* =========================
+   SUPABASE VERBINDING
+========================= */
+
+async function testConnection() {
+
+    const { error } = await db
+        .from("events")
+        .select("id")
+        .limit(1);
+
+    const connection =
+        document.querySelector(".connection");
+
+    if (!error) {
+        connection.classList.add("ok");
+        $("connectionText").textContent =
+            "Online verbonden";
+    } else {
+        connection.classList.remove("ok");
+        $("connectionText").textContent =
+            "Verbinding controleren";
+    }
+}
+
+
+/* =========================
+   DASHBOARD
+========================= */
+
+async function getCount(table) {
+
+    const { count, error } = await db
+        .from(table)
+        .select("*", {
+            count: "exact",
+            head: true
         });
-    });
+
+    if (error) {
+        return 0;
+    }
+
+    return count || 0;
+}
+
+async function loadCounts() {
+
+    $("countVideos").textContent =
+        await getCount("videos");
+
+    $("countEvents").textContent =
+        await getCount("events");
+
+    $("countNews").textContent =
+        await getCount("news");
+
+    $("countBookings").textContent =
+        await getCount("bookings");
+}
 
 
-    // =========================
-    // OPSLAG
-    // =========================
+/* =========================
+   LOGO
+========================= */
 
-    function get(key, fallback = []) {
+function loadLogo() {
+
+    const savedLogo =
+        localStorage.getItem("misteryDuo_logoUrl");
+
+    const defaultLogo =
+        "assets/mistery-duo-logo.jpg";
+
+    const logo =
+        savedLogo || defaultLogo;
+
+    $("logoPreview").src = logo;
+    $("sidebarLogo").src = logo;
+    $("dashboardLogo").src = logo;
+}
+
+$("logoFile").addEventListener("change", (event) => {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    $("logoPreview").src =
+        URL.createObjectURL(file);
+});
+
+
+async function uploadFile(
+    bucket,
+    file,
+    path
+) {
+
+    const { error } =
+        await db.storage
+            .from(bucket)
+            .upload(
+                path,
+                file,
+                {
+                    upsert: true,
+                    contentType: file.type
+                }
+            );
+
+    if (error) {
+        throw error;
+    }
+
+    return getPublicURL(bucket, path);
+}
+
+
+function getPublicURL(bucket, path) {
+
+    return (
+        SUPABASE_URL +
+        "/storage/v1/object/public/" +
+        bucket +
+        "/" +
+        encodeURIComponent(path)
+            .replace(/%2F/g, "/")
+    );
+}
+
+
+$("uploadLogo").addEventListener(
+    "click",
+    async () => {
+
+        const file =
+            $("logoFile").files[0];
+
+        if (!file) {
+            showStatus(
+                "logoStatus",
+                "Kies eerst een logo."
+            );
+            return;
+        }
 
         try {
-            return JSON.parse(
-                localStorage.getItem("mysteryDuo_" + key)
-            ) ?? fallback;
-        } catch {
-            return fallback;
-        }
-    }
 
-    function set(key, value) {
+            const cleanName =
+                file.name.replace(
+                    /[^a-z0-9._-]/gi,
+                    "_"
+                );
 
-        localStorage.setItem(
-            "mysteryDuo_" + key,
-            JSON.stringify(value)
-        );
+            const path =
+                `site/logo-${Date.now()}-${cleanName}`;
 
-    }
-
-
-    // =========================
-    // DASHBOARD
-    // =========================
-
-    function updateDashboard() {
-
-        document.getElementById("videoCount").textContent =
-            get("videos").length;
-
-        document.getElementById("eventCount").textContent =
-            get("events").length;
-
-        document.getElementById("newsCount").textContent =
-            get("news").length;
-
-        document.getElementById("photoCount").textContent =
-            get("photos").length;
-    }
-
-
-    // =========================
-    // LIVESTREAM
-    // =========================
-
-    let live =
-        localStorage.getItem("mysteryDuo_live") === "true";
-
-    const youtubeInput =
-        document.getElementById("youtubeUrl");
-
-    const player =
-        document.getElementById("player");
-
-    const liveMessage =
-        document.getElementById("liveMessage");
-
-    const liveBadge =
-        document.getElementById("liveBadge");
-
-    const dashboardLive =
-        document.getElementById("dashboardLive");
-
-    const dashboardLiveText =
-        document.getElementById("dashboardLiveText");
-
-
-    function youtubeID(url) {
-
-        const match = url.match(
-            /(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([^&?\/\s]+)/
-        );
-
-        return match ? match[1] : null;
-    }
-
-
-    function updateLiveStatus() {
-
-        if (live) {
-
-            liveBadge.textContent = "● LIVE";
-            liveBadge.className = "badge live";
-
-            dashboardLive.textContent = "LIVE";
-            dashboardLive.className = "badge live";
-
-            dashboardLiveText.textContent =
-                "🔴 Mystery Duo is momenteel LIVE";
-
-        } else {
-
-            liveBadge.textContent = "● OFFLINE";
-            liveBadge.className = "badge offline";
-
-            dashboardLive.textContent = "OFFLINE";
-            dashboardLive.className = "badge offline";
-
-            dashboardLiveText.textContent =
-                "Geen livestream actief";
-        }
-    }
-
-
-    document.getElementById("loadLive")
-        ?.addEventListener("click", () => {
-
-            const url = youtubeInput.value.trim();
-            const id = youtubeID(url);
-
-            if (!id) {
-
-                liveMessage.textContent =
-                    "❌ Dit is geen geldige YouTube-link.";
-
-                liveMessage.className =
-                    "message error";
-
-                return;
-            }
-
-            player.innerHTML = `
-                <iframe
-                    src="https://www.youtube.com/embed/${id}"
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    allowfullscreen>
-                </iframe>
-            `;
+            const url =
+                await uploadFile(
+                    "photos",
+                    file,
+                    path
+                );
 
             localStorage.setItem(
-                "mysteryDuo_live_url",
+                "misteryDuo_logoUrl",
                 url
             );
 
-            liveMessage.textContent =
-                "✓ Livestream geladen.";
+            loadLogo();
 
-            liveMessage.className =
-                "message success";
-        });
-
-
-    document.getElementById("toggleLive")
-        ?.addEventListener("click", () => {
-
-            live = !live;
-
-            localStorage.setItem(
-                "mysteryDuo_live",
-                live
+            showStatus(
+                "logoStatus",
+                "Logo succesvol opgeslagen.",
+                true
             );
 
-            updateLiveStatus();
-        });
+            showToast(
+                "Logo opgeslagen"
+            );
+
+        } catch (error) {
+
+            showStatus(
+                "logoStatus",
+                "Upload mislukt: " +
+                error.message
+            );
+        }
+    }
+);
 
 
-    const savedLive =
-        localStorage.getItem("mysteryDuo_live_url");
+$("resetLogo").addEventListener(
+    "click",
+    () => {
 
-    if (savedLive && youtubeInput) {
-        youtubeInput.value = savedLive;
+        localStorage.removeItem(
+            "misteryDuo_logoUrl"
+        );
+
+        loadLogo();
+
+        showToast(
+            "Standaard logo ingesteld"
+        );
+    }
+);
+
+
+/* =========================
+   LIVESTREAM
+========================= */
+
+function getYouTubeID(url) {
+
+    const match = String(url).match(
+        /(?:v=|youtu\.be\/|youtube\.com\/live\/|youtube\.com\/embed\/)([^&?\/\s]+)/
+    );
+
+    return match
+        ? match[1]
+        : null;
+}
+
+
+async function loadLive() {
+
+    const { data, error } =
+        await db
+            .from("news")
+            .select("id,content")
+            .eq(
+                "title",
+                "__MISTERY_DUO_LIVE__"
+            )
+            .maybeSingle();
+
+    if (error || !data) {
+        return;
     }
 
-    updateLiveStatus();
+    try {
+
+        const settings =
+            JSON.parse(data.content);
+
+        $("liveUrl").value =
+            settings.url || "";
+
+        if (
+            settings.active &&
+            getYouTubeID(settings.url)
+        ) {
+
+            showLivePreview(
+                settings.url
+            );
+        }
+
+    } catch {
+        console.log(
+            "Livestream-instellingen konden niet worden gelezen."
+        );
+    }
+}
 
 
-    // =========================
-    // VIDEO'S
-    // =========================
+function showLivePreview(url) {
 
-    const videoInput =
-        document.getElementById("videoFile");
+    const id =
+        getYouTubeID(url);
 
-    const videoPreview =
-        document.getElementById("videoPreview");
+    if (!id) return;
 
-    const videoMessage =
-        document.getElementById("videoMessage");
-
-
-    videoInput?.addEventListener("change", () => {
-
-        const file = videoInput.files[0];
-
-        if (!file) return;
-
-        const url =
-            URL.createObjectURL(file);
-
-        videoPreview.innerHTML = `
-            <video
-                src="${url}"
-                controls
-                style="width:100%;border-radius:12px">
-            </video>
-        `;
-    });
+    $("livePreview").innerHTML = `
+        <iframe
+            src="https://www.youtube.com/embed/${id}"
+            allowfullscreen>
+        </iframe>
+    `;
+}
 
 
-    document.getElementById("checkVideo")
-        ?.addEventListener("click", () => {
+async function saveLive(active) {
 
-            const title =
-                document.getElementById("videoTitle").value.trim();
+    const url =
+        $("liveUrl").value.trim();
 
-            const file =
-                videoInput.files[0];
+    if (
+        active &&
+        !getYouTubeID(url)
+    ) {
 
-            if (!title) {
+        showStatus(
+            "liveStatus",
+            "Gebruik een geldige YouTube-link."
+        );
 
-                videoMessage.textContent =
-                    "❌ Geef de video een titel.";
+        return;
+    }
 
-                videoMessage.className =
-                    "message error";
+    const content =
+        JSON.stringify({
+            url: url,
+            active: active
+        });
 
-                return;
-            }
+    const { data: existing } =
+        await db
+            .from("news")
+            .select("id")
+            .eq(
+                "title",
+                "__MISTERY_DUO_LIVE__"
+            )
+            .maybeSingle();
 
-            if (!file) {
+    let result;
 
-                videoMessage.textContent =
-                    "❌ Kies eerst een video.";
+    if (existing) {
 
-                videoMessage.className =
-                    "message error";
+        result =
+            await db
+                .from("news")
+                .update({
+                    content: content
+                })
+                .eq(
+                    "id",
+                    existing.id
+                );
 
-                return;
-            }
+    } else {
+
+        result =
+            await db
+                .from("news")
+                .insert({
+                    title:
+                        "__MISTERY_DUO_LIVE__",
+                    content:
+                        content
+                });
+    }
+
+    if (result.error) {
+
+        showStatus(
+            "liveStatus",
+            result.error.message
+        );
+
+        return;
+    }
+
+    if (active) {
+        showLivePreview(url);
+    } else {
+        $("livePreview").innerHTML = "";
+    }
+
+    showStatus(
+        "liveStatus",
+        active
+            ? "Livestream staat online."
+            : "Livestream staat uit.",
+        true
+    );
+
+    showToast(
+        "Livestream bijgewerkt"
+    );
+}
 
 
-            const video =
-                document.createElement("video");
+$("saveLive").addEventListener(
+    "click",
+    () => saveLive(true)
+);
 
-            video.preload = "metadata";
+$("disableLive").addEventListener(
+    "click",
+    () => saveLive(false)
+);
 
-            video.onloadedmetadata = () => {
 
-                URL.revokeObjectURL(video.src);
+/* =========================
+   VIDEO'S
+========================= */
+
+$("uploadVideo").addEventListener(
+    "click",
+    async () => {
+
+        const file =
+            $("videoFile").files[0];
+
+        const title =
+            $("videoTitle").value.trim();
+
+        if (!file || !title) {
+
+            showStatus(
+                "videoStatus",
+                "Titel en video zijn verplicht."
+            );
+
+            return;
+        }
+
+        const video =
+            document.createElement("video");
+
+        video.preload = "metadata";
+
+        video.onloadedmetadata =
+            async () => {
+
+                URL.revokeObjectURL(
+                    video.src
+                );
 
                 if (video.duration > 60) {
 
-                    videoMessage.textContent =
-                        "❌ Video's mogen maximaal 1 minuut zijn.";
-
-                    videoMessage.className =
-                        "message error";
+                    showStatus(
+                        "videoStatus",
+                        "De video mag maximaal 1 minuut zijn."
+                    );
 
                     return;
                 }
 
+                try {
 
-                const videos =
-                    get("videos");
+                    const filename =
+                        file.name.replace(
+                            /[^a-z0-9._-]/gi,
+                            "_"
+                        );
 
-                videos.push({
-                    title: title,
-                    fileName: file.name,
-                    duration: Math.round(video.duration),
-                    date: new Date().toLocaleDateString("nl-BE")
-                });
+                    const path =
+                        `videos/${Date.now()}-${filename}`;
 
-                set("videos", videos);
+                    const url =
+                        await uploadFile(
+                            "videos",
+                            file,
+                            path
+                        );
 
-                videoMessage.textContent =
-                    "✓ Video toegevoegd.";
+                    const { error } =
+                        await db
+                            .from("videos")
+                            .insert({
+                                title: title,
+                                video_url: url
+                            });
 
-                videoMessage.className =
-                    "message success";
+                    if (error) {
+                        throw error;
+                    }
 
-                document.getElementById(
-                    "videoTitle"
-                ).value = "";
+                    $("videoTitle").value = "";
+                    $("videoFile").value = "";
 
-                videoInput.value = "";
+                    showStatus(
+                        "videoStatus",
+                        "Video online gepubliceerd.",
+                        true
+                    );
 
-                videoPreview.innerHTML = "";
+                    showToast(
+                        "Video gepubliceerd"
+                    );
 
-                updateDashboard();
+                    loadVideos();
+                    loadCounts();
 
+                } catch (error) {
+
+                    showStatus(
+                        "videoStatus",
+                        "Upload mislukt: " +
+                        error.message
+                    );
+                }
             };
 
-            video.src =
-                URL.createObjectURL(file);
-        });
-
-
-    // =========================
-    // OPTREDENS
-    // =========================
-
-    document.getElementById("addEvent")
-        ?.addEventListener("click", () => {
-
-            const name =
-                document.getElementById("eventName").value.trim();
-
-            const location =
-                document.getElementById("eventLocation").value.trim();
-
-            const date =
-                document.getElementById("eventDate").value;
-
-            const time =
-                document.getElementById("eventTime").value;
-
-
-            if (!name || !location || !date || !time) {
-
-                alert("Vul alle gegevens in.");
-
-                return;
-            }
-
-
-            const events =
-                get("events");
-
-            events.push({
-                name,
-                location,
-                date,
-                time
-            });
-
-            set("events", events);
-
-            document.getElementById("eventName").value = "";
-            document.getElementById("eventLocation").value = "";
-            document.getElementById("eventDate").value = "";
-            document.getElementById("eventTime").value = "";
-
-            renderEvents();
-            updateDashboard();
-
-        });
-
-
-    function renderEvents() {
-
-        const list =
-            document.getElementById("eventList");
-
-        if (!list) return;
-
-        const events =
-            get("events");
-
-        list.innerHTML = "";
-
-        events.forEach((event, index) => {
-
-            list.innerHTML += `
-                <div class="saved-item">
-
-                    <div>
-                        <strong>${escapeHTML(event.name)}</strong>
-
-                        <small>
-                            📍 ${escapeHTML(event.location)}
-                            · ${event.date}
-                            · ${event.time}
-                        </small>
-                    </div>
-
-                    <button
-                        class="delete-button"
-                        data-delete="events"
-                        data-index="${index}">
-                        Verwijder
-                    </button>
-
-                </div>
-            `;
-        });
-
-        attachDeleteButtons();
+        video.src =
+            URL.createObjectURL(file);
     }
-
-
-    // =========================
-    // NIEUWS
-    // =========================
-
-    document.getElementById("addNews")
-        ?.addEventListener("click", () => {
-
-            const title =
-                document.getElementById("newsTitle").value.trim();
-
-            const text =
-                document.getElementById("newsText").value.trim();
-
-
-            if (!title || !text) {
-
-                alert("Vul de titel en tekst in.");
-
-                return;
-            }
-
-
-            const news =
-                get("news");
-
-            news.push({
-                title,
-                text,
-                date: new Date().toLocaleDateString("nl-BE")
-            });
-
-            set("news", news);
-
-            document.getElementById("newsTitle").value = "";
-            document.getElementById("newsText").value = "";
-
-            renderNews();
-            updateDashboard();
-
-            alert("✓ Nieuwsbericht gepubliceerd.");
-
-        });
-
-
-    function renderNews() {
-
-        const list =
-            document.getElementById("newsList");
-
-        if (!list) return;
-
-        const news =
-            get("news");
-
-        list.innerHTML = "";
-
-        news.forEach((item, index) => {
-
-            list.innerHTML += `
-                <div class="saved-item">
-
-                    <div>
-                        <strong>
-                            ${escapeHTML(item.title)}
-                        </strong>
-
-                        <small>
-                            ${escapeHTML(item.date)}
-                        </small>
-                    </div>
-
-                    <button
-                        class="delete-button"
-                        data-delete="news"
-                        data-index="${index}">
-                        Verwijder
-                    </button>
-
-                </div>
-            `;
-
-        });
-
-        attachDeleteButtons();
-    }
-
-
-    // =========================
-    // FOTO'S
-    // =========================
-
-    document.getElementById("photoFile")
-        ?.addEventListener("change", function () {
-
-            const file = this.files[0];
-
-            if (!file) return;
-
-            const url =
-                URL.createObjectURL(file);
-
-            document.getElementById(
-                "photoPreview"
-            ).innerHTML = `
-                <img
-                    src="${url}"
-                    style="max-width:250px;border-radius:12px">
-            `;
-        });
-
-
-    document.getElementById("addPhoto")
-        ?.addEventListener("click", () => {
-
-            const input =
-                document.getElementById("photoFile");
-
-            const message =
-                document.getElementById("photoMessage");
-
-            if (!input.files[0]) {
-
-                message.textContent =
-                    "❌ Kies eerst een foto.";
-
-                message.className =
-                    "message error";
-
-                return;
-            }
-
-            const photos =
-                get("photos");
-
-            photos.push({
-                name: input.files[0].name,
-                date: new Date().toLocaleDateString("nl-BE")
-            });
-
-            set("photos", photos);
-
-            input.value = "";
-
-            document.getElementById(
-                "photoPreview"
-            ).innerHTML = "";
-
-            message.textContent =
-                "✓ Foto toegevoegd.";
-
-            message.className =
-                "message success";
-
-            updateDashboard();
-
-        });
-
-
-    // =========================
-    // MERCHANDISE
-    // =========================
-
-    document.getElementById("addProduct")
-        ?.addEventListener("click", () => {
-
-            const name =
-                document.getElementById("productName").value.trim();
-
-            const price =
-                document.getElementById("productPrice").value.trim();
-
-            const description =
-                document.getElementById("productDescription").value.trim();
-
-
-            if (!name || !price || !description) {
-
-                alert("Vul alle gegevens in.");
-
-                return;
-            }
-
-
-            const products =
-                get("products");
-
-            products.push({
-                name,
-                price,
-                description
-            });
-
-            set("products", products);
-
-            document.getElementById("productName").value = "";
-            document.getElementById("productPrice").value = "";
-            document.getElementById("productDescription").value = "";
-
-            renderProducts();
-
-        });
-
-
-    function renderProducts() {
-
-        const list =
-            document.getElementById("productList");
-
-        if (!list) return;
-
-        const products =
-            get("products");
-
-        list.innerHTML = "";
-
-        products.forEach((product, index) => {
-
-            list.innerHTML += `
-                <div class="saved-item">
-
-                    <div>
-                        <strong>
-                            ${escapeHTML(product.name)}
-                        </strong>
-
-                        <small>
-                            € ${escapeHTML(product.price)}
-                        </small>
-                    </div>
-
-                    <button
-                        class="delete-button"
-                        data-delete="products"
-                        data-index="${index}">
-                        Verwijder
-                    </button>
-
-                </div>
-            `;
-
-        });
-
-        attachDeleteButtons();
-    }
-
-
-    // =========================
-    // VERWIJDEREN
-    // =========================
-
-    function attachDeleteButtons() {
-
-        document
-            .querySelectorAll(".delete-button")
-            .forEach(button => {
-
-                button.addEventListener("click", () => {
-
-                    const key =
-                        button.dataset.delete;
-
-                    const index =
-                        Number(button.dataset.index);
-
-                    const data =
-                        get(key);
-
-                    data.splice(index, 1);
-
-                    set(key, data);
-
-                    renderEvents();
-                    renderNews();
-                    renderProducts();
-                    updateDashboard();
-
-                });
-
-            });
-
-    }
-
-
-    // =========================
-    // INSTELLINGEN
-    // =========================
-
-    document.getElementById("saveSettings")
-        ?.addEventListener("click", () => {
-
-            const name =
-                document.getElementById("siteName").value.trim();
-
-            const message =
-                document.getElementById("settingsMessage");
-
-            if (!name) {
-
-                message.textContent =
-                    "❌ Geef je website een naam.";
-
-                message.className =
-                    "message error";
-
-                return;
-            }
-
-            localStorage.setItem(
-                "mysteryDuo_siteName",
-                name
+);
+
+
+async function loadVideos() {
+
+    const { data, error } =
+        await db
+            .from("videos")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
             );
 
-            message.textContent =
-                "✓ Instellingen opgeslagen.";
+    if (error) {
 
-            message.className =
-                "message success";
+        $("videoList").innerHTML =
+            `<div class="empty">
+                ${escapeHTML(error.message)}
+            </div>`;
 
-        });
-
-
-    // =========================
-    // HELPERS
-    // =========================
-
-    function escapeHTML(text) {
-
-        const div =
-            document.createElement("div");
-
-        div.textContent = text;
-
-        return div.innerHTML;
+        return;
     }
 
+    if (!data.length) {
 
-    // =========================
-    // START
-    // =========================
+        $("videoList").innerHTML =
+            `<div class="empty">
+                Nog geen video's.
+            </div>`;
 
-    renderEvents();
-    renderNews();
-    renderProducts();
-    updateDashboard();
+        return;
+    }
 
-});
+    $("videoList").innerHTML =
+        data.map(video => `
+
+            <div class="media-card">
+
+                <video
+                    src="${escapeHTML(video.video_url)}"
+                    controls>
+                </video>
+
+                <div class="media-info">
+                    <strong>
+                        ${escapeHTML(video.title)}
+                    </strong>
+                </div>
+
+                <button
+                    class="delete"
+                    onclick="deleteItem('videos', ${video.id})">
+                    Verwijderen
+                </button>
+
+            </div>
+
+        `).join("");
+}
+
+
+/* =========================
+   OPTREDENS
+========================= */
+
+$("addEvent").addEventListener(
+    "click",
+    async () => {
+
+        const event = {
+            name:
+                $("eventName").value.trim(),
+
+            location:
+                $("eventLocation").value.trim(),
+
+            event_date:
+                $("eventDate").value,
+
+            event_time:
+                $("eventTime").value
+        };
+
+        if (
+            !event.name ||
+            !event.location ||
+            !event.event_date
+        ) {
+
+            showStatus(
+                "eventStatus",
+                "Vul naam, locatie en datum in."
+            );
+
+            return;
+        }
+
+        const { error } =
+            await db
+                .from("events")
+                .insert(event);
+
+        if (error) {
+
+            showStatus(
+                "eventStatus",
+                error.message
+            );
+
+            return;
+        }
+
+        $("eventName").value = "";
+        $("eventLocation").value = "";
+        $("eventDate").value = "";
+        $("eventTime").value = "";
+
+        showStatus(
+            "eventStatus",
+            "Optreden gepubliceerd.",
+            true
+        );
+
+        showToast(
+            "Optreden toegevoegd"
+        );
+
+        loadEvents();
+        loadCounts();
+    }
+);
+
+
+async function loadEvents() {
+
+    const { data, error } =
+        await db
+            .from("events")
+            .select("*")
+            .order(
+                "event_date",
+                {
+                    ascending: true
+                }
+            );
+
+    if (error) {
+
+        $("eventList").innerHTML =
+            `<div class="empty">
+                ${escapeHTML(error.message)}
+            </div>`;
+
+        return;
+    }
+
+    if (!data.length) {
+
+        $("eventList").innerHTML =
+            `<div class="empty">
+                Nog geen optredens.
+            </div>`;
+
+        return;
+    }
+
+    $("eventList").innerHTML =
+        data.map(event => `
+
+            <div class="row">
+
+                <div>
+                    <strong>
+                        ${escapeHTML(event.name)}
+                    </strong>
+
+                    <small>
+                        📍 ${escapeHTML(event.location)}
+                        · ${escapeHTML(event.event_date)}
+                        · ${escapeHTML(event.event_time || "")}
+                    </small>
+                </div>
+
+                <button
+                    class="delete"
+                    onclick="deleteItem('events', ${event.id})">
+                    Verwijderen
+                </button>
+
+            </div>
+
+        `).join("");
+}
+
+
+/* =========================
+   NIEUWS
+========================= */
+
+$("addNews").addEventListener(
+    "click",
+    async () => {
+
+        const title =
+            $("newsTitle").value.trim();
+
+        const content =
+            $("newsContent").value.trim();
+
+        if (!title || !content) {
+
+            showStatus(
+                "newsStatus",
+                "Titel en bericht zijn verplicht."
+            );
+
+            return;
+        }
+
+        const { error } =
+            await db
+                .from("news")
+                .insert({
+                    title,
+                    content
+                });
+
+        if (error) {
+
+            showStatus(
+                "newsStatus",
+                error.message
+            );
+
+            return;
+        }
+
+        $("newsTitle").value = "";
+        $("newsContent").value = "";
+
+        showStatus(
+            "newsStatus",
+            "Nieuws gepubliceerd.",
+            true
+        );
+
+        showToast(
+            "Nieuws gepubliceerd"
+        );
+
+        loadNews();
+        loadCounts();
+    }
+);
+
+
+async function loadNews() {
+
+    const { data, error } =
+        await db
+            .from("news")
+            .select("*")
+            .neq(
+                "title",
+                "__MISTERY_DUO_LIVE__"
+            )
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
+
+    if (error) {
+
+        $("newsList").innerHTML =
+            `<div class="empty">
+                ${escapeHTML(error.message)}
+            </div>`;
+
+        return;
+    }
+
+    if (!data.length) {
+
+        $("newsList").innerHTML =
+            `<div class="empty">
+                Nog geen nieuws.
+            </div>`;
+
+        return;
+    }
+
+    $("newsList").innerHTML =
+        data.map(news => `
+
+            <div class="row">
+
+                <div>
+                    <strong>
+                        ${escapeHTML(news.title)}
+                    </strong>
+
+                    <small>
+                        ${escapeHTML(
+                            news.content
+                        ).slice(0, 180)}
+                    </small>
+                </div>
+
+                <button
+                    class="delete"
+                    onclick="deleteItem('news', ${news.id})">
+                    Verwijderen
+                </button>
+
+            </div>
+
+        `).join("");
+}
+
+
+/* =========================
+   FOTO'S
+========================= */
+
+$("uploadPhoto").addEventListener(
+    "click",
+    async () => {
+
+        const file =
+            $("photoFile").files[0];
+
+        const title =
+            $("photoTitle").value.trim();
+
+        if (!file) {
+
+            showStatus(
+                "photoStatus",
+                "Kies eerst een foto."
+            );
+
+            return;
+        }
+
+        try {
+
+            const filename =
+                file.name.replace(
+                    /[^a-z0-9._-]/gi,
+                    "_"
+                );
+
+            const path =
+                `photos/${Date.now()}-${filename}`;
+
+            const url =
+                await uploadFile(
+                    "photos",
+                    file,
+                    path
+                );
+
+            const { error } =
+                await db
+                    .from("photos")
+                    .insert({
+                        title: title,
+                        image_url: url
+                    });
+
+            if (error) {
+                throw error;
+            }
+
+            $("photoFile").value = "";
+            $("photoTitle").value = "";
+
+            showStatus(
+                "photoStatus",
+                "Foto online gepubliceerd.",
+                true
+            );
+
+            showToast(
+                "Foto gepubliceerd"
+            );
+
+            loadPhotos();
+
+        } catch (error) {
+
+            showStatus(
+                "photoStatus",
+                "Upload mislukt: " +
+                error.message
+            );
+        }
+    }
+);
+
+
+async function loadPhotos() {
+
+    const { data, error } =
+        await db
+            .from("photos")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
+
+    if (error) {
+
+        $("photoList").innerHTML =
+            `<div class="empty">
+                ${escapeHTML(error.message)}
+            </div>`;
+
+        return;
+    }
+
+    if (!data.length) {
+
+        $("photoList").innerHTML =
+            `<div class="empty">
+                Nog geen foto's.
+            </div>`;
+
+        return;
+    }
+
+    $("photoList").innerHTML =
+        data.map(photo => `
+
+            <div class="media-card">
+
+                <img
+                    src="${escapeHTML(photo.image_url)}"
+                    alt="${escapeHTML(photo.title || "Foto")}">
+
+                <div class="media-info">
+
+                    <strong>
+                        ${escapeHTML(
+                            photo.title || "Foto"
+                        )}
+                    </strong>
+
+                </div>
+
+                <button
+                    class="delete"
+                    onclick="deleteItem('photos', ${photo.id})">
+                    Verwijderen
+                </button>
+
+            </div>
+
+        `).join("");
+}
+
+
+/* =========================
+   MERCHANDISE
+========================= */
+
+$("addProduct").addEventListener(
+    "click",
+    async () => {
+
+        const name =
+            $("productName").value.trim();
+
+        const price =
+            $("productPrice").value.trim();
+
+        const description =
+            $("productDescription").value.trim();
+
+        const file =
+            $("productImage").files[0];
+
+        if (!name || !price) {
+
+            showStatus(
+                "productStatus",
+                "Naam en prijs zijn verplicht."
+            );
+
+            return;
+        }
+
+        try {
+
+            let image_url = null;
+
+            if (file) {
+
+                const filename =
+                    file.name.replace(
+                        /[^a-z0-9._-]/gi,
+                        "_"
+                    );
+
+                image_url =
+                    await uploadFile(
+                        "photos",
+                        file,
+                        `merch/${Date.now()}-${filename}`
+                    );
+            }
+
+            const { error } =
+                await db
+                    .from("products")
+                    .insert({
+                        name,
+                        price,
+                        description,
+                        image_url
+                    });
+
+            if (error) {
+                throw error;
+            }
+
+            $("productName").value = "";
+            $("productPrice").value = "";
+            $("productDescription").value = "";
+            $("productImage").value = "";
+
+            showStatus(
+                "productStatus",
+                "Product toegevoegd.",
+                true
+            );
+
+            showToast(
+                "Product toegevoegd"
+            );
+
+            loadProducts();
+
+        } catch (error) {
+
+            showStatus(
+                "productStatus",
+                "Mislukt: " +
+                error.message
+            );
+        }
+    }
+);
+
+
+async function loadProducts() {
+
+    const { data, error } =
+        await db
+            .from("products")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
+
+    if (error) {
+
+        $("productList").innerHTML =
+            `<div class="empty">
+                ${escapeHTML(error.message)}
+            </div>`;
+
+        return;
+    }
+
+    if (!data.length) {
+
+        $("productList").innerHTML =
+            `<div class="empty">
+                Nog geen producten.
+            </div>`;
+
+        return;
+    }
+
+    $("productList").innerHTML =
+        data.map(product => `
+
+            <div class="media-card">
+
+                ${
+                    product.image_url
+                        ? `<img
+                            src="${escapeHTML(
+                                product.image_url
+                            )}"
+                            alt="">`
+                        : ""
+                }
+
+                <div class="media-info">
+
+                    <strong>
+                        ${escapeHTML(
+                            product.name
+                        )}
+                    </strong>
+
+                    <small>
+                        € ${escapeHTML(
+                            product.price
+                        )}
+                    </small>
+
+                    <p>
+                        ${escapeHTML(
+                            product.description || ""
+                        )}
+                    </p>
+
+                </div>
+
+                <button
+                    class="delete"
+                    onclick="deleteItem('products', ${product.id})">
+                    Verwijderen
+                </button>
+
+            </div>
+
+        `).join("");
+}
+
+
+/* =========================
+   BOEKINGEN
+========================= */
+
+async function loadBookings() {
+
+    const { data, error } =
+        await db
+            .from("bookings")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
+
+    if (error) {
+
+        $("bookingList").innerHTML =
+            `<div class="empty">
+                ${escapeHTML(error.message)}
+            </div>`;
+
+        return;
+    }
+
+    if (!data.length) {
+
+        $("bookingList").innerHTML =
+            `<div class="empty">
+                Nog geen boekingsaanvragen.
+            </div>`;
+
+        return;
+    }
+
+    $("bookingList").innerHTML =
+        data.map(booking => `
+
+            <div class="booking">
+
+                <h3>
+                    ${escapeHTML(
+                        booking.name
+                    )}
+                </h3>
+
+                <div class="meta">
+                    ${escapeHTML(
+                        booking.email
+                    )}
+                    ·
+                    ${escapeHTML(
+                        booking.event_date
+                    )}
+                    ·
+                    ${escapeHTML(
+                        booking.location
+                    )}
+                </div>
+
+                <p>
+                    ${escapeHTML(
+                        booking.message || ""
+                    )}
+                </p>
+
+                <button
+                    class="delete"
+                    onclick="deleteItem('bookings', ${booking.id})">
+                    Aanvraag verwijderen
+                </button>
+
+            </div>
+
+        `).join("");
+}
+
+
+/* =========================
+   VERWIJDEREN
+========================= */
+
+async function deleteItem(
+    table,
+    id
+) {
+
+    const confirmed =
+        confirm(
+            "Weet je zeker dat je dit wilt verwijderen?"
+        );
+
+    if (!confirmed) return;
+
+    const { error } =
+        await db
+            .from(table)
+            .delete()
+            .eq("id", id);
+
+    if (error) {
+
+        alert(
+            "Verwijderen mislukt: " +
+            error.message
+        );
+
+        return;
+    }
+
+    if (table === "videos")
+        loadVideos();
+
+    if (table === "events")
+        loadEvents();
+
+    if (table === "news")
+        loadNews();
+
+    if (table === "photos")
+        loadPhotos();
+
+    if (table === "products")
+        loadProducts();
+
+    if (table === "bookings")
+        loadBookings();
+
+    loadCounts();
+
+    showToast(
+        "Item verwijderd"
+    );
+}
+
+window.deleteItem = deleteItem;
+
+
+/* =========================
+   START
+========================= */
+
+loadLogo();
+testConnection();
+loadCounts();
+loadVideos();
+loadEvents();
+loadNews();
+loadPhotos();
+loadProducts();
+loadBookings();
+loadLive();
