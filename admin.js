@@ -1,550 +1,483 @@
-/* ==========================================
-   MISTERY DUO BEHEER
-========================================== */
-
-
-/* SUPABASE */
+/* =========================================
+   MISTERY DUO - BEHEER
+   ========================================= */
 
 const SUPABASE_URL =
     "https://msvesugylaeffjqiizzm.supabase.co";
 
 const SUPABASE_KEY =
-    "sb_publishable__cDajfEACOoUZ9xOU8ZtYQ5XFtp5B";
+    "sb_publishable__cDajfEACOoUZ9xOUZtY_Q5XFtp5B";
 
-const db =
+const ADMIN_PASSWORD = "misteryduo";
+
+const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY
     );
 
+const $ = id => document.getElementById(id);
 
-/* WACHTWOORD */
-
-const ADMIN_PASSWORD =
-    "misteryduo";
-
-
-/* ==========================================
-   HELPERS
-========================================== */
-
-const $ = id =>
-    document.getElementById(id);
-
-
-function escapeHTML(value) {
-
+function esc(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
-
 }
 
+function msg(id, text, success = false) {
+    const el = $(id);
 
-function message(id, text, success = false) {
+    if (!el) return;
 
-    const element = $(id);
-
-    element.textContent = text;
-
-    element.classList.toggle(
-        "success",
-        success
-    );
-
+    el.textContent = text;
+    el.className = success ? "msg ok" : "msg";
 }
-
 
 function toast(text) {
+    const el = $("toast");
 
-    const element = $("toast");
+    if (!el) return;
 
-    element.textContent = text;
-
-    element.classList.add("show");
+    el.textContent = text;
+    el.classList.add("show");
 
     setTimeout(() => {
-
-        element.classList.remove("show");
-
-    }, 2200);
-
+        el.classList.remove("show");
+    }, 2500);
 }
 
 
-/* ==========================================
+/* =========================================
    LOGIN
-========================================== */
-
-$("loginBtn").addEventListener(
-    "click",
-    login
-);
-
-
-$("passwordInput").addEventListener(
-    "keydown",
-    event => {
-
-        if (event.key === "Enter") {
-
-            login();
-
-        }
-
-    }
-);
-
+   ========================================= */
 
 function login() {
 
     const password =
-        $("passwordInput").value;
-
+        $("adminPassword").value;
 
     if (password !== ADMIN_PASSWORD) {
 
-        message(
-            "loginError",
-            "Het wachtwoord is niet correct."
-        );
+        $("loginMsg").textContent =
+            "Verkeerde beheerderscode.";
 
         return;
-
     }
-
 
     sessionStorage.setItem(
         "misteryDuoAdmin",
-        "true"
+        "1"
     );
 
+    $("login").classList.add("hidden");
+    $("app").classList.remove("hidden");
 
-    showAdmin();
-
+    start();
 }
 
+$("loginBtn").onclick = login;
 
-function showAdmin() {
-
-    $("loginPage")
-        .classList
-        .add("hidden");
-
-    $("adminPage")
-        .classList
-        .remove("hidden");
-
-
-    initialise();
-
-}
-
-
-$("logoutBtn").addEventListener(
-    "click",
-    () => {
-
-        sessionStorage.removeItem(
-            "misteryDuoAdmin"
-        );
-
-        location.reload();
-
+$("adminPassword").addEventListener(
+    "keydown",
+    e => {
+        if (e.key === "Enter") {
+            login();
+        }
     }
 );
 
+$("logout").onclick = () => {
 
-/* ==========================================
+    sessionStorage.removeItem(
+        "misteryDuoAdmin"
+    );
+
+    location.reload();
+};
+
+
+/* =========================================
    NAVIGATIE
-========================================== */
+   ========================================= */
 
 const titles = {
-
     dashboard: "Dashboard",
+    logo: "Logo",
     live: "Livestream",
     videos: "Video's",
     events: "Optredens",
     news: "Nieuws",
     photos: "Foto's",
     shop: "Merchandise",
-    bookings: "Boekingen",
-    settings: "Instellingen"
-
+    bookings: "Boekingen"
 };
 
-
 document
-    .querySelectorAll(".menu")
+    .querySelectorAll("#nav button")
     .forEach(button => {
 
-        button.addEventListener(
-            "click",
-            () => {
-
-                openPage(
-                    button.dataset.page
-                );
-
-            }
-        );
+        button.onclick = () => {
+            openPage(
+                button.dataset.page
+            );
+        };
 
     });
 
 
-document
-    .querySelectorAll("[data-open]")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                openPage(
-                    button.dataset.open
-                );
-
-            }
-        );
-
-    });
-
-
-function openPage(name) {
+function openPage(page) {
 
     document
         .querySelectorAll(".page")
-        .forEach(page => {
-
-            page.classList.remove(
+        .forEach(section => {
+            section.classList.remove(
                 "active"
             );
-
         });
 
+    const section = $(page);
 
-    $(name)
-        .classList
-        .add("active");
+    if (!section) return;
 
+    section.classList.add("active");
 
     document
-        .querySelectorAll(".menu")
+        .querySelectorAll("#nav button")
         .forEach(button => {
 
             button.classList.toggle(
                 "active",
-                button.dataset.page === name
+                button.dataset.page === page
             );
 
         });
 
+    $("title").textContent =
+        titles[page] || "Dashboard";
 
-    $("pageTitle").textContent =
-        titles[name];
 
+    if (page === "dashboard")
+        loadCounts();
 
-    if (name === "dashboard")
-        loadDashboard();
+    if (page === "logo")
+        loadLogo();
 
-    if (name === "live")
+    if (page === "live")
         loadLive();
 
-    if (name === "videos")
+    if (page === "videos")
         loadVideos();
 
-    if (name === "events")
+    if (page === "events")
         loadEvents();
 
-    if (name === "news")
+    if (page === "news")
         loadNews();
 
-    if (name === "photos")
+    if (page === "photos")
         loadPhotos();
 
-    if (name === "shop")
+    if (page === "shop")
         loadProducts();
 
-    if (name === "bookings")
+    if (page === "bookings")
         loadBookings();
-
 }
 
 
-/* ==========================================
-   CONNECTION
-========================================== */
+/* =========================================
+   VERBINDING TESTEN
+   ========================================= */
 
 async function testConnection() {
 
-    const result =
-        await db
+    const { error } =
+        await supabaseClient
             .from("events")
             .select("id")
             .limit(1);
 
+    const connection =
+        $("connection");
 
-    if (result.error) {
+    if (!connection) return;
 
-        $("status").classList.remove(
-            "online"
-        );
+    if (error) {
 
-        $("status").innerHTML =
-            "<span></span>Database fout";
+        connection.classList.remove("ok");
+
+        connection.innerHTML =
+            "<i></i> Database niet bereikbaar";
 
         console.error(
-            result.error
+            "Supabase:",
+            error
         );
 
-        return;
+    } else {
+
+        connection.classList.add("ok");
+
+        connection.innerHTML =
+            "<i></i> Online verbonden";
 
     }
-
-
-    $("status").classList.add(
-        "online"
-    );
-
-    $("status").innerHTML =
-        "<span></span>Verbonden";
-
 }
 
 
-/* ==========================================
+/* =========================================
    DASHBOARD
-========================================== */
+   ========================================= */
 
 async function count(table) {
 
-    const result =
-        await db
+    const { count, error } =
+        await supabaseClient
             .from(table)
-            .select(
-                "*",
+            .select("*", {
+                count: "exact",
+                head: true
+            });
+
+    if (error) {
+
+        console.error(
+            table,
+            error
+        );
+
+        return 0;
+    }
+
+    return count || 0;
+}
+
+
+async function loadCounts() {
+
+    $("sVideos").textContent =
+        await count("videos");
+
+    $("sEvents").textContent =
+        await count("events");
+
+    $("sNews").textContent =
+        await count("news");
+
+    $("sBookings").textContent =
+        await count("bookings");
+}
+
+
+/* =========================================
+   STORAGE
+   ========================================= */
+
+async function uploadFile(
+    bucket,
+    file,
+    path
+) {
+
+    const { error } =
+        await supabaseClient
+            .storage
+            .from(bucket)
+            .upload(
+                path,
+                file,
                 {
-                    count: "exact",
-                    head: true
+                    upsert: true,
+                    contentType: file.type
                 }
             );
 
+    if (error)
+        throw error;
 
-    return result.count || 0;
+
+    const { data } =
+        supabaseClient
+            .storage
+            .from(bucket)
+            .getPublicUrl(path);
+
+
+    return data.publicUrl;
+}
+
+
+/* =========================================
+   LOGO
+   ========================================= */
+
+function defaultLogo() {
+    return "assets/mistery-duo-logo.jpg";
+}
+
+
+function getLogo() {
+
+    return localStorage.getItem(
+        "misteryDuoLogo"
+    ) || defaultLogo();
 
 }
 
 
-async function loadDashboard() {
+function applyLogo() {
 
-    $("statVideos").textContent =
-        await count("videos");
+    const logo =
+        getLogo();
 
-    $("statEvents").textContent =
-        await count("events");
+    [
+        "loginLogo",
+        "sideLogo",
+        "dashLogo",
+        "logoPreview"
+    ].forEach(id => {
 
-    $("statNews").textContent =
-        await count("news");
+        const image = $(id);
 
-    const bookings =
-        await count("bookings");
+        if (image)
+            image.src = logo;
+
+    });
+}
 
 
-    $("statBookings").textContent =
-        bookings;
+function loadLogo() {
 
-    $("bookingBadge").textContent =
-        bookings;
+    applyLogo();
 
 }
 
 
-/* ==========================================
-   YOUTUBE
-========================================== */
+$("logoFile").onchange = event => {
+
+    const file =
+        event.target.files[0];
+
+    if (!file) return;
+
+    $("logoPreview").src =
+        URL.createObjectURL(file);
+};
+
+
+$("saveLogo").onclick = async () => {
+
+    const file =
+        $("logoFile").files[0];
+
+    if (!file) {
+
+        msg(
+            "logoMsg",
+            "Kies eerst een logo."
+        );
+
+        return;
+    }
+
+    try {
+
+        const filename =
+            file.name.replace(
+                /[^a-z0-9._-]/gi,
+                "_"
+            );
+
+        const path =
+            "site/logo-" +
+            Date.now() +
+            "-" +
+            filename;
+
+
+        const url =
+            await uploadFile(
+                "photos",
+                file,
+                path
+            );
+
+
+        localStorage.setItem(
+            "misteryDuoLogo",
+            url
+        );
+
+
+        applyLogo();
+
+
+        msg(
+            "logoMsg",
+            "Logo succesvol opgeslagen.",
+            true
+        );
+
+        toast(
+            "Logo opgeslagen"
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        msg(
+            "logoMsg",
+            "Logo upload mislukt: " +
+            error.message
+        );
+
+    }
+};
+
+
+$("resetLogo").onclick = () => {
+
+    localStorage.removeItem(
+        "misteryDuoLogo"
+    );
+
+    applyLogo();
+
+    msg(
+        "logoMsg",
+        "Standaardlogo ingesteld.",
+        true
+    );
+
+};
+
+
+/* =========================================
+   LIVESTREAM
+   ========================================= */
 
 function youtubeId(url) {
 
-    if (!url)
-        return null;
-
-
-    const patterns = [
-
-        /youtube\.com\/watch\?v=([^&]+)/,
-
-        /youtu\.be\/([^?]+)/,
-
-        /youtube\.com\/live\/([^?]+)/,
-
-        /youtube\.com\/embed\/([^?]+)/
-
-    ];
-
-
-    for (
-        const pattern of patterns
-    ) {
-
-        const match =
-            url.match(pattern);
-
-
-        if (match)
-            return match[1];
-
-    }
-
-
-    return null;
-
-}
-
-
-/* ==========================================
-   LIVESTREAM
-========================================== */
-
-$("startLiveBtn").addEventListener(
-    "click",
-    activateLive
-);
-
-
-$("stopLiveBtn").addEventListener(
-    "click",
-    stopLive
-);
-
-
-async function activateLive() {
-
-    const url =
-        $("liveUrl").value.trim();
-
-
-    const id =
-        youtubeId(url);
-
-
-    if (!id) {
-
-        message(
-            "liveMessage",
-            "Vul een geldige YouTube-link in."
+    const match =
+        String(url).match(
+            /(?:v=|youtu\.be\/|youtube\.com\/live\/|youtube\.com\/embed\/)([^&?\/\s]+)/
         );
 
-        return;
-
-    }
-
-
-    const result =
-        await db
-            .from("settings")
-            .upsert(
-                {
-                    key: "livestream",
-                    value: url,
-                    active: true
-                },
-                {
-                    onConflict: "key"
-                }
-            );
-
-
-    if (result.error) {
-
-        message(
-            "liveMessage",
-            result.error.message
-        );
-
-        return;
-
-    }
-
-
-    showLive(id);
-
-
-    message(
-        "liveMessage",
-        "Livestream geactiveerd.",
-        true
-    );
-
-
-    toast("Livestream geactiveerd");
-
-}
-
-
-async function stopLive() {
-
-    const result =
-        await db
-            .from("settings")
-            .upsert(
-                {
-                    key: "livestream",
-                    value: "",
-                    active: false
-                },
-                {
-                    onConflict: "key"
-                }
-            );
-
-
-    if (result.error) {
-
-        message(
-            "liveMessage",
-            result.error.message
-        );
-
-        return;
-
-    }
-
-
-    $("livePreview").innerHTML =
-        "<div>Livestream staat uit.</div>";
-
-
-    message(
-        "liveMessage",
-        "Livestream gestopt.",
-        true
-    );
-
-}
-
-
-function showLive(id) {
-
-    $("livePreview").innerHTML = `
-
-        <iframe
-            src="https://www.youtube.com/embed/${escapeHTML(id)}"
-            allow="autoplay; encrypted-media"
-            allowfullscreen>
-        </iframe>
-
-    `;
-
+    return match
+        ? match[1]
+        : null;
 }
 
 
 async function loadLive() {
 
-    const result =
-        await db
+    const { data, error } =
+        await supabaseClient
             .from("settings")
             .select("*")
             .eq(
@@ -554,210 +487,296 @@ async function loadLive() {
             .maybeSingle();
 
 
-    if (
-        result.error ||
-        !result.data
-    )
+    if (error) {
+
+        msg(
+            "liveMsg",
+            "Livestream laden mislukt: " +
+            error.message
+        );
+
         return;
+    }
+
+
+    if (!data) {
+
+        $("liveUrl").value = "";
+
+        $("liveFrame").innerHTML =
+            "<p>Geen livestream ingesteld.</p>";
+
+        return;
+    }
 
 
     $("liveUrl").value =
-        result.data.value || "";
+        data.value || "";
 
 
     if (
-        result.data.active &&
-        result.data.value
+        data.active &&
+        youtubeId(data.value)
     ) {
 
-        const id =
-            youtubeId(
-                result.data.value
-            );
+        showLive(
+            data.value
+        );
 
+    } else {
 
-        if (id)
-            showLive(id);
+        $("liveFrame").innerHTML =
+            "<p>Livestream staat uit.</p>";
 
     }
-
 }
 
 
-/* ==========================================
-   VIDEO UPLOAD
-========================================== */
+function showLive(url) {
 
-$("uploadVideoBtn").addEventListener(
-    "click",
-    uploadVideo
-);
+    const id =
+        youtubeId(url);
+
+    if (!id) return;
+
+    $("liveFrame").innerHTML = `
+        <iframe
+            src="https://www.youtube.com/embed/${esc(id)}"
+            title="Mistery Duo livestream"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+    `;
+}
 
 
-async function uploadVideo() {
+async function saveLive(active) {
 
-    const file =
-        $("videoFile").files[0];
-
-    const title =
-        $("videoTitle").value.trim();
-
-
-    if (!file || !title) {
-
-        message(
-            "videoMessage",
-            "Vul een titel en kies een video."
-        );
-
-        return;
-
-    }
+    const url =
+        $("liveUrl").value.trim();
 
 
     if (
-        !file.type.startsWith("video/")
+        active &&
+        !youtubeId(url)
     ) {
 
-        message(
-            "videoMessage",
-            "Dit bestand is geen video."
+        msg(
+            "liveMsg",
+            "Gebruik een geldige YouTube-link."
         );
 
         return;
-
     }
 
 
-    const video =
-        document.createElement("video");
-
-
-    video.preload = "metadata";
-
-
-    video.onloadedmetadata =
-        async () => {
-
-            URL.revokeObjectURL(
-                video.src
+    const { error } =
+        await supabaseClient
+            .from("settings")
+            .upsert(
+                {
+                    key: "livestream",
+                    value: url,
+                    active: active
+                },
+                {
+                    onConflict: "key"
+                }
             );
 
 
-            if (video.duration > 60) {
+    if (error) {
 
-                message(
-                    "videoMessage",
-                    "De video mag maximaal 1 minuut zijn."
+        msg(
+            "liveMsg",
+            "Opslaan mislukt: " +
+            error.message
+        );
+
+        return;
+    }
+
+
+    if (active)
+        showLive(url);
+    else
+        $("liveFrame").innerHTML =
+            "<p>Livestream staat uit.</p>";
+
+
+    msg(
+        "liveMsg",
+        active
+            ? "Livestream geactiveerd."
+            : "Livestream uitgezet.",
+        true
+    );
+
+    toast(
+        "Livestream bijgewerkt"
+    );
+}
+
+
+$("liveSave").onclick =
+    () => saveLive(true);
+
+$("liveOff").onclick =
+    () => saveLive(false);
+
+
+/* =========================================
+   VIDEO'S
+   ========================================= */
+
+$("videoSave").onclick =
+    async () => {
+
+        const file =
+            $("videoFile").files[0];
+
+        const title =
+            $("videoTitle")
+                .value
+                .trim();
+
+
+        if (!file || !title) {
+
+            msg(
+                "videoMsg",
+                "Titel en video zijn verplicht."
+            );
+
+            return;
+        }
+
+
+        const video =
+            document.createElement(
+                "video"
+            );
+
+        video.preload = "metadata";
+
+
+        video.onloadedmetadata =
+            async () => {
+
+                URL.revokeObjectURL(
+                    video.src
                 );
 
-                return;
 
-            }
+                if (
+                    video.duration > 60
+                ) {
+
+                    msg(
+                        "videoMsg",
+                        "De video mag maximaal 1 minuut zijn."
+                    );
+
+                    return;
+                }
 
 
-            try {
+                try {
 
-                const path =
-                    `videos/${Date.now()}-${safeName(file.name)}`;
+                    const filename =
+                        file.name.replace(
+                            /[^a-z0-9._-]/gi,
+                            "_"
+                        );
 
 
-                const upload =
-                    await db
-                        .storage
-                        .from("videos")
-                        .upload(
-                            path,
+                    const path =
+                        "videos/" +
+                        Date.now() +
+                        "-" +
+                        filename;
+
+
+                    const url =
+                        await uploadFile(
+                            "videos",
                             file,
-                            {
-                                upsert: false
-                            }
+                            path
                         );
 
 
-                if (upload.error)
-                    throw upload.error;
+                    const { error } =
+                        await supabaseClient
+                            .from("videos")
+                            .insert({
+                                title: title,
+                                video_url: url
+                            });
 
 
-                const publicURL =
-                    db
-                        .storage
-                        .from("videos")
-                        .getPublicUrl(path)
-                        .data
-                        .publicUrl;
+                    if (error)
+                        throw error;
 
 
-                const insert =
-                    await db
-                        .from("videos")
-                        .insert(
-                            {
-                                title,
-                                video_url:
-                                    publicURL
-                            }
-                        );
+                    $("videoTitle").value =
+                        "";
+
+                    $("videoFile").value =
+                        "";
 
 
-                if (insert.error)
-                    throw insert.error;
+                    msg(
+                        "videoMsg",
+                        "Video succesvol gepubliceerd.",
+                        true
+                    );
+
+                    toast(
+                        "Video gepubliceerd"
+                    );
 
 
-                $("videoTitle").value = "";
-
-                $("videoFile").value = "";
-
-
-                message(
-                    "videoMessage",
-                    "Video succesvol toegevoegd.",
-                    true
-                );
+                    loadVideos();
+                    loadCounts();
 
 
-                toast("Video toegevoegd");
+                } catch (error) {
 
-                loadVideos();
+                    console.error(error);
 
-                loadDashboard();
+                    msg(
+                        "videoMsg",
+                        "Upload mislukt: " +
+                        error.message
+                    );
+
+                }
+
+            };
 
 
-            } catch (error) {
+        video.onerror = () => {
 
-                console.error(error);
-
-                message(
-                    "videoMessage",
-                    "Upload mislukt: " +
-                    error.message
-                );
-
-            }
+            msg(
+                "videoMsg",
+                "Deze video kan niet worden gelezen."
+            );
 
         };
 
 
-    video.onerror = () => {
-
-        message(
-            "videoMessage",
-            "De video kon niet worden gelezen."
-        );
+        video.src =
+            URL.createObjectURL(
+                file
+            );
 
     };
 
 
-    video.src =
-        URL.createObjectURL(file);
-
-}
-
-
 async function loadVideos() {
 
-    const result =
-        await db
+    const { data, error } =
+        await supabaseClient
             .from("videos")
             .select("*")
             .order(
@@ -768,155 +787,146 @@ async function loadVideos() {
             );
 
 
-    if (result.error) {
+    if (error) {
 
         $("videosList").innerHTML =
-            errorHTML(
-                result.error.message
-            );
+            `<div class="empty">${esc(error.message)}</div>`;
 
         return;
-
     }
 
 
-    if (!result.data.length) {
+    if (!data.length) {
 
         $("videosList").innerHTML =
-            emptyHTML(
-                "Nog geen video's."
-            );
+            "<div class='empty'>Nog geen video's.</div>";
 
         return;
-
     }
 
 
     $("videosList").innerHTML =
-        result.data
-            .map(video => `
+        data.map(video => `
 
-                <div class="item">
+            <div class="media">
 
-                    <div class="item-main">
+                <video
+                    controls
+                    src="${esc(video.video_url)}">
+                </video>
 
-                        <strong>
-                            ${escapeHTML(video.title)}
-                        </strong>
-
-                        <small>
-                            Video gepubliceerd
-                        </small>
-
-                    </div>
-
-                    <div class="item-actions">
-
-                        <button
-                            class="delete-button"
-                            onclick="deleteRow('videos', ${video.id})">
-                            Verwijderen
-                        </button>
-
-                    </div>
-
+                <div class="media-body">
+                    <b>
+                        ${esc(video.title)}
+                    </b>
                 </div>
 
-            `)
-            .join("");
+                <button
+                    class="btn danger"
+                    onclick="deleteItem('videos', ${video.id})">
 
+                    Verwijderen
+
+                </button>
+
+            </div>
+
+        `).join("");
 }
 
 
-/* ==========================================
+/* =========================================
    OPTREDENS
-========================================== */
+   ========================================= */
 
-$("addEventBtn").addEventListener(
-    "click",
-    addEvent
-);
+$("eventSave").onclick =
+    async () => {
+
+        const row = {
+
+            name:
+                $("eventName")
+                    .value
+                    .trim(),
+
+            location:
+                $("eventLocation")
+                    .value
+                    .trim(),
+
+            event_date:
+                $("eventDate")
+                    .value,
+
+            event_time:
+                $("eventTime")
+                    .value
+
+        };
 
 
-async function addEvent() {
+        if (
+            !row.name ||
+            !row.location ||
+            !row.event_date
+        ) {
 
-    const data = {
+            msg(
+                "eventMsg",
+                "Naam, locatie en datum zijn verplicht."
+            );
 
-        name:
-            $("eventName").value.trim(),
+            return;
+        }
 
-        location:
-            $("eventLocation").value.trim(),
 
-        event_date:
-            $("eventDate").value,
+        const { error } =
+            await supabaseClient
+                .from("events")
+                .insert(row);
 
-        event_time:
-            $("eventTime").value
 
+        if (error) {
+
+            msg(
+                "eventMsg",
+                error.message
+            );
+
+            return;
+        }
+
+
+        [
+            "eventName",
+            "eventLocation",
+            "eventDate",
+            "eventTime"
+        ].forEach(id => {
+            $(id).value = "";
+        });
+
+
+        msg(
+            "eventMsg",
+            "Optreden gepubliceerd.",
+            true
+        );
+
+        toast(
+            "Optreden toegevoegd"
+        );
+
+
+        loadEvents();
+        loadCounts();
     };
-
-
-    if (
-        !data.name ||
-        !data.location ||
-        !data.event_date
-    ) {
-
-        message(
-            "eventMessage",
-            "Naam, locatie en datum zijn verplicht."
-        );
-
-        return;
-
-    }
-
-
-    const result =
-        await db
-            .from("events")
-            .insert(data);
-
-
-    if (result.error) {
-
-        message(
-            "eventMessage",
-            result.error.message
-        );
-
-        return;
-
-    }
-
-
-    $("eventName").value = "";
-    $("eventLocation").value = "";
-    $("eventDate").value = "";
-    $("eventTime").value = "";
-
-
-    message(
-        "eventMessage",
-        "Optreden toegevoegd.",
-        true
-    );
-
-
-    toast("Optreden toegevoegd");
-
-    loadEvents();
-
-    loadDashboard();
-
-}
 
 
 async function loadEvents() {
 
-    const result =
-        await db
+    const { data, error } =
+        await supabaseClient
             .from("events")
             .select("*")
             .order(
@@ -927,146 +937,135 @@ async function loadEvents() {
             );
 
 
-    if (result.error) {
+    if (error) {
 
         $("eventsList").innerHTML =
-            errorHTML(
-                result.error.message
-            );
+            `<div class="empty">${esc(error.message)}</div>`;
 
         return;
-
     }
 
 
-    if (!result.data.length) {
+    if (!data.length) {
 
         $("eventsList").innerHTML =
-            emptyHTML(
-                "Nog geen optredens."
-            );
+            "<div class='empty'>Nog geen optredens.</div>";
 
         return;
-
     }
 
 
     $("eventsList").innerHTML =
-        result.data
-            .map(event => `
+        data.map(event => `
 
-                <div class="item">
+            <div class="item">
 
-                    <div class="item-main">
+                <div>
 
-                        <strong>
-                            ${escapeHTML(event.name)}
-                        </strong>
+                    <b>
+                        ${esc(event.name)}
+                    </b>
 
-                        <small>
-                            📍 ${escapeHTML(event.location)}
-                            ·
-                            ${escapeHTML(event.event_date)}
-                            ${escapeHTML(event.event_time || "")}
-                        </small>
-
-                    </div>
-
-                    <div class="item-actions">
-
-                        <button
-                            class="delete-button"
-                            onclick="deleteRow('events', ${event.id})">
-                            Verwijderen
-                        </button>
-
-                    </div>
+                    <small>
+                        📍 ${esc(event.location)}
+                        ·
+                        ${esc(event.event_date)}
+                        ·
+                        ${esc(event.event_time || "")}
+                    </small>
 
                 </div>
 
-            `)
-            .join("");
+                <button
+                    class="btn danger"
+                    onclick="deleteItem('events', ${event.id})">
 
+                    Verwijderen
+
+                </button>
+
+            </div>
+
+        `).join("");
 }
 
 
-/* ==========================================
+/* =========================================
    NIEUWS
-========================================== */
+   ========================================= */
 
-$("publishNewsBtn").addEventListener(
-    "click",
-    publishNews
-);
+$("newsSave").onclick =
+    async () => {
+
+        const title =
+            $("newsTitle")
+                .value
+                .trim();
+
+        const content =
+            $("newsContent")
+                .value
+                .trim();
 
 
-async function publishNews() {
+        if (!title || !content) {
 
-    const title =
-        $("newsTitle").value.trim();
+            msg(
+                "newsMsg",
+                "Titel en bericht zijn verplicht."
+            );
 
-    const content =
-        $("newsContent").value.trim();
+            return;
+        }
 
 
-    if (!title || !content) {
+        const { error } =
+            await supabaseClient
+                .from("news")
+                .insert({
+                    title,
+                    content
+                });
 
-        message(
-            "newsMessage",
-            "Titel en bericht zijn verplicht."
+
+        if (error) {
+
+            msg(
+                "newsMsg",
+                error.message
+            );
+
+            return;
+        }
+
+
+        $("newsTitle").value =
+            "";
+
+        $("newsContent").value =
+            "";
+
+
+        msg(
+            "newsMsg",
+            "Nieuws gepubliceerd.",
+            true
         );
 
-        return;
-
-    }
-
-
-    const result =
-        await db
-            .from("news")
-            .insert({
-                title,
-                content
-            });
-
-
-    if (result.error) {
-
-        message(
-            "newsMessage",
-            result.error.message
+        toast(
+            "Nieuws gepubliceerd"
         );
 
-        return;
 
-    }
-
-
-    $("newsTitle").value = "";
-
-    $("newsContent").value = "";
-
-
-    message(
-        "newsMessage",
-        "Nieuws gepubliceerd.",
-        true
-    );
-
-
-    toast("Nieuws gepubliceerd");
-
-    loadNews();
-
-    loadDashboard();
-
-}
+        loadNews();
+        loadCounts();
+    };
 
 
 async function loadNews() {
 
-    const result =
-        await db
+    const { data, error } =
+        await supabaseClient
             .from("news")
             .select("*")
             .order(
@@ -1077,175 +1076,159 @@ async function loadNews() {
             );
 
 
-    if (result.error) {
+    if (error) {
 
         $("newsList").innerHTML =
-            errorHTML(
-                result.error.message
-            );
+            `<div class="empty">${esc(error.message)}</div>`;
 
         return;
-
     }
 
 
-    if (!result.data.length) {
+    if (!data.length) {
 
         $("newsList").innerHTML =
-            emptyHTML(
-                "Nog geen nieuws."
-            );
+            "<div class='empty'>Nog geen nieuws.</div>";
 
         return;
-
     }
 
 
     $("newsList").innerHTML =
-        result.data
-            .map(news => `
+        data.map(item => `
 
-                <div class="item">
+            <div class="item">
 
-                    <div class="item-main">
+                <div>
 
-                        <strong>
-                            ${escapeHTML(news.title)}
-                        </strong>
+                    <b>
+                        ${esc(item.title)}
+                    </b>
 
-                        <small>
-                            ${escapeHTML(news.content)}
-                        </small>
-
-                    </div>
-
-                    <div class="item-actions">
-
-                        <button
-                            class="delete-button"
-                            onclick="deleteRow('news', ${news.id})">
-                            Verwijderen
-                        </button>
-
-                    </div>
+                    <small>
+                        ${esc(
+                            item.content
+                        ).slice(0, 250)}
+                    </small>
 
                 </div>
 
-            `)
-            .join("");
+                <button
+                    class="btn danger"
+                    onclick="deleteItem('news', ${item.id})">
 
+                    Verwijderen
+
+                </button>
+
+            </div>
+
+        `).join("");
 }
 
 
-/* ==========================================
+/* =========================================
    FOTO'S
-========================================== */
+   ========================================= */
 
-$("uploadPhotoBtn").addEventListener(
-    "click",
-    uploadPhoto
-);
+$("photoSave").onclick =
+    async () => {
 
+        const file =
+            $("photoFile").files[0];
 
-async function uploadPhoto() {
-
-    const file =
-        $("photoFile").files[0];
-
-    const title =
-        $("photoTitle").value.trim();
+        const title =
+            $("photoTitle")
+                .value
+                .trim();
 
 
-    if (!file) {
+        if (!file) {
 
-        message(
-            "photoMessage",
-            "Kies eerst een foto."
-        );
+            msg(
+                "photoMsg",
+                "Kies eerst een foto."
+            );
 
-        return;
-
-    }
-
-
-    try {
-
-        const path =
-            `photos/${Date.now()}-${safeName(file.name)}`;
+            return;
+        }
 
 
-        const upload =
-            await db
-                .storage
-                .from("photos")
-                .upload(
-                    path,
-                    file,
-                    {
-                        upsert: false
-                    }
+        try {
+
+            const filename =
+                file.name.replace(
+                    /[^a-z0-9._-]/gi,
+                    "_"
                 );
 
 
-        if (upload.error)
-            throw upload.error;
+            const path =
+                "photos/" +
+                Date.now() +
+                "-" +
+                filename;
 
 
-        const url =
-            db
-                .storage
-                .from("photos")
-                .getPublicUrl(path)
-                .data
-                .publicUrl;
+            const url =
+                await uploadFile(
+                    "photos",
+                    file,
+                    path
+                );
 
 
-        const result =
-            await db
-                .from("photos")
-                .insert({
-                    title,
-                    image_url: url
-                });
+            const { error } =
+                await supabaseClient
+                    .from("photos")
+                    .insert({
+                        title,
+                        image_url: url
+                    });
 
 
-        if (result.error)
-            throw result.error;
+            if (error)
+                throw error;
 
 
-        $("photoTitle").value = "";
+            $("photoFile").value =
+                "";
 
-        $("photoFile").value = "";
-
-
-        message(
-            "photoMessage",
-            "Foto succesvol toegevoegd.",
-            true
-        );
+            $("photoTitle").value =
+                "";
 
 
-        toast("Foto toegevoegd");
+            msg(
+                "photoMsg",
+                "Foto gepubliceerd.",
+                true
+            );
 
-        loadPhotos();
+            toast(
+                "Foto gepubliceerd"
+            );
 
 
-    } catch (error) {
+            loadPhotos();
 
-        message(
-            "photoMessage",
-            error.message
-        );
 
-    }
+        } catch (error) {
 
-}
+            msg(
+                "photoMsg",
+                "Upload mislukt: " +
+                error.message
+            );
+
+        }
+
+    };
 
 
 async function loadPhotos() {
 
-    const result =
-        await db
+    const { data, error } =
+        await supabaseClient
             .from("photos")
             .select("*")
             .order(
@@ -1256,199 +1239,180 @@ async function loadPhotos() {
             );
 
 
-    if (result.error) {
+    if (error) {
 
         $("photosList").innerHTML =
-            errorHTML(
-                result.error.message
-            );
+            `<div class="empty">${esc(error.message)}</div>`;
 
         return;
-
     }
 
 
-    if (!result.data.length) {
+    if (!data.length) {
 
         $("photosList").innerHTML =
-            emptyHTML(
-                "Nog geen foto's."
-            );
+            "<div class='empty'>Nog geen foto's.</div>";
 
         return;
-
     }
 
 
     $("photosList").innerHTML =
-        result.data
-            .map(photo => `
+        data.map(photo => `
 
-                <div class="media-card">
+            <div class="media">
 
-                    <img
-                        src="${escapeHTML(photo.image_url)}"
-                        alt=""
-                    >
+                <img
+                    src="${esc(photo.image_url)}"
+                    alt="${esc(photo.title || "")}"
+                >
 
-                    <div class="media-info">
+                <div class="media-body">
 
-                        <strong>
-                            ${escapeHTML(
-                                photo.title || "Foto"
-                            )}
-                        </strong>
-
-                        <button
-                            class="delete-button"
-                            onclick="deleteRow('photos', ${photo.id})">
-                            Verwijderen
-                        </button>
-
-                    </div>
+                    <b>
+                        ${esc(
+                            photo.title ||
+                            "Foto"
+                        )}
+                    </b>
 
                 </div>
 
-            `)
-            .join("");
+                <button
+                    class="btn danger"
+                    onclick="deleteItem('photos', ${photo.id})">
 
+                    Verwijderen
+
+                </button>
+
+            </div>
+
+        `).join("");
 }
 
 
-/* ==========================================
+/* =========================================
    MERCHANDISE
-========================================== */
+   ========================================= */
 
-$("addProductBtn").addEventListener(
-    "click",
-    addProduct
-);
+$("productSave").onclick =
+    async () => {
 
+        const name =
+            $("productName")
+                .value
+                .trim();
 
-async function addProduct() {
+        const price =
+            $("productPrice")
+                .value
+                .trim();
 
-    const name =
-        $("productName").value.trim();
+        const description =
+            $("productDescription")
+                .value
+                .trim();
 
-    const price =
-        $("productPrice").value.trim();
-
-    const description =
-        $("productDescription").value.trim();
-
-    const file =
-        $("productFile").files[0];
-
-
-    if (!name || !price) {
-
-        message(
-            "productMessage",
-            "Productnaam en prijs zijn verplicht."
-        );
-
-        return;
-
-    }
+        const file =
+            $("productFile")
+                .files[0];
 
 
-    try {
+        if (!name || !price) {
 
-        let imageURL = "";
+            msg(
+                "productMsg",
+                "Naam en prijs zijn verplicht."
+            );
 
-
-        if (file) {
-
-            const path =
-                `products/${Date.now()}-${safeName(file.name)}`;
-
-
-            const upload =
-                await db
-                    .storage
-                    .from("photos")
-                    .upload(
-                        path,
-                        file,
-                        {
-                            upsert: false
-                        }
-                    );
-
-
-            if (upload.error)
-                throw upload.error;
-
-
-            imageURL =
-                db
-                    .storage
-                    .from("photos")
-                    .getPublicUrl(path)
-                    .data
-                    .publicUrl;
-
+            return;
         }
 
 
-        const result =
-            await db
-                .from("products")
-                .insert({
+        try {
 
-                    name,
-
-                    price,
-
-                    description,
-
-                    image_url:
-                        imageURL
-
-                });
+            let image_url = null;
 
 
-        if (result.error)
-            throw result.error;
+            if (file) {
+
+                const filename =
+                    file.name.replace(
+                        /[^a-z0-9._-]/gi,
+                        "_"
+                    );
 
 
-        $("productName").value = "";
+                image_url =
+                    await uploadFile(
+                        "photos",
+                        file,
+                        "merch/" +
+                        Date.now() +
+                        "-" +
+                        filename
+                    );
 
-        $("productPrice").value = "";
-
-        $("productDescription").value = "";
-
-        $("productFile").value = "";
-
-
-        message(
-            "productMessage",
-            "Product toegevoegd.",
-            true
-        );
+            }
 
 
-        toast("Product toegevoegd");
+            const { error } =
+                await supabaseClient
+                    .from("products")
+                    .insert({
+                        name,
+                        price,
+                        description,
+                        image_url
+                    });
 
-        loadProducts();
+
+            if (error)
+                throw error;
 
 
-    } catch (error) {
+            [
+                "productName",
+                "productPrice",
+                "productDescription",
+                "productFile"
+            ].forEach(id => {
+                $(id).value = "";
+            });
 
-        message(
-            "productMessage",
-            error.message
-        );
 
-    }
+            msg(
+                "productMsg",
+                "Product toegevoegd.",
+                true
+            );
 
-}
+            toast(
+                "Product toegevoegd"
+            );
+
+
+            loadProducts();
+
+
+        } catch (error) {
+
+            msg(
+                "productMsg",
+                "Opslaan mislukt: " +
+                error.message
+            );
+
+        }
+
+    };
 
 
 async function loadProducts() {
 
-    const result =
-        await db
+    const { data, error } =
+        await supabaseClient
             .from("products")
             .select("*")
             .order(
@@ -1459,95 +1423,80 @@ async function loadProducts() {
             );
 
 
-    if (result.error) {
+    if (error) {
 
         $("productsList").innerHTML =
-            errorHTML(
-                result.error.message
-            );
+            `<div class="empty">${esc(error.message)}</div>`;
 
         return;
-
     }
 
 
-    if (!result.data.length) {
+    if (!data.length) {
 
         $("productsList").innerHTML =
-            emptyHTML(
-                "Nog geen producten."
-            );
+            "<div class='empty'>Nog geen producten.</div>";
 
         return;
-
     }
 
 
     $("productsList").innerHTML =
-        result.data
-            .map(product => `
+        data.map(product => `
 
-                <div class="media-card">
+            <div class="media">
 
-                    ${
-                        product.image_url
-                        ?
-                        `
-                        <img
-                            src="${escapeHTML(
-                                product.image_url
-                            )}"
-                            alt=""
-                        >
-                        `
-                        :
-                        ""
-                    }
+                ${
+                    product.image_url
+                    ?
+                    `<img
+                        src="${esc(product.image_url)}"
+                        alt="">`
+                    :
+                    ""
+                }
 
-                    <div class="media-info">
+                <div class="media-body">
 
-                        <strong>
-                            ${escapeHTML(
-                                product.name
-                            )}
-                        </strong>
+                    <b>
+                        ${esc(product.name)}
+                    </b>
 
-                        <small>
-                            ${escapeHTML(
-                                product.price
-                            )}
-                        </small>
+                    <small>
+                        € ${esc(product.price)}
+                    </small>
 
-                        <p>
-                            ${escapeHTML(
-                                product.description || ""
-                            )}
-                        </p>
-
-                        <button
-                            class="delete-button"
-                            onclick="deleteRow('products', ${product.id})">
-                            Verwijderen
-                        </button>
-
-                    </div>
+                    <p>
+                        ${esc(
+                            product.description ||
+                            ""
+                        )}
+                    </p>
 
                 </div>
 
-            `)
-            .join("");
+                <button
+                    class="btn danger"
+                    onclick="deleteItem('products', ${product.id})">
 
+                    Verwijderen
+
+                </button>
+
+            </div>
+
+        `).join("");
 }
 
 
-/* ==========================================
+/* =========================================
    BOEKINGEN
-========================================== */
+   ========================================= */
 
 async function loadBookings() {
 
-    const result =
-        await db
+    const { data, error } =
+        await supabaseClient
             .from("bookings")
             .select("*")
             .order(
@@ -1558,105 +1507,92 @@ async function loadBookings() {
             );
 
 
-    if (result.error) {
+    if (error) {
 
         $("bookingsList").innerHTML =
-            errorHTML(
-                result.error.message
-            );
+            `<div class="empty">${esc(error.message)}</div>`;
 
         return;
-
     }
 
 
-    if (!result.data.length) {
+    if (!data.length) {
 
         $("bookingsList").innerHTML =
-            emptyHTML(
-                "Er zijn nog geen boekingsaanvragen."
-            );
+            "<div class='empty'>Nog geen boekingsaanvragen.</div>";
 
         return;
-
     }
 
 
     $("bookingsList").innerHTML =
-        result.data
-            .map(booking => `
+        data.map(booking => `
 
-                <div class="item">
+            <div class="booking">
 
-                    <div class="item-main">
+                <h3>
+                    ${esc(booking.name)}
+                </h3>
 
-                        <strong>
-                            ${escapeHTML(
-                                booking.name
-                            )}
-                        </strong>
+                <div class="meta">
 
-                        <small>
-                            ✉ ${escapeHTML(
-                                booking.email || ""
-                            )}
+                    ${esc(booking.email || "")}
 
-                            <br>
+                    ·
 
-                            📍 ${escapeHTML(
-                                booking.location || ""
-                            )}
+                    ${esc(
+                        booking.event_date ||
+                        ""
+                    )}
 
-                            <br>
+                    ·
 
-                            📅 ${escapeHTML(
-                                booking.event_date || ""
-                            )}
-
-                            <br><br>
-
-                            ${escapeHTML(
-                                booking.message || ""
-                            )}
-                        </small>
-
-                    </div>
-
-                    <button
-                        class="delete-button"
-                        onclick="deleteRow('bookings', ${booking.id})">
-                        Verwijderen
-                    </button>
+                    ${esc(
+                        booking.location ||
+                        ""
+                    )}
 
                 </div>
 
-            `)
-            .join("");
+                <p>
+                    ${esc(
+                        booking.message ||
+                        ""
+                    )}
+                </p>
 
+                <button
+                    class="btn danger"
+                    onclick="deleteItem('bookings', ${booking.id})">
+
+                    Verwijderen
+
+                </button>
+
+            </div>
+
+        `).join("");
 }
 
 
-/* ==========================================
+/* =========================================
    VERWIJDEREN
-========================================== */
+   ========================================= */
 
-async function deleteRow(
+async function deleteItem(
     table,
     id
 ) {
 
-    const confirmed =
-        confirm(
+    if (
+        !confirm(
             "Weet je zeker dat je dit wilt verwijderen?"
-        );
+        )
+    ) return;
 
 
-    if (!confirmed)
-        return;
-
-
-    const result =
-        await db
+    const { error } =
+        await supabaseClient
             .from(table)
             .delete()
             .eq(
@@ -1665,19 +1601,20 @@ async function deleteRow(
             );
 
 
-    if (result.error) {
+    if (error) {
 
         alert(
             "Verwijderen mislukt:\n" +
-            result.error.message
+            error.message
         );
 
         return;
-
     }
 
 
-    toast("Verwijderd");
+    toast(
+        "Item verwijderd"
+    );
 
 
     if (table === "videos")
@@ -1699,191 +1636,46 @@ async function deleteRow(
         loadBookings();
 
 
-    loadDashboard();
-
+    loadCounts();
 }
 
 
-window.deleteRow =
-    deleteRow;
+window.deleteItem =
+    deleteItem;
 
 
-/* ==========================================
-   LOGO
-========================================== */
+/* =========================================
+   START
+   ========================================= */
 
-$("saveLogoBtn").addEventListener(
-    "click",
-    saveLogo
-);
+async function start() {
 
-
-async function saveLogo() {
-
-    const file =
-        $("logoFile").files[0];
-
-
-    if (!file) {
-
-        message(
-            "logoMessage",
-            "Kies eerst een logo."
-        );
-
-        return;
-
-    }
-
-
-    try {
-
-        const path =
-            `logo/logo-${Date.now()}-${safeName(file.name)}`;
-
-
-        const upload =
-            await db
-                .storage
-                .from("photos")
-                .upload(
-                    path,
-                    file,
-                    {
-                        upsert: true
-                    }
-                );
-
-
-        if (upload.error)
-            throw upload.error;
-
-
-        const url =
-            db
-                .storage
-                .from("photos")
-                .getPublicUrl(path)
-                .data
-                .publicUrl;
-
-
-        localStorage.setItem(
-            "misteryDuoLogo",
-            url
-        );
-
-
-        $("logoPreview").src =
-            url;
-
-
-        message(
-            "logoMessage",
-            "Logo opgeslagen.",
-            true
-        );
-
-
-        toast("Logo opgeslagen");
-
-
-    } catch (error) {
-
-        message(
-            "logoMessage",
-            error.message
-        );
-
-    }
-
-}
-
-
-/* ==========================================
-   INITIALISEREN
-========================================== */
-
-async function initialise() {
+    applyLogo();
 
     await testConnection();
 
-    await loadDashboard();
-
-    loadLogo();
+    await loadCounts();
 
 }
 
 
-function loadLogo() {
+applyLogo();
 
-    const logo =
-        localStorage.getItem(
-            "misteryDuoLogo"
-        );
-
-
-    if (logo) {
-
-        $("logoPreview").src =
-            logo;
-
-    }
-
-}
-
-
-/* ==========================================
-   HULPFUNCTIES
-========================================== */
-
-function safeName(name) {
-
-    return name.replace(
-        /[^a-zA-Z0-9._-]/g,
-        "_"
-    );
-
-}
-
-
-function emptyHTML(text) {
-
-    return `
-        <div class="item">
-            <div class="item-main">
-                <small>${escapeHTML(text)}</small>
-            </div>
-        </div>
-    `;
-
-}
-
-
-function errorHTML(text) {
-
-    return `
-        <div class="item">
-            <div class="item-main">
-                <strong>Er is een probleem</strong>
-                <small>${escapeHTML(text)}</small>
-            </div>
-        </div>
-    `;
-
-}
-
-
-/* ==========================================
-   AUTOMATISCH INLOGGEN
-========================================== */
 
 if (
     sessionStorage.getItem(
         "misteryDuoAdmin"
-    ) === "true"
+    ) === "1"
 ) {
 
-    showAdmin();
+    $("login")
+        .classList
+        .add("hidden");
+
+    $("app")
+        .classList
+        .remove("hidden");
+
+    start();
 
 }
