@@ -1,338 +1,462 @@
-/* =====================================================
-   MISTERY DUO — WEBSITE JAVASCRIPT
-===================================================== */
+const SUPABASE_URL =
+    "https://msvesugylaeffjqiizzm.supabase.co";
 
+const SUPABASE_KEY =
+    "sb_publishable_DhtWMC4YaXFG6NUiqmiyHg_0ERj8Bgk";
 
-/* =====================================================
-   LOADER
-===================================================== */
-
-window.addEventListener("load", () => {
-
-    const loader = document.getElementById("loader");
-
-    setTimeout(() => {
-
-        loader.classList.add("hidden");
-
-    }, 700);
-
-});
-
-
-/* =====================================================
-   NAVBAR
-===================================================== */
-
-const navbar = document.getElementById("navbar");
-
-window.addEventListener("scroll", () => {
-
-    if (window.scrollY > 50) {
-
-        navbar.classList.add("scrolled");
-
-    } else {
-
-        navbar.classList.remove("scrolled");
-
-    }
-
-});
-
-
-/* =====================================================
-   MOBILE MENU
-===================================================== */
-
-const menuButton =
-    document.getElementById("menuButton");
-
-const mobileMenu =
-    document.getElementById("mobileMenu");
-
-
-menuButton.addEventListener("click", () => {
-
-    mobileMenu.classList.toggle("open");
-
-    document.body.classList.toggle("no-scroll");
-
-});
-
-
-/* Sluit menu na klikken */
-
-document.querySelectorAll(".mobile-menu a").forEach(link => {
-
-    link.addEventListener("click", () => {
-
-        mobileMenu.classList.remove("open");
-
-        document.body.classList.remove("no-scroll");
-
-    });
-
-});
-
-
-/* =====================================================
-   ACTIVE NAVIGATION
-===================================================== */
-
-const sections =
-    document.querySelectorAll("section[id]");
-
-const navLinks =
-    document.querySelectorAll(".desktop-nav a");
-
-
-const navObserver = new IntersectionObserver(
-    entries => {
-
-        entries.forEach(entry => {
-
-            if (entry.isIntersecting) {
-
-                navLinks.forEach(link => {
-
-                    link.classList.remove("active");
-
-                    if (
-                        link.getAttribute("href") ===
-                        "#" + entry.target.id
-                    ) {
-
-                        link.classList.add("active");
-
-                    }
-
-                });
-
-            }
-
-        });
-
-    },
-    {
-        rootMargin: "-40% 0px -55% 0px"
-    }
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
 );
 
 
-sections.forEach(section => {
+// -------------------------
+// BASIS
+// -------------------------
 
-    navObserver.observe(section);
-
-});
-
-
-/* =====================================================
-   SCROLL REVEAL
-===================================================== */
-
-const revealElements =
-    document.querySelectorAll(".reveal-on-scroll");
+document.getElementById("year").textContent =
+    new Date().getFullYear();
 
 
-const revealObserver = new IntersectionObserver(
-    entries => {
+// -------------------------
+// SETTINGS / LOGO
+// -------------------------
 
-        entries.forEach(entry => {
+async function loadSettings() {
 
-            if (entry.isIntersecting) {
+    const { data, error } = await db
+        .from("settings")
+        .select("*")
+        .eq("id", 1)
+        .single();
 
-                entry.target.classList.add("visible");
+    if (error) {
+        console.error(error);
+        return;
+    }
 
-                revealObserver.unobserve(entry.target);
+    if (data.logo_url) {
+        document.getElementById("siteLogo").src =
+            data.logo_url;
+    }
+}
 
-            }
 
+// -------------------------
+// NIEUWS
+// -------------------------
+
+async function loadNews() {
+
+    const container =
+        document.getElementById("newsContainer");
+
+    const { data, error } = await db
+        .from("news")
+        .select("*")
+        .order("created_at", {
+            ascending: false
         });
 
-    },
-    {
-        threshold: 0.15
+    if (error) {
+        container.innerHTML =
+            "<p>Nieuws kon niet worden geladen.</p>";
+        console.error(error);
+        return;
     }
-);
+
+    if (!data.length) {
+        container.innerHTML =
+            '<p class="empty">Er is momenteel geen nieuws.</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(item => `
+
+        <article class="card">
+
+            ${item.image_url ? `
+                <img src="${escapeHtml(item.image_url)}">
+            ` : ""}
+
+            <div class="card-content">
+
+                <h3>
+                    ${escapeHtml(item.title)}
+                </h3>
+
+                <p>
+                    ${escapeHtml(item.content)}
+                </p>
+
+            </div>
+
+        </article>
+
+    `).join("");
+}
 
 
-revealElements.forEach(element => {
+// -------------------------
+// OPTREDENS
+// -------------------------
 
-    revealObserver.observe(element);
+async function loadShows() {
 
-});
+    const container =
+        document.getElementById("showsContainer");
 
+    const { data, error } = await db
+        .from("shows")
+        .select("*")
+        .order("date", {
+            ascending: true
+        });
 
-/* =====================================================
-   BOOKING FORM
-===================================================== */
+    if (error) {
+        console.error(error);
+        return;
+    }
 
-const bookingForm =
-    document.getElementById("bookingForm");
+    if (!data.length) {
+        container.innerHTML =
+            '<p class="empty">Er zijn momenteel geen optredens gepland.</p>';
+        return;
+    }
 
-const formMessage =
-    document.getElementById("formMessage");
+    container.innerHTML = data.map(show => {
 
+        const date =
+            new Date(show.date).toLocaleDateString(
+                "nl-BE",
+                {
+                    day: "2-digit",
+                    month: "short"
+                }
+            );
 
-bookingForm.addEventListener("submit", event => {
+        return `
 
-    event.preventDefault();
+        <article class="show">
 
+            <div class="show-date">
+                ${date}
+            </div>
 
-    const formData =
-        new FormData(bookingForm);
+            <div class="show-info">
 
+                <h3>
+                    ${escapeHtml(show.name)}
+                </h3>
 
-    const name =
-        formData.get("name");
+                <p>
+                    ${escapeHtml(show.location || "")}
+                    ${show.time ? " • " + escapeHtml(show.time) : ""}
+                </p>
 
+                ${
+                    show.info
+                    ? `<p>${escapeHtml(show.info)}</p>`
+                    : ""
+                }
 
-    formMessage.innerHTML =
-        `
-        <strong>Bedankt, ${name}!</strong><br>
-        Je aanvraag is ingevuld.
-        De echte verzending kunnen we later
-        koppelen aan het Mistery Duo-beheersysteem.
+            </div>
+
+        </article>
+
         `;
 
-
-    bookingForm.reset();
-
-
-    formMessage.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
-
-});
-
-
-/* =====================================================
-   CURRENT YEAR
-===================================================== */
-
-const year =
-    document.getElementById("year");
-
-
-if (year) {
-
-    year.textContent =
-        new Date().getFullYear();
-
+    }).join("");
 }
 
 
-/* =====================================================
-   VIDEO PLACEHOLDER INTERACTION
-===================================================== */
+// -------------------------
+// LIVESTREAM
+// -------------------------
 
-const videoCards =
-    document.querySelectorAll(".video-card");
+async function loadLive() {
 
+    const container =
+        document.getElementById("liveContainer");
 
-videoCards.forEach(card => {
+    const { data, error } = await db
+        .from("livestream")
+        .select("*")
+        .eq("id", 1)
+        .single();
 
-    card.addEventListener("click", () => {
-
-        const title =
-            card.querySelector("h3")?.textContent
-            || "Video";
-
-
-        console.log(
-            "Video geselecteerd:",
-            title
-        );
-
-
-        /*
-            Hier kunnen we later een echte
-            video-player openen.
-        */
-
-    });
-
-});
-
-
-/* =====================================================
-   PARALLAX HERO
-===================================================== */
-
-const hero =
-    document.querySelector(".hero");
-
-const heroLogo =
-    document.querySelector(".hero-logo-wrap");
-
-
-window.addEventListener("scroll", () => {
-
-    if (!hero || !heroLogo) return;
-
-    const scroll =
-        window.scrollY;
-
-    if (scroll < window.innerHeight) {
-
-        heroLogo.style.transform =
-            `translateY(${scroll * 0.08}px)`;
-
+    if (error) {
+        console.error(error);
+        return;
     }
 
-});
+    if (!data.active || !data.url) {
 
+        container.innerHTML = `
+            <div>
+                <h3>Momenteel niet live</h3>
+                <p>Kom later terug voor de volgende livestream.</p>
+            </div>
+        `;
 
-/* =====================================================
-   MOUSE LIGHT EFFECT
-===================================================== */
+        return;
+    }
 
-const heroLight =
-    document.querySelector(".hero-light-one");
+    container.innerHTML = `
 
+        <iframe
+            src="${escapeHtml(data.url)}"
+            allowfullscreen>
+        </iframe>
 
-if (heroLight) {
-
-    window.addEventListener("mousemove", event => {
-
-        const x =
-            event.clientX / window.innerWidth;
-
-        const y =
-            event.clientY / window.innerHeight;
-
-
-        heroLight.style.transform =
-            `translate(${x * 40}px, ${y * 40}px)`;
-
-    });
-
+    `;
 }
 
 
-/* =====================================================
-   SMOOTH BUTTON FEEDBACK
-===================================================== */
+// -------------------------
+// FOTO'S
+// -------------------------
 
-document.querySelectorAll(
-    ".gold-button, .outline-button, .dark-button"
-).forEach(button => {
+async function loadPhotos() {
 
-    button.addEventListener("mousedown", () => {
+    const container =
+        document.getElementById("photosContainer");
 
-        button.style.transform =
-            "scale(.97)";
+    const { data, error } = await db
+        .from("photos")
+        .select("*")
+        .order("created_at", {
+            ascending: false
+        });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    if (!data.length) {
+        container.innerHTML =
+            '<p class="empty">Nog geen foto's.</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(photo => `
+
+        <img
+            src="${escapeHtml(photo.image_url)}"
+            alt="${escapeHtml(photo.title || "Mistery Duo")}"
+            loading="lazy"
+        >
+
+    `).join("");
+}
+
+
+// -------------------------
+// VIDEO'S
+// -------------------------
+
+async function loadVideos() {
+
+    const container =
+        document.getElementById("videosContainer");
+
+    const { data, error } = await db
+        .from("videos")
+        .select("*")
+        .order("created_at", {
+            ascending: false
+        });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    if (!data.length) {
+        container.innerHTML =
+            '<p class="empty">Nog geen video's.</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(video => `
+
+        <article class="video-card">
+
+            <video controls preload="metadata">
+
+                <source
+                    src="${escapeHtml(video.video_url)}"
+                >
+
+            </video>
+
+            <h3>
+                ${escapeHtml(video.title || "Mistery Duo")}
+            </h3>
+
+        </article>
+
+    `).join("");
+}
+
+
+// -------------------------
+// MERCHANDISE
+// -------------------------
+
+async function loadMerchandise() {
+
+    const container =
+        document.getElementById("merchContainer");
+
+    const { data, error } = await db
+        .from("merchandise")
+        .select("*")
+        .order("created_at", {
+            ascending: false
+        });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    if (!data.length) {
+        container.innerHTML =
+            '<p class="empty">Merchandise komt binnenkort.</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(item => `
+
+        <article class="card">
+
+            ${
+                item.image_url
+                ? `<img src="${escapeHtml(item.image_url)}">`
+                : ""
+            }
+
+            <div class="card-content">
+
+                <h3>
+                    ${escapeHtml(item.name)}
+                </h3>
+
+                <p>
+                    ${escapeHtml(item.description || "")}
+                </p>
+
+                ${
+                    item.price !== null
+                    ? `<strong>€ ${Number(item.price).toFixed(2)}</strong>`
+                    : ""
+                }
+
+            </div>
+
+        </article>
+
+    `).join("");
+}
+
+
+// -------------------------
+// BOEKING
+// -------------------------
+
+document
+    .getElementById("bookingForm")
+    .addEventListener("submit", async function(e) {
+
+        e.preventDefault();
+
+        const result =
+            document.getElementById(
+                "bookingMessageResult"
+            );
+
+        result.textContent =
+            "Aanvraag wordt verstuurd...";
+
+        const { error } = await db
+            .from("bookings")
+            .insert({
+
+                name:
+                    document.getElementById(
+                        "bookingName"
+                    ).value,
+
+                email:
+                    document.getElementById(
+                        "bookingEmail"
+                    ).value,
+
+                phone:
+                    document.getElementById(
+                        "bookingPhone"
+                    ).value,
+
+                date:
+                    document.getElementById(
+                        "bookingDate"
+                    ).value,
+
+                location:
+                    document.getElementById(
+                        "bookingLocation"
+                    ).value,
+
+                message:
+                    document.getElementById(
+                        "bookingMessage"
+                    ).value
+
+            });
+
+        if (error) {
+
+            console.error(error);
+
+            result.textContent =
+                "Er ging iets mis. Probeer opnieuw.";
+
+            return;
+        }
+
+        result.textContent =
+            "Je aanvraag is succesvol verstuurd!";
+
+        this.reset();
 
     });
 
 
-    button.addEventListener("mouseup", () => {
+// -------------------------
+// VEILIGER TEKST
+// -------------------------
 
-        button.style.transform =
-            "";
+function escapeHtml(value) {
 
-    });
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
-});
+
+// -------------------------
+// START
+// -------------------------
+
+loadSettings();
+loadNews();
+loadShows();
+loadLive();
+loadPhotos();
+loadVideos();
+loadMerchandise();
