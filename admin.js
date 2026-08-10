@@ -1,34 +1,35 @@
-/* =========================================================
-   MISTERY DUO — BEHEERPLATFORM
-   ========================================================= */
-
-
-/* ================================
-   SUPABASE
-================================ */
-
 const SUPABASE_URL =
     "https://msvesugylaeffjqiizzm.supabase.co";
 
 const SUPABASE_KEY =
-    "sb_publishable__cDajfEACOoUZ9xOUZtYQ_Q5XFtp5B";
+    "sb_publishable_DhtWMC4YaXFG6NUiqmiyHg_0ERj8Bgk";
 
-const db =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
-
-
-/* ================================
-   HELPERS
-================================ */
-
-const $ = id =>
-    document.getElementById(id);
+const db = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 
-function escapeHTML(value) {
+// ======================================
+// HELPERS
+// ======================================
+
+function toast(message) {
+
+    const el =
+        document.getElementById("toast");
+
+    el.textContent = message;
+
+    el.classList.add("show");
+
+    setTimeout(() => {
+        el.classList.remove("show");
+    }, 3000);
+}
+
+
+function escapeHtml(value) {
 
     return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -39,91 +40,108 @@ function escapeHTML(value) {
 }
 
 
-function showStatus(
-    id,
-    text,
-    success = false
-) {
+async function uploadFile(bucket, folder, file) {
 
-    const element = $(id);
+    const extension =
+        file.name.split(".").pop();
 
-    if (!element) return;
+    const filename =
+        `${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2)}.${extension}`;
 
-    element.textContent = text;
+    const path =
+        `${folder}/${filename}`;
 
-    element.className =
-        "status " +
-        (success ? "ok" : "error");
+    const { error } =
+        await db.storage
+            .from(bucket)
+            .upload(path, file, {
+                upsert: false
+            });
+
+    if (error) {
+        throw error;
+    }
+
+    const { data } =
+        db.storage
+            .from(bucket)
+            .getPublicUrl(path);
+
+    return data.publicUrl;
 }
 
 
-function toast(text) {
+async function deleteStorageFile(bucket, url) {
 
-    const element =
-        $("toast");
+    try {
 
-    if (!element) return;
+        const marker =
+            `${bucket}/`;
 
-    element.textContent =
-        text;
+        const index =
+            url.indexOf(marker);
 
-    element.classList.add("show");
+        if (index === -1) return;
 
-    setTimeout(() => {
+        const path =
+            url.substring(
+                index + marker.length
+            );
 
-        element.classList.remove("show");
+        await db.storage
+            .from(bucket)
+            .remove([path]);
 
-    }, 2600);
+    } catch (error) {
+
+        console.error(error);
+
+    }
 }
 
 
-/* ================================
-   NAVIGATION
-================================ */
+// ======================================
+// NAVIGATIE
+// ======================================
 
-const titles = {
-
-    dashboard:
-        "Dashboard",
-
-    logo:
-        "Logo beheren",
-
-    live:
-        "Livestream",
-
-    videos:
-        "Video's",
-
-    events:
-        "Optredens",
-
-    news:
-        "Nieuws",
-
-    photos:
-        "Foto's",
-
-    merch:
-        "Merchandise",
-
-    bookings:
-        "Boekingen"
-
-};
-
-
-document
-    .querySelectorAll(".nav-btn")
+document.querySelectorAll(".menu")
     .forEach(button => {
 
         button.addEventListener(
             "click",
             () => {
 
-                showPage(
-                    button.dataset.page
-                );
+                document
+                    .querySelectorAll(".menu")
+                    .forEach(item =>
+                        item.classList.remove(
+                            "active"
+                        )
+                    );
+
+                button.classList.add("active");
+
+                document
+                    .querySelectorAll(".panel")
+                    .forEach(panel =>
+                        panel.classList.remove(
+                            "active"
+                        )
+                    );
+
+                const section =
+                    document.getElementById(
+                        button.dataset.section
+                    );
+
+                section.classList.add("active");
+
+                document.getElementById(
+                    "pageTitle"
+                ).textContent =
+                    button.textContent.trim();
 
             }
         );
@@ -131,2042 +149,1078 @@ document
     });
 
 
-function showPage(page) {
+// ======================================
+// DASHBOARD
+// ======================================
 
-    document
-        .querySelectorAll(".page")
-        .forEach(section => {
+async function updateStats() {
 
-            section.classList.remove(
-                "active"
-            );
+    const tables = [
+        ["news", "statNews"],
+        ["shows", "statShows"],
+        ["bookings", "statBookings"],
+        ["photos", "statPhotos"]
+    ];
 
-        });
+    for (const [table, element] of tables) {
 
+        const { count } =
+            await db
+                .from(table)
+                .select("*", {
+                    count: "exact",
+                    head: true
+                });
 
-    const target =
-        $(page);
-
-    if (!target) return;
-
-
-    target.classList.add(
-        "active"
-    );
-
-
-    document
-        .querySelectorAll(".nav-btn")
-        .forEach(button => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.page === page
-            );
-
-        });
-
-
-    $("pageTitle").textContent =
-        titles[page] || "Dashboard";
-
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-
-    if (page === "dashboard")
-        refreshDashboard();
-
-    if (page === "logo")
-        loadLogo();
-
-    if (page === "live")
-        loadLive();
-
-    if (page === "videos")
-        loadVideos();
-
-    if (page === "events")
-        loadEvents();
-
-    if (page === "news")
-        loadNews();
-
-    if (page === "photos")
-        loadPhotos();
-
-    if (page === "merch")
-        loadProducts();
-
-    if (page === "bookings")
-        loadBookings();
-
+        document.getElementById(element)
+            .textContent =
+            count ?? 0;
+    }
 }
 
 
-window.showPage =
-    showPage;
+// ======================================
+// NIEUWS TOEVOEGEN
+// ======================================
 
+document
+    .getElementById("newsForm")
+    .addEventListener("submit", async e => {
 
-/* ================================
-   CONNECTION
-================================ */
-
-async function testConnection() {
-
-    const connection =
-        $("connection");
-
-    const text =
-        $("connectionText");
-
-    const sideDot =
-        $("sideStatusDot");
-
-    const sideText =
-        $("sideStatusText");
-
-
-    try {
+        e.preventDefault();
 
         const { error } =
             await db
-                .from("events")
-                .select("id")
-                .limit(1);
+                .from("news")
+                .insert({
 
+                    title:
+                        document.getElementById(
+                            "newsTitle"
+                        ).value,
 
-        if (error)
-            throw error;
+                    content:
+                        document.getElementById(
+                            "newsContent"
+                        ).value,
 
+                    image_url:
+                        document.getElementById(
+                            "newsImage"
+                        ).value || null
 
-        connection.classList.add(
-            "online"
-        );
+                });
 
-        text.textContent =
-            "Online verbonden";
+        if (error) {
 
+            console.error(error);
 
-        sideDot.classList.add(
-            "online"
-        );
-
-        sideText.textContent =
-            "Online verbonden";
-
-
-    } catch (error) {
-
-        console.error(
-            "Supabase:",
-            error
-        );
-
-
-        text.textContent =
-            "Database fout";
-
-
-        sideText.textContent =
-            "Database controleren";
-
-    }
-
-}
-
-
-/* ================================
-   COUNTERS
-================================ */
-
-async function getCount(
-    table
-) {
-
-    try {
-
-        const {
-            count,
-            error
-        } =
-            await db
-                .from(table)
-                .select(
-                    "*",
-                    {
-                        count:
-                            "exact",
-                        head:
-                            true
-                    }
-                );
-
-
-        if (error)
-            throw error;
-
-
-        return count || 0;
-
-    } catch (error) {
-
-        console.error(
-            table,
-            error
-        );
-
-        return 0;
-
-    }
-
-}
-
-
-async function refreshDashboard() {
-
-    const [
-        videos,
-        events,
-        news,
-        bookings
-    ] = await Promise.all([
-
-        getCount("videos"),
-
-        getCount("events"),
-
-        getCount("news"),
-
-        getCount("bookings")
-
-    ]);
-
-
-    $("countVideos").textContent =
-        videos;
-
-    $("countEvents").textContent =
-        events;
-
-    $("countNews").textContent =
-        news;
-
-    $("countBookings").textContent =
-        bookings;
-
-}
-
-
-/* ================================
-   STORAGE
-================================ */
-
-function publicURL(
-    bucket,
-    path
-) {
-
-    return (
-        SUPABASE_URL +
-        "/storage/v1/object/public/" +
-        bucket +
-        "/" +
-        path
-            .split("/")
-            .map(encodeURIComponent)
-            .join("/")
-    );
-
-}
-
-
-async function uploadFile(
-    bucket,
-    file,
-    path
-) {
-
-    const {
-        error
-    } =
-        await db
-            .storage
-            .from(bucket)
-            .upload(
-                path,
-                file,
-                {
-                    upsert: true,
-                    contentType:
-                        file.type
-                }
+            toast(
+                "Nieuws kon niet worden toegevoegd."
             );
 
+            return;
+        }
 
-    if (error)
-        throw error;
+        toast("Nieuws gepubliceerd!");
 
+        e.target.reset();
 
-    return publicURL(
-        bucket,
-        path
-    );
-
-}
-
-
-/* ================================
-   LOGO
-================================ */
-
-const DEFAULT_LOGO =
-    "assets/mistery-duo-logo.jpg";
-
-
-function getSavedLogo() {
-
-    return (
-        localStorage.getItem(
-            "misteryDuoLogo"
-        ) ||
-        DEFAULT_LOGO
-    );
-
-}
-
-
-function applyLogo(url) {
-
-    const logo =
-        url ||
-        getSavedLogo();
-
-
-    [
-        "sidebarLogo",
-        "dashboardLogo",
-        "logoPreview"
-    ].forEach(id => {
-
-        const image =
-            $(id);
-
-        if (image)
-            image.src = logo;
-
+        loadNewsAdmin();
+        updateStats();
     });
 
-}
 
+// ======================================
+// NIEUWS LADEN
+// ======================================
 
-function loadLogo() {
+async function loadNewsAdmin() {
 
-    applyLogo();
-
-}
-
-
-$("logoFile").addEventListener(
-    "change",
-    event => {
-
-        const file =
-            event.target.files[0];
-
-        if (!file) return;
-
-
-        $("logoPreview").src =
-            URL.createObjectURL(
-                file
-            );
-
-    }
-);
-
-
-$("uploadLogo").addEventListener(
-    "click",
-    async () => {
-
-        const file =
-            $("logoFile").files[0];
-
-
-        if (!file) {
-
-            showStatus(
-                "logoStatus",
-                "Kies eerst een logo."
-            );
-
-            return;
-        }
-
-
-        try {
-
-            const safeName =
-                file.name.replace(
-                    /[^a-z0-9._-]/gi,
-                    "_"
-                );
-
-
-            const path =
-                "site/logo-" +
-                Date.now() +
-                "-" +
-                safeName;
-
-
-            const url =
-                await uploadFile(
-                    "photos",
-                    file,
-                    path
-                );
-
-
-            localStorage.setItem(
-                "misteryDuoLogo",
-                url
-            );
-
-
-            applyLogo(url);
-
-
-            $("logoFile").value =
-                "";
-
-
-            showStatus(
-                "logoStatus",
-                "Logo succesvol opgeslagen.",
-                true
-            );
-
-
-            toast(
-                "Logo opgeslagen"
-            );
-
-
-        } catch (error) {
-
-            console.error(error);
-
-
-            showStatus(
-                "logoStatus",
-                "Logo upload mislukt: " +
-                error.message
-            );
-
-        }
-
-    }
-);
-
-
-$("resetLogo").addEventListener(
-    "click",
-    () => {
-
-        localStorage.removeItem(
-            "misteryDuoLogo"
+    const container =
+        document.getElementById(
+            "newsList"
         );
 
-
-        applyLogo(
-            DEFAULT_LOGO
-        );
-
-
-        showStatus(
-            "logoStatus",
-            "Standaardlogo hersteld.",
-            true
-        );
-
-
-        toast(
-            "Standaardlogo hersteld"
-        );
-
-    }
-);
-
-
-/* ================================
-   YOUTUBE
-================================ */
-
-function youtubeID(
-    url
-) {
-
-    const value =
-        String(url || "")
-            .trim();
-
-
-    const match =
-        value.match(
-            /(?:youtube\.com\/(?:watch\?v=|live\/|embed\/)|youtu\.be\/)([^&?\/\s]+)/
-        );
-
-
-    return match
-        ? match[1]
-        : null;
-
-}
-
-
-/* ================================
-   LIVESTREAM
-================================ */
-
-async function loadLive() {
-
-    try {
-
-        const {
-            data,
-            error
-        } =
-            await db
-                .from("settings")
-                .select("*")
-                .eq(
-                    "key",
-                    "livestream"
-                )
-                .maybeSingle();
-
-
-        if (error)
-            throw error;
-
-
-        if (!data) {
-
-            $("liveUrl").value =
-                "";
-
-            showLivePreview(
-                null,
-                false
-            );
-
-            return;
-
-        }
-
-
-        const url =
-            data.value || "";
-
-
-        const active =
-            data.active === true;
-
-
-        $("liveUrl").value =
-            url;
-
-
-        showLivePreview(
-            url,
-            active
-        );
-
-
-    } catch (error) {
-
-        console.error(error);
-
-
-        showStatus(
-            "liveStatus",
-            "Livestream laden mislukt: " +
-            error.message
-        );
-
-    }
-
-}
-
-
-function showLivePreview(
-    url,
-    active
-) {
-
-    const id =
-        youtubeID(url);
-
-
-    const preview =
-        $("livePreview");
-
-
-    const dashboard =
-        $("dashboardLivePreview");
-
-
-    const dashboardStatus =
-        $("dashboardLiveStatus");
-
-
-    if (
-        active &&
-        id
-    ) {
-
-        const iframe =
-            `
-            <iframe
-                src="https://www.youtube.com/embed/${escapeHTML(id)}"
-                title="Mistery Duo livestream"
-                allow="autoplay; encrypted-media"
-                allowfullscreen>
-            </iframe>
-            `;
-
-
-        preview.innerHTML =
-            iframe;
-
-
-        dashboard.innerHTML =
-            iframe;
-
-
-        dashboardStatus.textContent =
-            "LIVE";
-
-        dashboardStatus.className =
-            "status-pill online";
-
-
-    } else {
-
-        preview.innerHTML =
-            `
-            <div class="preview-placeholder">
-                Geen actieve livestream.
-            </div>
-            `;
-
-
-        dashboard.innerHTML =
-            "Geen livestream actief";
-
-
-        dashboardStatus.textContent =
-            "OFFLINE";
-
-        dashboardStatus.className =
-            "status-pill offline";
-
-    }
-
-}
-
-
-async function saveLive(
-    active
-) {
-
-    const url =
-        $("liveUrl")
-            .value
-            .trim();
-
-
-    if (
-        active &&
-        !youtubeID(url)
-    ) {
-
-        showStatus(
-            "liveStatus",
-            "Gebruik een geldige YouTube-link."
-        );
-
-        return;
-
-    }
-
-
-    try {
-
-        const {
-            error
-        } =
-            await db
-                .from("settings")
-                .upsert(
-                    {
-                        key:
-                            "livestream",
-
-                        value:
-                            url,
-
-                        active:
-                            active
-                    },
-                    {
-                        onConflict:
-                            "key"
-                    }
-                );
-
-
-        if (error)
-            throw error;
-
-
-        showLivePreview(
-            url,
-            active
-        );
-
-
-        showStatus(
-            "liveStatus",
-            active
-                ? "Livestream is actief."
-                : "Livestream is uitgezet.",
-            true
-        );
-
-
-        toast(
-            active
-                ? "Livestream actief"
-                : "Livestream uitgezet"
-        );
-
-
-    } catch (error) {
-
-        console.error(error);
-
-
-        showStatus(
-            "liveStatus",
-            "Opslaan mislukt: " +
-            error.message
-        );
-
-    }
-
-}
-
-
-$("saveLive").addEventListener(
-    "click",
-    () => saveLive(true)
-);
-
-
-$("disableLive").addEventListener(
-    "click",
-    () => saveLive(false)
-);
-
-
-/* ================================
-   VIDEO'S
-================================ */
-
-$("uploadVideo").addEventListener(
-    "click",
-    async () => {
-
-        const file =
-            $("videoFile")
-                .files[0];
-
-        const title =
-            $("videoTitle")
-                .value
-                .trim();
-
-
-        if (!file || !title) {
-
-            showStatus(
-                "videoStatus",
-                "Titel en video zijn verplicht."
-            );
-
-            return;
-
-        }
-
-
-        const video =
-            document.createElement(
-                "video"
-            );
-
-
-        video.preload =
-            "metadata";
-
-
-        video.onloadedmetadata =
-            async () => {
-
-                URL.revokeObjectURL(
-                    video.src
-                );
-
-
-                if (
-                    video.duration >
-                    60
-                ) {
-
-                    showStatus(
-                        "videoStatus",
-                        "Deze video is langer dan 1 minuut."
-                    );
-
-                    return;
-
-                }
-
-
-                try {
-
-                    const safeName =
-                        file.name.replace(
-                            /[^a-z0-9._-]/gi,
-                            "_"
-                        );
-
-
-                    const path =
-                        "videos/" +
-                        Date.now() +
-                        "-" +
-                        safeName;
-
-
-                    showStatus(
-                        "videoStatus",
-                        "Video uploaden..."
-                    );
-
-
-                    const url =
-                        await uploadFile(
-                            "videos",
-                            file,
-                            path
-                        );
-
-
-                    const {
-                        error
-                    } =
-                        await db
-                            .from("videos")
-                            .insert(
-                                {
-                                    title:
-                                        title,
-
-                                    video_url:
-                                        url
-                                }
-                            );
-
-
-                    if (error)
-                        throw error;
-
-
-                    $("videoTitle").value =
-                        "";
-
-                    $("videoFile").value =
-                        "";
-
-
-                    showStatus(
-                        "videoStatus",
-                        "Video succesvol gepubliceerd.",
-                        true
-                    );
-
-
-                    toast(
-                        "Video gepubliceerd"
-                    );
-
-
-                    loadVideos();
-
-                    refreshDashboard();
-
-                } catch (error) {
-
-                    console.error(error);
-
-
-                    showStatus(
-                        "videoStatus",
-                        "Upload mislukt: " +
-                        error.message
-                    );
-
-                }
-
-            };
-
-
-        video.onerror =
-            () => {
-
-                showStatus(
-                    "videoStatus",
-                    "De video kan niet worden gelezen."
-                );
-
-            };
-
-
-        video.src =
-            URL.createObjectURL(
-                file
-            );
-
-    }
-);
-
-
-async function loadVideos() {
-
-    const {
-        data,
-        error
-    } =
-        await db
-            .from("videos")
-            .select("*")
-            .order(
-                "created_at",
-                {
-                    ascending:
-                        false
-                }
-            );
-
-
-    if (error) {
-
-        $("videoList").innerHTML =
-            `
-            <div class="empty">
-                ${escapeHTML(
-                    error.message
-                )}
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    $("videoTotal").textContent =
-        data.length;
-
-
-    if (!data.length) {
-
-        $("videoList").innerHTML =
-            `
-            <div class="empty">
-                Nog geen video's gepubliceerd.
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    $("videoList").innerHTML =
-        data.map(video => `
-
-            <div class="media-card">
-
-                <video
-                    src="${escapeHTML(video.video_url)}"
-                    controls>
-                </video>
-
-                <div class="media-info">
-
-                    <strong>
-                        ${escapeHTML(video.title)}
-                    </strong>
-
-                </div>
-
-                <button
-                    class="delete-btn"
-                    onclick="deleteItem('videos', ${video.id})">
-                    Verwijderen
-                </button>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* ================================
-   OPTREDENS
-================================ */
-
-$("addEvent").addEventListener(
-    "click",
-    async () => {
-
-        const row = {
-
-            name:
-                $("eventName")
-                    .value
-                    .trim(),
-
-            location:
-                $("eventLocation")
-                    .value
-                    .trim(),
-
-            event_date:
-                $("eventDate")
-                    .value,
-
-            event_time:
-                $("eventTime")
-                    .value
-
-        };
-
-
-        if (
-            !row.name ||
-            !row.location ||
-            !row.event_date
-        ) {
-
-            showStatus(
-                "eventStatus",
-                "Naam, locatie en datum zijn verplicht."
-            );
-
-            return;
-
-        }
-
-
-        try {
-
-            const {
-                error
-            } =
-                await db
-                    .from("events")
-                    .insert(row);
-
-
-            if (error)
-                throw error;
-
-
-            [
-                "eventName",
-                "eventLocation",
-                "eventDate",
-                "eventTime"
-            ].forEach(id => {
-
-                $(id).value =
-                    "";
-
-            });
-
-
-            showStatus(
-                "eventStatus",
-                "Optreden gepubliceerd.",
-                true
-            );
-
-
-            toast(
-                "Optreden toegevoegd"
-            );
-
-
-            loadEvents();
-
-            refreshDashboard();
-
-
-        } catch (error) {
-
-            console.error(error);
-
-
-            showStatus(
-                "eventStatus",
-                "Opslaan mislukt: " +
-                error.message
-            );
-
-        }
-
-    }
-);
-
-
-async function loadEvents() {
-
-    const {
-        data,
-        error
-    } =
-        await db
-            .from("events")
-            .select("*")
-            .order(
-                "event_date",
-                {
-                    ascending:
-                        true
-                }
-            );
-
-
-    if (error) {
-
-        $("eventList").innerHTML =
-            `
-            <div class="empty">
-                ${escapeHTML(error.message)}
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    if (!data.length) {
-
-        $("eventList").innerHTML =
-            `
-            <div class="empty">
-                Nog geen optredens.
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    $("eventList").innerHTML =
-        data.map(event => `
-
-            <div class="row">
-
-                <div>
-
-                    <strong>
-                        ${escapeHTML(event.name)}
-                    </strong>
-
-                    <small>
-                        📍
-                        ${escapeHTML(event.location)}
-                        ·
-                        ${escapeHTML(event.event_date)}
-                        ${event.event_time
-                            ? " · " +
-                              escapeHTML(
-                                  event.event_time
-                              )
-                            : ""}
-                    </small>
-
-                </div>
-
-                <button
-                    class="delete-btn"
-                    onclick="deleteItem('events', ${event.id})">
-                    Verwijderen
-                </button>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* ================================
-   NIEUWS
-================================ */
-
-$("addNews").addEventListener(
-    "click",
-    async () => {
-
-        const title =
-            $("newsTitle")
-                .value
-                .trim();
-
-        const content =
-            $("newsContent")
-                .value
-                .trim();
-
-
-        if (!title || !content) {
-
-            showStatus(
-                "newsStatus",
-                "Titel en bericht zijn verplicht."
-            );
-
-            return;
-
-        }
-
-
-        try {
-
-            const {
-                error
-            } =
-                await db
-                    .from("news")
-                    .insert(
-                        {
-                            title,
-                            content
-                        }
-                    );
-
-
-            if (error)
-                throw error;
-
-
-            $("newsTitle").value =
-                "";
-
-            $("newsContent").value =
-                "";
-
-
-            showStatus(
-                "newsStatus",
-                "Nieuws gepubliceerd.",
-                true
-            );
-
-
-            toast(
-                "Nieuws gepubliceerd"
-            );
-
-
-            loadNews();
-
-            refreshDashboard();
-
-
-        } catch (error) {
-
-            console.error(error);
-
-
-            showStatus(
-                "newsStatus",
-                "Publiceren mislukt: " +
-                error.message
-            );
-
-        }
-
-    }
-);
-
-
-async function loadNews() {
-
-    const {
-        data,
-        error
-    } =
+    const { data, error } =
         await db
             .from("news")
             .select("*")
-            .neq(
-                "title",
-                "__MISTERY_DUO_LIVE__"
-            )
-            .order(
-                "created_at",
-                {
-                    ascending:
-                        false
-                }
-            );
-
-
-    if (error) {
-
-        $("newsList").innerHTML =
-            `
-            <div class="empty">
-                ${escapeHTML(error.message)}
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    if (!data.length) {
-
-        $("newsList").innerHTML =
-            `
-            <div class="empty">
-                Nog geen nieuws.
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    $("newsList").innerHTML =
-        data.map(item => `
-
-            <div class="row">
-
-                <div>
-
-                    <strong>
-                        ${escapeHTML(item.title)}
-                    </strong>
-
-                    <small>
-                        ${escapeHTML(
-                            item.content
-                        ).slice(0, 180)}
-                    </small>
-
-                </div>
-
-                <button
-                    class="delete-btn"
-                    onclick="deleteItem('news', ${item.id})">
-                    Verwijderen
-                </button>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* ================================
-   FOTO'S
-================================ */
-
-$("uploadPhoto").addEventListener(
-    "click",
-    async () => {
-
-        const file =
-            $("photoFile")
-                .files[0];
-
-        const title =
-            $("photoTitle")
-                .value
-                .trim();
-
-
-        if (!file) {
-
-            showStatus(
-                "photoStatus",
-                "Kies eerst een foto."
-            );
-
-            return;
-
-        }
-
-
-        try {
-
-            const safeName =
-                file.name.replace(
-                    /[^a-z0-9._-]/gi,
-                    "_"
-                );
-
-
-            const path =
-                "photos/" +
-                Date.now() +
-                "-" +
-                safeName;
-
-
-            const url =
-                await uploadFile(
-                    "photos",
-                    file,
-                    path
-                );
-
-
-            const {
-                error
-            } =
-                await db
-                    .from("photos")
-                    .insert(
-                        {
-                            title,
-                            image_url:
-                                url
-                        }
-                    );
-
-
-            if (error)
-                throw error;
-
-
-            $("photoFile").value =
-                "";
-
-            $("photoTitle").value =
-                "";
-
-
-            showStatus(
-                "photoStatus",
-                "Foto gepubliceerd.",
-                true
-            );
-
-
-            toast(
-                "Foto gepubliceerd"
-            );
-
-
-            loadPhotos();
-
-        } catch (error) {
-
-            console.error(error);
-
-
-            showStatus(
-                "photoStatus",
-                "Upload mislukt: " +
-                error.message
-            );
-
-        }
-
-    }
-);
-
-
-async function loadPhotos() {
-
-    const {
-        data,
-        error
-    } =
-        await db
-            .from("photos")
-            .select("*")
-            .order(
-                "created_at",
-                {
-                    ascending:
-                        false
-                }
-            );
-
-
-    if (error) {
-
-        $("photoList").innerHTML =
-            `
-            <div class="empty">
-                ${escapeHTML(error.message)}
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    if (!data.length) {
-
-        $("photoList").innerHTML =
-            `
-            <div class="empty">
-                Nog geen foto's.
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    $("photoList").innerHTML =
-        data.map(photo => `
-
-            <div class="media-card">
-
-                <img
-                    src="${escapeHTML(photo.image_url)}"
-                    alt="${escapeHTML(photo.title || "Foto")}"
-                >
-
-                <div class="media-info">
-
-                    <strong>
-                        ${escapeHTML(
-                            photo.title ||
-                            "Foto"
-                        )}
-                    </strong>
-
-                </div>
-
-                <button
-                    class="delete-btn"
-                    onclick="deleteItem('photos', ${photo.id})">
-                    Verwijderen
-                </button>
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* ================================
-   MERCHANDISE
-================================ */
-
-$("addProduct").addEventListener(
-    "click",
-    async () => {
-
-        const name =
-            $("productName")
-                .value
-                .trim();
-
-        const price =
-            $("productPrice")
-                .value
-                .trim();
-
-        const description =
-            $("productDescription")
-                .value
-                .trim();
-
-        const file =
-            $("productImage")
-                .files[0];
-
-
-        if (!name || !price) {
-
-            showStatus(
-                "productStatus",
-                "Naam en prijs zijn verplicht."
-            );
-
-            return;
-
-        }
-
-
-        try {
-
-            let image_url =
-                null;
-
-
-            if (file) {
-
-                const safeName =
-                    file.name.replace(
-                        /[^a-z0-9._-]/gi,
-                        "_"
-                    );
-
-
-                image_url =
-                    await uploadFile(
-                        "photos",
-                        file,
-                        "merch/" +
-                        Date.now() +
-                        "-" +
-                        safeName
-                    );
-
-            }
-
-
-            const {
-                error
-            } =
-                await db
-                    .from("products")
-                    .insert(
-                        {
-                            name,
-                            price,
-                            description,
-                            image_url
-                        }
-                    );
-
-
-            if (error)
-                throw error;
-
-
-            [
-                "productName",
-                "productPrice",
-                "productDescription",
-                "productImage"
-            ].forEach(id => {
-
-                $(id).value =
-                    "";
-
+            .order("created_at", {
+                ascending: false
             });
 
-
-            showStatus(
-                "productStatus",
-                "Product toegevoegd.",
-                true
-            );
-
-
-            toast(
-                "Product toegevoegd"
-            );
-
-
-            loadProducts();
-
-
-        } catch (error) {
-
-            console.error(error);
-
-
-            showStatus(
-                "productStatus",
-                "Opslaan mislukt: " +
-                error.message
-            );
-
-        }
-
-    }
-);
-
-
-async function loadProducts() {
-
-    const {
-        data,
-        error
-    } =
-        await db
-            .from("products")
-            .select("*")
-            .order(
-                "created_at",
-                {
-                    ascending:
-                        false
-                }
-            );
-
-
     if (error) {
 
-        $("productList").innerHTML =
-            `
-            <div class="empty">
-                ${escapeHTML(error.message)}
-            </div>
-            `;
+        container.innerHTML =
+            "<p>Fout bij laden.</p>";
 
         return;
-
     }
-
 
     if (!data.length) {
 
-        $("productList").innerHTML =
-            `
-            <div class="empty">
-                Nog geen producten.
-            </div>
-            `;
+        container.innerHTML =
+            "<p>Geen nieuws.</p>";
 
         return;
-
     }
 
+    container.innerHTML =
+        data.map(item => `
 
-    $("productList").innerHTML =
-        data.map(product => `
+        <div class="admin-item">
 
-            <div class="media-card">
+            <div>
 
-                ${
-                    product.image_url
-                        ?
-                        `
-                        <img
-                            src="${escapeHTML(product.image_url)}"
-                            alt="${escapeHTML(product.name)}"
-                        >
-                        `
-                        :
-                        `
-                        <div class="empty">
-                            Geen foto
-                        </div>
-                        `
-                }
+                <h3>
+                    ${escapeHtml(item.title)}
+                </h3>
 
-                <div class="media-info">
-
-                    <strong>
-                        ${escapeHTML(product.name)}
-                    </strong>
-
-                    <small>
-                        € ${escapeHTML(product.price)}
-                    </small>
-
-                    <p>
-                        ${escapeHTML(
-                            product.description ||
-                            ""
-                        )}
-                    </p>
-
-                </div>
-
-                <button
-                    class="delete-btn"
-                    onclick="deleteItem('products', ${product.id})">
-                    Verwijderen
-                </button>
+                <p>
+                    ${escapeHtml(item.content)}
+                </p>
 
             </div>
 
-        `).join("");
+            <button
+                class="delete"
+                onclick="deleteNews(${item.id})"
+            >
+                Verwijderen
+            </button>
 
+        </div>
+
+    `).join("");
 }
 
 
-/* ================================
-   BOEKINGEN
-================================ */
+window.deleteNews = async function(id) {
+
+    if (!confirm(
+        "Dit nieuwsbericht verwijderen?"
+    )) return;
+
+    const { error } =
+        await db
+            .from("news")
+            .delete()
+            .eq("id", id);
+
+    if (error) {
+
+        toast("Verwijderen mislukt.");
+
+        return;
+    }
+
+    toast("Nieuws verwijderd.");
+
+    loadNewsAdmin();
+    updateStats();
+};
+
+
+// ======================================
+// OPTREDEN TOEVOEGEN
+// ======================================
+
+document
+    .getElementById("showForm")
+    .addEventListener("submit", async e => {
+
+        e.preventDefault();
+
+        const { error } =
+            await db
+                .from("shows")
+                .insert({
+
+                    name:
+                        document.getElementById(
+                            "showName"
+                        ).value,
+
+                    date:
+                        document.getElementById(
+                            "showDate"
+                        ).value,
+
+                    time:
+                        document.getElementById(
+                            "showTime"
+                        ).value,
+
+                    location:
+                        document.getElementById(
+                            "showLocation"
+                        ).value,
+
+                    info:
+                        document.getElementById(
+                            "showInfo"
+                        ).value
+
+                });
+
+        if (error) {
+
+            console.error(error);
+
+            toast(
+                "Optreden kon niet worden toegevoegd."
+            );
+
+            return;
+        }
+
+        toast("Optreden toegevoegd!");
+
+        e.target.reset();
+
+        loadShowsAdmin();
+        updateStats();
+    });
+
+
+// ======================================
+// OPTREDENS LADEN
+// ======================================
+
+async function loadShowsAdmin() {
+
+    const container =
+        document.getElementById(
+            "showsList"
+        );
+
+    const { data, error } =
+        await db
+            .from("shows")
+            .select("*")
+            .order("date", {
+                ascending: true
+            });
+
+    if (error) {
+
+        container.innerHTML =
+            "<p>Fout bij laden.</p>";
+
+        return;
+    }
+
+    container.innerHTML =
+        data.map(item => `
+
+        <div class="admin-item">
+
+            <div>
+
+                <h3>
+                    ${escapeHtml(item.name)}
+                </h3>
+
+                <p>
+                    ${escapeHtml(item.date)}
+                    •
+                    ${escapeHtml(item.location || "")}
+                </p>
+
+            </div>
+
+            <button
+                class="delete"
+                onclick="deleteShow(${item.id})"
+            >
+                Verwijderen
+            </button>
+
+        </div>
+
+    `).join("");
+}
+
+
+window.deleteShow = async function(id) {
+
+    if (!confirm(
+        "Dit optreden verwijderen?"
+    )) return;
+
+    const { error } =
+        await db
+            .from("shows")
+            .delete()
+            .eq("id", id);
+
+    if (error) {
+
+        toast("Verwijderen mislukt.");
+
+        return;
+    }
+
+    toast("Optreden verwijderd.");
+
+    loadShowsAdmin();
+    updateStats();
+};
+
+
+// ======================================
+// BOEKINGEN
+// ======================================
 
 async function loadBookings() {
 
-    const {
-        data,
-        error
-    } =
+    const container =
+        document.getElementById(
+            "bookingsList"
+        );
+
+    const { data, error } =
         await db
             .from("bookings")
             .select("*")
-            .order(
-                "created_at",
-                {
-                    ascending:
-                        false
-                }
-            );
-
+            .order("created_at", {
+                ascending: false
+            });
 
     if (error) {
 
-        $("bookingList").innerHTML =
-            `
-            <div class="empty">
-                ${escapeHTML(error.message)}
-            </div>
-            `;
+        container.innerHTML =
+            "<p>Fout bij laden van aanvragen.</p>";
 
         return;
-
     }
-
 
     if (!data.length) {
 
-        $("bookingList").innerHTML =
-            `
-            <div class="empty">
-                Nog geen boekingsaanvragen.
-            </div>
-            `;
+        container.innerHTML =
+            "<p>Geen boekingsaanvragen.</p>";
 
         return;
-
     }
 
+    container.innerHTML =
+        data.map(item => `
 
-    $("bookingList").innerHTML =
-        data.map(booking => `
+        <div class="admin-item">
 
-            <div class="booking">
+            <div>
 
                 <h3>
-                    ${escapeHTML(
-                        booking.name
-                    )}
+                    ${escapeHtml(item.name)}
                 </h3>
 
-                <div class="booking-meta">
-
-                    ${escapeHTML(
-                        booking.email ||
-                        ""
-                    )}
-
-                    ${
-                        booking.event_date
-                        ? " · " +
-                          escapeHTML(
-                              booking.event_date
-                          )
-                        : ""
-                    }
-
-                    ${
-                        booking.location
-                        ? " · " +
-                          escapeHTML(
-                              booking.location
-                          )
-                        : ""
-                    }
-
-                </div>
+                <p>
+                    ${escapeHtml(item.email)}
+                </p>
 
                 <p>
-                    ${escapeHTML(
-                        booking.message ||
-                        ""
-                    )}
+                    ${escapeHtml(item.phone || "")}
+                </p>
+
+                <p>
+                    ${escapeHtml(item.date || "")}
+                    •
+                    ${escapeHtml(item.location || "")}
+                </p>
+
+                <p>
+                    ${escapeHtml(item.message || "")}
+                </p>
+
+            </div>
+
+        </div>
+
+    `).join("");
+}
+
+
+// ======================================
+// FOTO UPLOAD
+// ======================================
+
+document
+    .getElementById("photoForm")
+    .addEventListener("submit", async e => {
+
+        e.preventDefault();
+
+        const file =
+            document.getElementById(
+                "photoFile"
+            ).files[0];
+
+        if (!file) {
+
+            toast("Selecteer eerst een foto.");
+
+            return;
+        }
+
+        try {
+
+            toast("Foto wordt geüpload...");
+
+            const url =
+                await uploadFile(
+                    "mistery-images",
+                    "photos",
+                    file
+                );
+
+            const { error } =
+                await db
+                    .from("photos")
+                    .insert({
+
+                        title:
+                            document.getElementById(
+                                "photoTitle"
+                            ).value,
+
+                        image_url: url
+
+                    });
+
+            if (error)
+                throw error;
+
+            toast("Foto succesvol toegevoegd!");
+
+            e.target.reset();
+
+            loadPhotosAdmin();
+
+            updateStats();
+
+        } catch (error) {
+
+            console.error(error);
+
+            toast(
+                "Upload mislukt: " +
+                error.message
+            );
+        }
+    });
+
+
+// ======================================
+// FOTO'S LADEN
+// ======================================
+
+async function loadPhotosAdmin() {
+
+    const container =
+        document.getElementById(
+            "photosList"
+        );
+
+    const { data, error } =
+        await db
+            .from("photos")
+            .select("*")
+            .order("created_at", {
+                ascending: false
+            });
+
+    if (error) return;
+
+    container.innerHTML =
+        data.map(photo => `
+
+        <div class="media-card">
+
+            <img
+                src="${escapeHtml(photo.image_url)}"
+            >
+
+            <div class="media-card-content">
+
+                <p>
+                    ${escapeHtml(photo.title || "")}
                 </p>
 
                 <button
-                    class="delete-btn"
-                    onclick="deleteItem('bookings', ${booking.id})">
-                    Aanvraag verwijderen
+                    class="delete"
+                    onclick="deletePhoto(
+                        ${photo.id},
+                        '${escapeHtml(photo.image_url)}'
+                    )"
+                >
+                    Verwijderen
                 </button>
 
             </div>
 
-        `).join("");
+        </div>
 
+    `).join("");
 }
 
 
-/* ================================
-   VERWIJDEREN
-================================ */
+window.deletePhoto = async function(id, url) {
 
-async function deleteItem(
-    table,
-    id
-) {
-
-    const confirmed =
-        confirm(
-            "Weet je zeker dat je dit wilt verwijderen?"
-        );
-
-
-    if (!confirmed)
+    if (!confirm("Foto verwijderen?"))
         return;
 
+    await deleteStorageFile(
+        "mistery-images",
+        url
+    );
 
-    try {
+    const { error } =
+        await db
+            .from("photos")
+            .delete()
+            .eq("id", id);
 
-        const {
-            error
-        } =
-            await db
-                .from(table)
-                .delete()
-                .eq(
-                    "id",
-                    id
-                );
+    if (error) {
 
+        toast("Verwijderen mislukt.");
 
-        if (error)
-            throw error;
-
-
-        toast(
-            "Item verwijderd"
-        );
-
-
-        if (
-            table === "videos"
-        )
-            loadVideos();
-
-
-        if (
-            table === "events"
-        )
-            loadEvents();
-
-
-        if (
-            table === "news"
-        )
-            loadNews();
-
-
-        if (
-            table === "photos"
-        )
-            loadPhotos();
-
-
-        if (
-            table === "products"
-        )
-            loadProducts();
-
-
-        if (
-            table === "bookings"
-        )
-            loadBookings();
-
-
-        refreshDashboard();
-
-
-    } catch (error) {
-
-        console.error(error);
-
-
-        alert(
-            "Verwijderen mislukt:\n\n" +
-            error.message
-        );
-
+        return;
     }
 
+    toast("Foto verwijderd.");
+
+    loadPhotosAdmin();
+    updateStats();
+};
+
+
+// ======================================
+// VIDEO UPLOAD
+// ======================================
+
+document
+    .getElementById("videoForm")
+    .addEventListener("submit", async e => {
+
+        e.preventDefault();
+
+        const file =
+            document.getElementById(
+                "videoFile"
+            ).files[0];
+
+        if (!file) {
+
+            toast("Selecteer eerst een video.");
+
+            return;
+        }
+
+        try {
+
+            toast("Video wordt geüpload...");
+
+            const url =
+                await uploadFile(
+                    "mistery-videos",
+                    "videos",
+                    file
+                );
+
+            const { error } =
+                await db
+                    .from("videos")
+                    .insert({
+
+                        title:
+                            document.getElementById(
+                                "videoTitle"
+                            ).value,
+
+                        video_url: url
+
+                    });
+
+            if (error)
+                throw error;
+
+            toast("Video toegevoegd!");
+
+            e.target.reset();
+
+            loadVideosAdmin();
+
+        } catch (error) {
+
+            console.error(error);
+
+            toast(
+                "Video upload mislukt: " +
+                error.message
+            );
+        }
+    });
+
+
+// ======================================
+// VIDEO'S LADEN
+// ======================================
+
+async function loadVideosAdmin() {
+
+    const container =
+        document.getElementById(
+            "videosList"
+        );
+
+    const { data, error } =
+        await db
+            .from("videos")
+            .select("*")
+            .order("created_at", {
+                ascending: false
+            });
+
+    if (error) return;
+
+    container.innerHTML =
+        data.map(video => `
+
+        <div class="media-card">
+
+            <video controls>
+
+                <source
+                    src="${escapeHtml(video.video_url)}"
+                >
+
+            </video>
+
+            <div class="media-card-content">
+
+                <p>
+                    ${escapeHtml(video.title || "")}
+                </p>
+
+                <button
+                    class="delete"
+                    onclick="deleteVideo(
+                        ${video.id},
+                        '${escapeHtml(video.video_url)}'
+                    )"
+                >
+                    Verwijderen
+                </button>
+
+            </div>
+
+        </div>
+
+    `).join("");
 }
 
 
-window.deleteItem =
-    deleteItem;
+window.deleteVideo = async function(id, url) {
+
+    if (!confirm("Video verwijderen?"))
+        return;
+
+    await deleteStorageFile(
+        "mistery-videos",
+        url
+    );
+
+    const { error } =
+        await db
+            .from("videos")
+            .delete()
+            .eq("id", id);
+
+    if (error) {
+
+        toast("Verwijderen mislukt.");
+
+        return;
+    }
+
+    toast("Video verwijderd.");
+
+    loadVideosAdmin();
+};
 
 
-/* ================================
-   START
-================================ */
+// ======================================
+// MERCHANDISE
+// ======================================
 
-async function start() {
+document
+    .getElementById("merchForm")
+    .addEventListener("submit", async e => {
 
-    applyLogo();
+        e.preventDefault();
 
-    await testConnection();
+        const { error } =
+            await db
+                .from("merchandise")
+                .insert({
 
-    await Promise.all([
+                    name:
+                        document.getElementById(
+                            "merchName"
+                        ).value,
 
-        refreshDashboard(),
+                    price:
+                        Number(
+                            document.getElementById(
+                                "merchPrice"
+                            ).value
+                        ) || null,
 
-        loadLive(),
+                    description:
+                        document.getElementById(
+                            "merchDescription"
+                        ).value,
 
-        loadVideos(),
+                    image_url:
+                        document.getElementById(
+                            "merchImage"
+                        ).value || null
 
-        loadEvents(),
+                });
 
-        loadNews(),
+        if (error) {
 
-        loadPhotos(),
+            toast(
+                "Product kon niet worden toegevoegd."
+            );
 
-        loadProducts(),
+            return;
+        }
 
-        loadBookings()
+        toast("Product toegevoegd!");
 
-    ]);
+        e.target.reset();
 
+        loadMerchAdmin();
+
+    });
+
+
+// ======================================
+// MERCH LADEN
+// ======================================
+
+async function loadMerchAdmin() {
+
+    const container =
+        document.getElementById(
+            "merchList"
+        );
+
+    const { data, error } =
+        await db
+            .from("merchandise")
+            .select("*")
+            .order("created_at", {
+                ascending: false
+            });
+
+    if (error) return;
+
+    container.innerHTML =
+        data.map(item => `
+
+        <div class="admin-item">
+
+            <div>
+
+                <h3>
+                    ${escapeHtml(item.name)}
+                </h3>
+
+                <p>
+                    € ${Number(
+                        item.price || 0
+                    ).toFixed(2)}
+                </p>
+
+            </div>
+
+            <button
+                class="delete"
+                onclick="deleteMerch(${item.id})"
+            >
+                Verwijderen
+            </button>
+
+        </div>
+
+    `).join("");
 }
 
 
-start();
+window.deleteMerch = async function(id) {
+
+    if (!confirm("Product verwijderen?"))
+        return;
+
+    const { error } =
+        await db
+            .from("merchandise")
+            .delete()
+            .eq("id", id);
+
+    if (error) {
+
+        toast("Verwijderen mislukt.");
+
+        return;
+    }
+
+    toast("Product verwijderd.");
+
+    loadMerchAdmin();
+};
+
+
+// ======================================
+// LIVESTREAM
+// ======================================
+
+async function loadLiveAdmin() {
+
+    const { data, error } =
+        await db
+            .from("livestream")
+            .select("*")
+            .eq("id", 1)
+            .single();
+
+    if (error) return;
+
+    document.getElementById(
+        "liveActive"
+    ).checked = data.active;
+
+    document.getElementById(
+        "liveTitle"
+    ).value = data.title || "";
+
+    document.getElementById(
+        "liveUrl"
+    ).value = data.url || "";
+
+    showLivePreview(data);
+}
+
+
+function showLivePreview(data) {
+
+    const container =
+        document.getElementById(
+            "livePreview"
+        );
+
+    if (!data.active || !data.url) {
+
+        container.innerHTML =
+            "<p>Livestream staat uit.</p>";
+
+        return;
+    }
+
+    container.innerHTML = `
+
+        <iframe
+            src="${escapeHtml(data.url)}"
+            allowfullscreen>
+        </iframe>
+
+    `;
+}
+
+
+document
+    .getElementById("liveForm")
+    .addEventListener("submit", async e => {
+
+        e.preventDefault();
+
+        const active =
+            document.getElementById(
+                "liveActive"
+            ).checked;
+
+        const url =
+            document.getElementById(
+                "liveUrl"
+            ).value;
+
+        const title =
+            document.getElementById(
+                "liveTitle"
+            ).value;
+
+        const { data, error } =
+            await db
+                .from("livestream")
+                .update({
+
+                    active,
+                    url,
+                    title,
+                    updated_at:
+                        new Date().toISOString()
+
+                })
+                .eq("id", 1)
+                .select()
+                .single();
+
+        if (error) {
+
+            console.error(error);
+
+            toast(
+                "Livestream kon niet worden opgeslagen."
+            );
+
+            return;
+        }
+
+        toast("Livestream opgeslagen!");
+
+        showLivePreview(data);
+
+    });
+
+
+// ======================================
+// SETTINGS / LOGO
+// ======================================
+
+async function loadSettingsAdmin() {
+
+    const { data, error } =
+        await db
+            .from("settings")
+            .select("*")
+            .eq("id", 1)
+            .single();
+
+    if (error) return;
+
+    document.getElementById(
+        "siteName"
+    ).value = data.site_name || "";
+
+    if (data.logo_url) {
+
+        document.getElementById(
+            "currentLogo"
+        ).src = data.logo_url;
+
+    }
+}
+
+
+document
+    .getElementById("settingsForm")
+    .addEventListener("submit", async e => {
+
+        e.preventDefault();
+
+        try {
+
+            const siteName =
+                document.getElementById(
+                    "siteName"
+                ).value;
+
+            const file =
+                document.getElementById(
+                    "logoFile"
+                ).files[0];
+
+            let logoUrl = null;
+
+            if (file) {
+
+                toast("Logo wordt geüpload...");
+
+                logoUrl =
+                    await uploadFile(
+                        "mistery-images",
+                        "logo",
+                        file
+                    );
+            }
+
+            const updateData = {
+
+                site_name: siteName,
+
+                updated_at:
+                    new Date().toISOString()
+
+            };
+
+            if (logoUrl)
+                updateData.logo_url =
+                    logoUrl;
+
+            const { error } =
+                await db
+                    .from("settings")
+                    .update(updateData)
+                    .eq("id", 1);
+
+            if (error)
+                throw error;
+
+            toast(
+                "Instellingen opgeslagen!"
+            );
+
+            loadSettingsAdmin();
+
+        } catch (error) {
+
+            console.error(error);
+
+            toast(
+                "Opslaan mislukt: " +
+                error.message
+            );
+        }
+    });
+
+
+// ======================================
+// START
+// ======================================
+
+async function startAdmin() {
+
+    await updateStats();
+
+    await loadNewsAdmin();
+
+    await loadShowsAdmin();
+
+    await loadBookings();
+
+    await loadPhotosAdmin();
+
+    await loadVideosAdmin();
+
+    await loadMerchAdmin();
+
+    await loadLiveAdmin();
+
+    await loadSettingsAdmin();
+
+}
+
+startAdmin();
