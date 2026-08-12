@@ -3,178 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Mistery Duo | Beheer</title>
-
+    <title>Mistery Duo — Admin</title>
     <link rel="stylesheet" href="admin.css">
-
-    <!-- Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Cloudinary Upload Widget -->
-    <script src="https://upload-widget.cloudinary.com/latest/global/all.js"></script>
 </head>
 
 <body>
 
 <div class="admin-layout">
 
-    <!-- =========================
-         SIDEBAR
-    ========================== -->
-
     <aside class="sidebar">
 
-        <div class="sidebar-logo">
-            <div class="logo-preview">
-                <img id="sidebarLogo"
-                     src="https://res.cloudinary.com/aorisbce/image/upload/f_auto,q_auto/mistery-duo-logo"
-                     alt="Mistery Duo">
+        <div class="brand">
+            <div class="brand-logo" id="adminLogoPreview">
+                MD
             </div>
 
             <div>
-                <strong>MISTERY DUO</strong>
+                <strong>Mistery Duo</strong>
                 <span>Beheerplatform</span>
             </div>
         </div>
 
-        <nav class="sidebar-nav">
-
-            <button class="nav-item active" data-section="dashboard">
-                <span>⌂</span>
-                Dashboard
+        <nav>
+            <button class="nav-btn active" data-section="dashboard">
+                🏠 Dashboard
             </button>
 
-            <button class="nav-item" data-section="shows">
-                <span>📅</span>
-                Optredens
+            <button class="nav-btn" data-section="home">
+                🌟 Home
             </button>
 
-            <button class="nav-item" data-section="about">
-                <span>👥</span>
-                Over ons
+            <button class="nav-btn" data-section="about">
+                👥 Over ons
             </button>
 
-            <button class="nav-item" data-section="news">
-                <span>📰</span>
-                Nieuws
+            <button class="nav-btn" data-section="shows">
+                🎤 Optredens
             </button>
 
-            <button class="nav-item" data-section="videos">
-                <span>▶</span>
-                Video's
+            <button class="nav-btn" data-section="live">
+                🔴 Live
             </button>
 
-            <button class="nav-item" data-section="photos">
-                <span>📷</span>
-                Foto's
+            <button class="nav-btn" data-section="videos">
+                🎥 Video
             </button>
 
-            <button class="nav-item" data-section="shop">
-                <span>🛍</span>
-                Merch
+            <button class="nav-btn" data-section="news">
+                📰 Nieuws
             </button>
 
-            <button class="nav-item" data-section="logo">
-                <span>✦</span>
-                Logo
+            <button class="nav-btn" data-section="photos">
+                📸 Foto's
             </button>
 
+            <button class="nav-btn" data-section="shop">
+                🛍️ Merch
+            </button>
+
+            <button class="nav-btn" data-section="settings">
+                ⚙️ Instellingen
+            </button>
         </nav>
 
         <div class="sidebar-bottom">
-
-            <a href="index.html" target="_blank" class="website-button">
-                🌐 Bekijk website
+            <a href="index.html" target="_blank">
+                🌐 Website bekijken
             </a>
-
         </div>
 
     </aside>
 
 
-    <!-- =========================
-         MAIN
-    ========================== -->
-
-    <main class="main-content">
-
-        <!-- TOPBAR -->
+    <main class="main">
 
         <header class="topbar">
 
             <div>
-                <p class="topbar-small">MISTERY DUO</p>
                 <h1 id="pageTitle">Dashboard</h1>
+                <p id="pageSubtitle">
+                    Beheer hier de website van Mistery Duo.
+                </p>
             </div>
 
-            <div class="topbar-right">
-
+            <div class="top-actions">
                 <span class="status">
-                    <span class="status-dot"></span>
-                    Online
+                    <i></i> Firebase verbonden
                 </span>
-
-                <a href="index.html" target="_blank" class="topbar-site">
-                    Website →
-                </a>
-
             </div>
 
         </header>
 
 
-        <!-- =========================
-             DASHBOARD
-        ========================== -->
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="admin-section active">
 
-        <section id="dashboard" class="admin-section active-section">
-
-            <div class="hero-card">
-
+            <div class="welcome-card">
                 <div>
                     <span class="eyebrow">MISTERY DUO</span>
-
-                    <h2>
-                        Welkom in het
-                        <span>beheerplatform.</span>
-                    </h2>
-
+                    <h2>Welkom in het beheerplatform</h2>
                     <p>
-                        Beheer hier de website, optredens, foto's,
-                        video's, nieuws, merch en het logo van Mistery Duo.
+                        Hier kun je alles van de Mistery Duo website beheren.
                     </p>
                 </div>
 
-                <div class="hero-symbol">
-                    ♪
+                <div class="welcome-icon">
+                    ✨
                 </div>
-
             </div>
 
 
             <div class="stats-grid">
 
                 <div class="stat-card">
-                    <span>Optredens</span>
+                    <span>🎤</span>
                     <strong id="statShows">0</strong>
+                    <small>Optredens</small>
                 </div>
 
                 <div class="stat-card">
-                    <span>Nieuws</span>
-                    <strong id="statNews">0</strong>
-                </div>
-
-                <div class="stat-card">
-                    <span>Foto's</span>
+                    <span>📸</span>
                     <strong id="statPhotos">0</strong>
+                    <small>Foto's</small>
                 </div>
 
                 <div class="stat-card">
-                    <span>Video's</span>
+                    <span>🎥</span>
                     <strong id="statVideos">0</strong>
+                    <small>Video's</small>
+                </div>
+
+                <div class="stat-card">
+                    <span>📰</span>
+                    <strong id="statNews">0</strong>
+                    <small>Nieuwsberichten</small>
                 </div>
 
             </div>
@@ -182,74 +144,46 @@
 
             <div class="dashboard-grid">
 
-                <div class="content-card">
-
-                    <div class="card-header">
+                <div class="panel">
+                    <div class="panel-header">
                         <div>
-                            <span class="card-label">SNELLE ACTIES</span>
-                            <h3>Wat wil je doen?</h3>
+                            <h3>Live status</h3>
+                            <p>De huidige live-uitzending.</p>
+                        </div>
+                    </div>
+
+                    <div id="dashboardLive" class="live-preview">
+                        <span class="offline-dot"></span>
+                        Niet live
+                    </div>
+                </div>
+
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Snelle acties</h3>
+                            <p>Direct naar een onderdeel.</p>
                         </div>
                     </div>
 
                     <div class="quick-actions">
-
-                        <button class="quick-button" data-open="shows">
-                            <span>📅</span>
-                            <strong>Optreden toevoegen</strong>
-                            <small>Nieuw optreden</small>
+                        <button onclick="openSection('live')">
+                            🔴 Live beheren
                         </button>
 
-                        <button class="quick-button" data-open="news">
-                            <span>📰</span>
-                            <strong>Nieuws toevoegen</strong>
-                            <small>Nieuw nieuwsbericht</small>
+                        <button onclick="openSection('photos')">
+                            📸 Foto toevoegen
                         </button>
 
-                        <button class="quick-button" data-open="photos">
-                            <span>📷</span>
-                            <strong>Foto uploaden</strong>
-                            <small>Cloudinary</small>
+                        <button onclick="openSection('videos')">
+                            🎥 Video toevoegen
                         </button>
 
-                        <button class="quick-button" data-open="videos">
-                            <span>▶</span>
-                            <strong>Video uploaden</strong>
-                            <small>Cloudinary</small>
+                        <button onclick="openSection('news')">
+                            📰 Nieuws toevoegen
                         </button>
-
                     </div>
-
-                </div>
-
-
-                <div class="content-card">
-
-                    <div class="card-header">
-                        <div>
-                            <span class="card-label">STATUS</span>
-                            <h3>Website</h3>
-                        </div>
-                    </div>
-
-                    <div class="website-status">
-
-                        <div class="status-line">
-                            <span>Firebase</span>
-                            <strong id="firebaseStatus">Verbinden...</strong>
-                        </div>
-
-                        <div class="status-line">
-                            <span>Cloudinary</span>
-                            <strong class="connected">Beschikbaar</strong>
-                        </div>
-
-                        <div class="status-line">
-                            <span>Publieke website</span>
-                            <strong class="connected">Actief</strong>
-                        </div>
-
-                    </div>
-
                 </div>
 
             </div>
@@ -257,215 +191,187 @@
         </section>
 
 
-        <!-- =========================
-             SHOWS
-        ========================== -->
+        <!-- HOME -->
+        <section id="home" class="admin-section">
 
+            <div class="section-heading">
+                <div>
+                    <h2>Home</h2>
+                    <p>Beheer de inhoud van de homepagina.</p>
+                </div>
+
+                <button class="primary-btn" onclick="saveHome()">
+                    💾 Opslaan
+                </button>
+            </div>
+
+            <div class="panel form-panel">
+
+                <label>
+                    Titel
+                    <input id="homeTitle" type="text"
+                        placeholder="Mistery Duo">
+                </label>
+
+                <label>
+                    Ondertitel
+                    <input id="homeSubtitle" type="text"
+                        placeholder="Samen brengen wij muziek tot leven">
+                </label>
+
+                <label>
+                    Beschrijving
+                    <textarea id="homeText" rows="6"></textarea>
+                </label>
+
+            </div>
+
+        </section>
+
+
+        <!-- ABOUT -->
+        <section id="about" class="admin-section">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Over ons</h2>
+                    <p>Pas de informatie over Mistery Duo aan.</p>
+                </div>
+
+                <button class="primary-btn" onclick="saveAbout()">
+                    💾 Opslaan
+                </button>
+            </div>
+
+            <div class="panel form-panel">
+
+                <label>
+                    Titel
+                    <input id="aboutTitle" type="text">
+                </label>
+
+                <label>
+                    Tekst
+                    <textarea id="aboutText" rows="10"></textarea>
+                </label>
+
+            </div>
+
+        </section>
+
+
+        <!-- SHOWS -->
         <section id="shows" class="admin-section">
 
             <div class="section-heading">
 
                 <div>
-                    <span class="eyebrow">OPTREDENS</span>
-                    <h2>Optredens beheren</h2>
-                    <p>Voeg nieuwe optredens toe of wijzig bestaande optredens.</p>
+                    <h2>Optredens</h2>
+                    <p>Beheer komende optredens.</p>
                 </div>
 
-                <button class="primary-button" id="newShowButton">
+                <button class="primary-btn" onclick="openShowModal()">
                     + Optreden toevoegen
                 </button>
 
             </div>
 
-
-            <div class="form-card hidden" id="showForm">
-
-                <div class="form-title">
-                    <h3 id="showFormTitle">Nieuw optreden</h3>
-                    <button class="close-form" data-close="showForm">×</button>
-                </div>
-
-                <form id="showFormElement">
-
-                    <input type="hidden" id="showId">
-
-                    <div class="form-grid">
-
-                        <div class="input-group">
-                            <label>Naam optreden</label>
-                            <input id="showName" type="text" required placeholder="Bijvoorbeeld: Zomeravond">
-                        </div>
-
-                        <div class="input-group">
-                            <label>Datum</label>
-                            <input id="showDate" type="date" required>
-                        </div>
-
-                        <div class="input-group">
-                            <label>Tijd</label>
-                            <input id="showTime" type="time">
-                        </div>
-
-                        <div class="input-group">
-                            <label>Locatie</label>
-                            <input id="showLocation" type="text" placeholder="Blankenberge">
-                        </div>
-
-                    </div>
-
-                    <div class="input-group">
-                        <label>Beschrijving</label>
-                        <textarea id="showDescription" rows="4"
-                                  placeholder="Vertel iets over het optreden..."></textarea>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="secondary-button" data-close="showForm">
-                            Annuleren
-                        </button>
-
-                        <button type="submit" class="primary-button">
-                            Opslaan
-                        </button>
-                    </div>
-
-                </form>
-
-            </div>
-
-
-            <div class="items-card">
-
-                <div class="card-header">
-                    <div>
-                        <span class="card-label">AGENDA</span>
-                        <h3>Alle optredens</h3>
-                    </div>
-                </div>
-
-                <div id="showsList" class="items-list">
-                    <div class="loading">Optredens laden...</div>
-                </div>
-
-            </div>
+            <div id="showsList" class="items-grid"></div>
 
         </section>
 
 
-        <!-- =========================
-             ABOUT
-        ========================== -->
-
-        <section id="about" class="admin-section">
+        <!-- LIVE -->
+        <section id="live" class="admin-section">
 
             <div class="section-heading">
 
                 <div>
-                    <span class="eyebrow">MISTERY DUO</span>
-                    <h2>Over ons</h2>
-                    <p>Pas de tekst van de pagina "Over ons" aan.</p>
+                    <h2>🔴 Live</h2>
+                    <p>Beheer de livepagina van Mistery Duo.</p>
                 </div>
 
-            </div>
-
-            <div class="form-card">
-
-                <form id="aboutForm">
-
-                    <div class="input-group">
-                        <label>Titel</label>
-                        <input id="aboutTitle" type="text" placeholder="Over Mistery Duo">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Tekst</label>
-                        <textarea id="aboutText" rows="10"
-                                  placeholder="Schrijf hier iets over Mistery Duo..."></textarea>
-                    </div>
-
-                    <button type="submit" class="primary-button">
-                        Over ons opslaan
-                    </button>
-
-                </form>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             NEWS
-        ========================== -->
-
-        <section id="news" class="admin-section">
-
-            <div class="section-heading">
-
-                <div>
-                    <span class="eyebrow">NIEUWS</span>
-                    <h2>Nieuws beheren</h2>
-                    <p>Publiceer nieuws op de website.</p>
-                </div>
-
-                <button class="primary-button" id="newNewsButton">
-                    + Nieuws toevoegen
+                <button class="primary-btn" onclick="saveLive()">
+                    💾 Live opslaan
                 </button>
 
             </div>
 
 
-            <div class="form-card hidden" id="newsForm">
+            <div class="live-admin-grid">
 
-                <div class="form-title">
-                    <h3>Nieuwsbericht</h3>
-                    <button class="close-form" data-close="newsForm">×</button>
+                <div class="panel">
+
+                    <div class="live-switch-row">
+
+                        <div>
+                            <h3>Live uitzending</h3>
+                            <p>
+                                Zet deze schakelaar aan wanneer Mistery Duo
+                                live is.
+                            </p>
+                        </div>
+
+                        <label class="switch">
+                            <input type="checkbox" id="liveEnabled">
+                            <span></span>
+                        </label>
+
+                    </div>
+
+                    <label>
+                        Live titel
+                        <input
+                            id="liveTitle"
+                            type="text"
+                            placeholder="Mistery Duo LIVE">
+                    </label>
+
+                    <label>
+                        Live beschrijving
+                        <textarea
+                            id="liveDescription"
+                            rows="5"
+                            placeholder="Welkom bij onze livestream!"></textarea>
+                    </label>
+
+                    <label>
+                        Livestream URL
+                        <input
+                            id="liveUrl"
+                            type="url"
+                            placeholder="https://...">
+                    </label>
+
+                    <label>
+                        YouTube video-ID
+                        <input
+                            id="liveYoutube"
+                            type="text"
+                            placeholder="Bijvoorbeeld: dQw4w9WgXcQ">
+                    </label>
+
                 </div>
 
-                <form id="newsFormElement">
 
-                    <input type="hidden" id="newsId">
+                <div class="panel live-preview-panel">
 
-                    <div class="input-group">
-                        <label>Titel</label>
-                        <input id="newsTitle" type="text" required>
-                    </div>
+                    <span class="live-label">
+                        ● LIVE VOORBEELD
+                    </span>
 
-                    <div class="input-group">
-                        <label>Tekst</label>
-                        <textarea id="newsText" rows="8" required></textarea>
-                    </div>
+                    <div id="livePreview" class="big-live-preview">
 
-                    <div class="input-group">
-                        <label>Datum</label>
-                        <input id="newsDate" type="date">
-                    </div>
+                        <div class="play-icon">▶</div>
 
-                    <div class="form-actions">
+                        <h3>Mistery Duo LIVE</h3>
 
-                        <button type="button" class="secondary-button" data-close="newsForm">
-                            Annuleren
-                        </button>
-
-                        <button type="submit" class="primary-button">
-                            Publiceren
-                        </button>
+                        <p>
+                            De livestream wordt hier weergegeven.
+                        </p>
 
                     </div>
 
-                </form>
-
-            </div>
-
-
-            <div class="items-card">
-
-                <div class="card-header">
-                    <h3>Nieuwsberichten</h3>
-                </div>
-
-                <div id="newsList" class="items-list">
-                    <div class="loading">Nieuws laden...</div>
                 </div>
 
             </div>
@@ -473,252 +379,149 @@
         </section>
 
 
-        <!-- =========================
-             VIDEOS
-        ========================== -->
-
+        <!-- VIDEOS -->
         <section id="videos" class="admin-section">
 
             <div class="section-heading">
 
                 <div>
-                    <span class="eyebrow">MEDIA</span>
-                    <h2>Video's</h2>
-                    <p>Upload video's via Cloudinary en publiceer ze op de website.</p>
+                    <h2>Video</h2>
+                    <p>Upload en beheer video's.</p>
                 </div>
 
-                <button class="primary-button" id="uploadVideoButton">
-                    + Video uploaden
+                <button class="primary-btn"
+                        onclick="openVideoModal()">
+                    + Video toevoegen
                 </button>
 
             </div>
 
-
-            <div class="upload-info">
-
-                <div class="upload-icon">▶</div>
-
-                <div>
-                    <strong>Cloudinary upload</strong>
-                    <p>
-                        Video's worden rechtstreeks naar Cloudinary geüpload.
-                        De gegevens worden daarna in Firebase opgeslagen.
-                    </p>
-                </div>
-
-            </div>
-
-
-            <div class="items-card">
-
-                <div class="card-header">
-                    <h3>Video's op de website</h3>
-                </div>
-
-                <div id="videosList" class="media-grid">
-                    <div class="loading">Video's laden...</div>
-                </div>
-
-            </div>
+            <div id="videosList" class="items-grid"></div>
 
         </section>
 
 
-        <!-- =========================
-             PHOTOS
-        ========================== -->
+        <!-- NEWS -->
+        <section id="news" class="admin-section">
 
+            <div class="section-heading">
+
+                <div>
+                    <h2>Nieuws</h2>
+                    <p>Beheer nieuwsberichten.</p>
+                </div>
+
+                <button class="primary-btn"
+                        onclick="openNewsModal()">
+                    + Nieuws toevoegen
+                </button>
+
+            </div>
+
+            <div id="newsList" class="items-grid"></div>
+
+        </section>
+
+
+        <!-- PHOTOS -->
         <section id="photos" class="admin-section">
 
             <div class="section-heading">
 
                 <div>
-                    <span class="eyebrow">MEDIA</span>
                     <h2>Foto's</h2>
                     <p>Upload foto's naar Cloudinary.</p>
                 </div>
 
-                <button class="primary-button" id="uploadPhotoButton">
-                    + Foto uploaden
+                <button class="primary-btn"
+                        onclick="document.getElementById('photoUpload').click()">
+                    📸 Foto uploaden
                 </button>
 
-            </div>
-
-
-            <div class="upload-info">
-
-                <div class="upload-icon">📷</div>
-
-                <div>
-                    <strong>Cloudinary upload</strong>
-                    <p>
-                        Foto's worden rechtstreeks naar Cloudinary geüpload.
-                    </p>
-                </div>
+                <input
+                    type="file"
+                    id="photoUpload"
+                    accept="image/*"
+                    multiple
+                    hidden>
 
             </div>
 
-
-            <div class="items-card">
-
-                <div class="card-header">
-                    <h3>Foto's op de website</h3>
+            <div id="uploadProgress" class="upload-progress hidden">
+                <div class="progress-bar">
+                    <div id="progressBar"></div>
                 </div>
-
-                <div id="photosList" class="media-grid">
-                    <div class="loading">Foto's laden...</div>
-                </div>
-
+                <span id="progressText">Uploaden...</span>
             </div>
+
+            <div id="photosList" class="photo-grid"></div>
 
         </section>
 
 
-        <!-- =========================
-             SHOP
-        ========================== -->
-
+        <!-- SHOP -->
         <section id="shop" class="admin-section">
 
             <div class="section-heading">
 
                 <div>
-                    <span class="eyebrow">SHOP</span>
-                    <h2>Merch beheren</h2>
-                    <p>Beheer de producten die op de website verschijnen.</p>
+                    <h2>Merch</h2>
+                    <p>Beheer de merchandise.</p>
                 </div>
 
-                <button class="primary-button" id="newShopButton">
+                <button class="primary-btn"
+                        onclick="openShopModal()">
                     + Product toevoegen
                 </button>
 
             </div>
 
-
-            <div class="form-card hidden" id="shopForm">
-
-                <div class="form-title">
-                    <h3>Product</h3>
-                    <button class="close-form" data-close="shopForm">×</button>
-                </div>
-
-                <form id="shopFormElement">
-
-                    <input type="hidden" id="shopId">
-
-                    <div class="form-grid">
-
-                        <div class="input-group">
-                            <label>Productnaam</label>
-                            <input id="shopName" type="text" required>
-                        </div>
-
-                        <div class="input-group">
-                            <label>Prijs</label>
-                            <input id="shopPrice" type="text" placeholder="€ 20">
-                        </div>
-
-                    </div>
-
-                    <div class="input-group">
-                        <label>Beschrijving</label>
-                        <textarea id="shopDescription" rows="5"></textarea>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Productafbeelding</label>
-
-                        <button type="button"
-                                id="uploadShopImageButton"
-                                class="upload-button">
-                            📷 Afbeelding uploaden
-                        </button>
-
-                        <input type="hidden" id="shopImage">
-
-                        <div id="shopImagePreview" class="small-preview"></div>
-                    </div>
-
-                    <div class="form-actions">
-
-                        <button type="button" class="secondary-button" data-close="shopForm">
-                            Annuleren
-                        </button>
-
-                        <button type="submit" class="primary-button">
-                            Product opslaan
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
-
-            <div class="items-card">
-
-                <div class="card-header">
-                    <h3>Producten</h3>
-                </div>
-
-                <div id="shopList" class="items-list">
-                    <div class="loading">Producten laden...</div>
-                </div>
-
-            </div>
+            <div id="shopList" class="items-grid"></div>
 
         </section>
 
 
-        <!-- =========================
-             LOGO
-        ========================== -->
-
-        <section id="logo" class="admin-section">
+        <!-- SETTINGS -->
+        <section id="settings" class="admin-section">
 
             <div class="section-heading">
-
                 <div>
-                    <span class="eyebrow">HUISSTIJL</span>
-                    <h2>Logo veranderen</h2>
-                    <p>Upload hier een nieuw Mistery Duo-logo.</p>
+                    <h2>Instellingen</h2>
+                    <p>Logo en algemene instellingen.</p>
                 </div>
-
             </div>
 
 
-            <div class="logo-manager">
+            <div class="panel">
 
-                <div class="logo-current">
+                <h3>Logo</h3>
 
-                    <span class="card-label">HUIDIG LOGO</span>
+                <div class="logo-manager">
 
-                    <div class="big-logo-preview">
-                        <img id="currentLogo"
-                             src="https://res.cloudinary.com/aorisbce/image/upload/f_auto,q_auto/mistery-duo-logo"
-                             alt="Mistery Duo logo">
+                    <div id="logoPreview"
+                         class="logo-large">
+                        MD
                     </div>
 
-                </div>
+                    <div>
 
+                        <p>
+                            Upload hier het logo van Mistery Duo.
+                        </p>
 
-                <div class="logo-upload">
+                        <input
+                            type="file"
+                            id="logoUpload"
+                            accept="image/*"
+                            hidden>
 
-                    <span class="card-label">NIEUW LOGO</span>
+                        <button
+                            class="primary-btn"
+                            onclick="document.getElementById('logoUpload').click()">
+                            🖼️ Logo veranderen
+                        </button>
 
-                    <h3>Upload een nieuw logo</h3>
-
-                    <p>
-                        Het nieuwe logo wordt opgeslagen in Cloudinary
-                        en de URL wordt in Firebase bewaard.
-                    </p>
-
-                    <button id="uploadLogoButton" class="primary-button">
-                        ✦ Nieuw logo uploaden
-                    </button>
-
-                    <div id="newLogoPreview" class="new-logo-preview"></div>
+                    </div>
 
                 </div>
 
@@ -731,19 +534,26 @@
 </div>
 
 
-<!-- =========================
-     TOAST
-========================== -->
+<!-- MODAL -->
 
-<div id="toast" class="toast">
-    <span id="toastIcon">✓</span>
-    <span id="toastMessage">Opgeslagen</span>
+<div id="modal" class="modal">
+
+    <div class="modal-box">
+
+        <button class="modal-close"
+                onclick="closeModal()">
+            ×
+        </button>
+
+        <div id="modalContent"></div>
+
+    </div>
+
 </div>
 
 
-<!-- =========================
-     FIREBASE
-========================== -->
+<div id="toast"></div>
+
 
 <script type="module" src="admin.js"></script>
 
