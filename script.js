@@ -1,446 +1,46 @@
-const SUPABASE_URL =
-    "https://msvesugylaeffjqiizzm.supabase.co";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
-const SUPABASE_KEY =
-    "sb_publishable_DhtWMC4YaXFG6NUiqmiyHg_0ERj8Bgk";
-
-const db = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
-
-
-// -------------------------
-// BASIS
-// -------------------------
-
-document.getElementById("year").textContent =
-    new Date().getFullYear();
+import {
+    getDatabase,
+    ref,
+    onValue,
+    push,
+    set
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
 
-// -------------------------
-// SETTINGS / LOGO
-// -------------------------
+/* =========================================================
+   FIREBASE
+========================================================= */
 
-async function loadSettings() {
+const firebaseConfig = {
+    apiKey: "AIzaSyDf15-6xqLR32Hq4xXeW5hvfUTqPzi52Vs",
+    authDomain: "mistery-duo.firebaseapp.com",
+    databaseURL: "https://mistery-duo-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "mistery-duo",
+    storageBucket: "mistery-duo.firebasestorage.app",
+    messagingSenderId: "36695107825",
+    appId: "1:36695107825:web:d92d202a3dd50c1f932150",
+    measurementId: "G-P37CVN099B"
+};
 
-    const { data, error } = await db
-        .from("settings")
-        .select("*")
-        .eq("id", 1)
-        .single();
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-    if (error) {
-        console.error(error);
-        return;
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function escapeHTML(value) {
+
+    if (value === undefined || value === null) {
+        return "";
     }
 
-    if (data.logo_url) {
-        document.getElementById("siteLogo").src =
-            data.logo_url;
-    }
-}
-
-
-// -------------------------
-// NIEUWS
-// -------------------------
-
-async function loadNews() {
-
-    const container =
-        document.getElementById("newsContainer");
-
-    const { data, error } = await db
-        .from("news")
-        .select("*")
-        .order("created_at", {
-            ascending: false
-        });
-
-    if (error) {
-        container.innerHTML =
-            "<p>Nieuws kon niet worden geladen.</p>";
-        console.error(error);
-        return;
-    }
-
-    if (!data.length) {
-        container.innerHTML =
-            '<p class="empty">Er is momenteel geen nieuws.</p>';
-        return;
-    }
-
-    container.innerHTML = data.map(item => `
-
-        <article class="card">
-
-            ${item.image_url ? `
-                <img src="${escapeHtml(item.image_url)}">
-            ` : ""}
-
-            <div class="card-content">
-
-                <h3>
-                    ${escapeHtml(item.title)}
-                </h3>
-
-                <p>
-                    ${escapeHtml(item.content)}
-                </p>
-
-            </div>
-
-        </article>
-
-    `).join("");
-}
-
-
-// -------------------------
-// OPTREDENS
-// -------------------------
-
-async function loadShows() {
-
-    const container =
-        document.getElementById("showsContainer");
-
-    const { data, error } = await db
-        .from("shows")
-        .select("*")
-        .order("date", {
-            ascending: true
-        });
-
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    if (!data.length) {
-        container.innerHTML =
-            '<p class="empty">Er zijn momenteel geen optredens gepland.</p>';
-        return;
-    }
-
-    container.innerHTML = data.map(show => {
-
-        const date =
-            new Date(show.date).toLocaleDateString(
-                "nl-BE",
-                {
-                    day: "2-digit",
-                    month: "short"
-                }
-            );
-
-        return `
-
-        <article class="show">
-
-            <div class="show-date">
-                ${date}
-            </div>
-
-            <div class="show-info">
-
-                <h3>
-                    ${escapeHtml(show.name)}
-                </h3>
-
-                <p>
-                    ${escapeHtml(show.location || "")}
-                    ${show.time ? " • " + escapeHtml(show.time) : ""}
-                </p>
-
-                ${
-                    show.info
-                    ? `<p>${escapeHtml(show.info)}</p>`
-                    : ""
-                }
-
-            </div>
-
-        </article>
-
-        `;
-
-    }).join("");
-}
-
-
-// -------------------------
-// LIVESTREAM
-// -------------------------
-
-async function loadLive() {
-
-    const container =
-        document.getElementById("liveContainer");
-
-    const { data, error } = await db
-        .from("livestream")
-        .select("*")
-        .eq("id", 1)
-        .single();
-
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    if (!data.active || !data.url) {
-
-        container.innerHTML = `
-            <div>
-                <h3>Momenteel niet live</h3>
-                <p>Kom later terug voor de volgende livestream.</p>
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = `
-
-        <iframe
-            src="${escapeHtml(data.url)}"
-            allowfullscreen>
-        </iframe>
-
-    `;
-}
-
-
-// -------------------------
-// FOTO'S
-// -------------------------
-
-async function loadPhotos() {
-
-    const container =
-        document.getElementById("photosContainer");
-
-    const { data, error } = await db
-        .from("photos")
-        .select("*")
-        .order("created_at", {
-            ascending: false
-        });
-
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    if (!data.length) {
-        container.innerHTML =
-            '<p class="empty">Nog geen foto's.</p>';
-        return;
-    }
-
-    container.innerHTML = data.map(photo => `
-
-        <img
-            src="${escapeHtml(photo.image_url)}"
-            alt="${escapeHtml(photo.title || "Mistery Duo")}"
-            loading="lazy"
-        >
-
-    `).join("");
-}
-
-
-// -------------------------
-// VIDEO'S
-// -------------------------
-
-async function loadVideos() {
-
-    const container =
-        document.getElementById("videosContainer");
-
-    const { data, error } = await db
-        .from("videos")
-        .select("*")
-        .order("created_at", {
-            ascending: false
-        });
-
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    if (!data.length) {
-        container.innerHTML =
-            '<p class="empty">Nog geen video's.</p>';
-        return;
-    }
-
-    container.innerHTML = data.map(video => `
-
-        <article class="video-card">
-
-            <video controls preload="metadata">
-
-                <source
-                    src="${escapeHtml(video.video_url)}"
-                >
-
-            </video>
-
-            <h3>
-                ${escapeHtml(video.title || "Mistery Duo")}
-            </h3>
-
-        </article>
-
-    `).join("");
-}
-
-
-// -------------------------
-// MERCHANDISE
-// -------------------------
-
-async function loadMerchandise() {
-
-    const container =
-        document.getElementById("merchContainer");
-
-    const { data, error } = await db
-        .from("merchandise")
-        .select("*")
-        .order("created_at", {
-            ascending: false
-        });
-
-    if (error) {
-        console.error(error);
-        return;
-    }
-
-    if (!data.length) {
-        container.innerHTML =
-            '<p class="empty">Merchandise komt binnenkort.</p>';
-        return;
-    }
-
-    container.innerHTML = data.map(item => `
-
-        <article class="card">
-
-            ${
-                item.image_url
-                ? `<img src="${escapeHtml(item.image_url)}">`
-                : ""
-            }
-
-            <div class="card-content">
-
-                <h3>
-                    ${escapeHtml(item.name)}
-                </h3>
-
-                <p>
-                    ${escapeHtml(item.description || "")}
-                </p>
-
-                ${
-                    item.price !== null
-                    ? `<strong>€ ${Number(item.price).toFixed(2)}</strong>`
-                    : ""
-                }
-
-            </div>
-
-        </article>
-
-    `).join("");
-}
-
-
-// -------------------------
-// BOEKING
-// -------------------------
-
-document
-    .getElementById("bookingForm")
-    .addEventListener("submit", async function(e) {
-
-        e.preventDefault();
-
-        const result =
-            document.getElementById(
-                "bookingMessageResult"
-            );
-
-        result.textContent =
-            "Aanvraag wordt verstuurd...";
-
-        const { error } = await db
-            .from("bookings")
-            .insert({
-
-                name:
-                    document.getElementById(
-                        "bookingName"
-                    ).value,
-
-                email:
-                    document.getElementById(
-                        "bookingEmail"
-                    ).value,
-
-                phone:
-                    document.getElementById(
-                        "bookingPhone"
-                    ).value,
-
-                date:
-                    document.getElementById(
-                        "bookingDate"
-                    ).value,
-
-                location:
-                    document.getElementById(
-                        "bookingLocation"
-                    ).value,
-
-                message:
-                    document.getElementById(
-                        "bookingMessage"
-                    ).value
-
-            });
-
-        if (error) {
-
-            console.error(error);
-
-            result.textContent =
-                "Er ging iets mis. Probeer opnieuw.";
-
-            return;
-        }
-
-        result.textContent =
-            "Je aanvraag is succesvol verstuurd!";
-
-        this.reset();
-
-    });
-
-
-// -------------------------
-// VEILIGER TEKST
-// -------------------------
-
-function escapeHtml(value) {
-
-    return String(value ?? "")
+    return String(value)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
@@ -449,14 +49,777 @@ function escapeHtml(value) {
 }
 
 
-// -------------------------
-// START
-// -------------------------
+function objectToArray(data) {
 
-loadSettings();
-loadNews();
-loadShows();
-loadLive();
-loadPhotos();
-loadVideos();
-loadMerchandise();
+    if (!data) {
+        return [];
+    }
+
+    return Object.entries(data).map(
+        ([id, value]) => ({
+            id,
+            ...value
+        })
+    );
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+const header = document.getElementById("header");
+
+window.addEventListener("scroll", () => {
+
+    if (window.scrollY > 40) {
+        header.classList.add("scrolled");
+    } else {
+        header.classList.remove("scrolled");
+    }
+
+});
+
+
+/* =========================================================
+   MOBILE MENU
+========================================================= */
+
+const menuButton =
+    document.getElementById("menuButton");
+
+const navigation =
+    document.getElementById("navigation");
+
+menuButton.addEventListener("click", () => {
+    navigation.classList.toggle("open");
+});
+
+navigation.querySelectorAll("a").forEach(link => {
+
+    link.addEventListener("click", () => {
+        navigation.classList.remove("open");
+    });
+
+});
+
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+onValue(
+    ref(db, "settings"),
+    snapshot => {
+
+        const settings =
+            snapshot.val() || {};
+
+        applySettings(settings);
+
+    }
+);
+
+
+function applySettings(settings) {
+
+    if (settings.logo) {
+
+        const logo =
+            document.getElementById("siteLogo");
+
+        const fallback =
+            document.getElementById("logoFallback");
+
+        logo.src = settings.logo;
+        logo.style.display = "block";
+        fallback.style.display = "none";
+
+
+        const footerLogo =
+            document.getElementById("footerLogo");
+
+        const footerFallback =
+            document.getElementById("footerFallback");
+
+        footerLogo.src = settings.logo;
+        footerLogo.style.display = "block";
+        footerFallback.style.display = "none";
+    }
+
+
+    if (settings.facebook) {
+        document.getElementById("facebookLink").href =
+            settings.facebook;
+    }
+
+    if (settings.instagram) {
+        document.getElementById("instagramLink").href =
+            settings.instagram;
+    }
+
+    if (settings.youtube) {
+        document.getElementById("youtubeLink").href =
+            settings.youtube;
+    }
+
+
+    if (
+        settings.live &&
+        settings.live.enabled &&
+        settings.live.url
+    ) {
+
+        showLive(settings.live.url);
+
+    } else {
+
+        showOffline();
+
+    }
+
+}
+
+
+/* =========================================================
+   SHOWS
+========================================================= */
+
+onValue(
+    ref(db, "shows"),
+    snapshot => {
+
+        const shows =
+            objectToArray(snapshot.val());
+
+        renderShows(shows);
+
+    }
+);
+
+
+function renderShows(shows) {
+
+    const grid =
+        document.getElementById("showsGrid");
+
+    if (!shows.length) {
+
+        grid.innerHTML = `
+            <div class="loading">
+                Binnenkort verschijnen hier nieuwe optredens.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    shows.sort((a, b) => {
+
+        return String(a.date || "")
+            .localeCompare(
+                String(b.date || "")
+            );
+
+    });
+
+
+    grid.innerHTML =
+        shows.map(show => `
+
+            <article class="show-card">
+
+                <div class="show-date">
+                    ${escapeHTML(show.date || "Binnenkort")}
+                </div>
+
+                <h3>
+                    ${escapeHTML(show.title || "Mistery Duo Live")}
+                </h3>
+
+                <div class="show-location">
+                    📍 ${escapeHTML(show.location || "België")}
+                </div>
+
+                <div class="show-footer">
+
+                    <span>
+                        ${escapeHTML(show.time || "")}
+                    </span>
+
+                    <span>
+                        MISTERY DUO
+                    </span>
+
+                </div>
+
+            </article>
+
+        `).join("");
+
+}
+
+
+/* =========================================================
+   LIVE
+========================================================= */
+
+function showLive(url) {
+
+    const player =
+        document.getElementById("livePlayer");
+
+    const status =
+        document.getElementById("liveStatus");
+
+    status.classList.add("online");
+
+    status.innerHTML = `
+        <span></span>
+        LIVE
+    `;
+
+
+    player.innerHTML = `
+        <iframe
+            class="live-frame"
+            src="${escapeHTML(url)}"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    `;
+
+}
+
+
+function showOffline() {
+
+    const player =
+        document.getElementById("livePlayer");
+
+    const status =
+        document.getElementById("liveStatus");
+
+    status.classList.remove("online");
+
+    status.innerHTML = `
+        <span></span>
+        OFFLINE
+    `;
+
+
+    player.innerHTML = `
+        <div>
+
+            <div class="live-icon">
+                ▶
+            </div>
+
+            <h3>Mistery Duo Live</h3>
+
+            <p>
+                Er is momenteel geen livestream actief.
+            </p>
+
+        </div>
+    `;
+
+}
+
+
+/* =========================================================
+   VIDEOS
+========================================================= */
+
+onValue(
+    ref(db, "videos"),
+    snapshot => {
+
+        const videos =
+            objectToArray(snapshot.val());
+
+        renderVideos(videos);
+
+    }
+);
+
+
+function renderVideos(videos) {
+
+    const grid =
+        document.getElementById("videosGrid");
+
+    if (!videos.length) {
+
+        grid.innerHTML = `
+            <div class="loading">
+                Binnenkort verschijnen hier video's.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    grid.innerHTML =
+        videos.map(video => `
+
+            <article class="video-card">
+
+                <a
+                    href="${escapeHTML(video.url || "#")}"
+                    target="_blank"
+                >
+
+                    <div class="video-image">
+
+                        ${
+                            video.image
+                            ?
+                            `<img
+                                src="${escapeHTML(video.image)}"
+                                alt="${escapeHTML(video.title)}"
+                            >`
+                            :
+                            ""
+                        }
+
+                        <div class="play">
+                            ▶
+                        </div>
+
+                    </div>
+
+                    <div class="video-info">
+
+                        <h3>
+                            ${escapeHTML(
+                                video.title ||
+                                "Mistery Duo"
+                            )}
+                        </h3>
+
+                        <p>
+                            ${escapeHTML(
+                                video.description || ""
+                            )}
+                        </p>
+
+                    </div>
+
+                </a>
+
+            </article>
+
+        `).join("");
+
+}
+
+
+/* =========================================================
+   NEWS
+========================================================= */
+
+onValue(
+    ref(db, "news"),
+    snapshot => {
+
+        const news =
+            objectToArray(snapshot.val());
+
+        renderNews(news);
+
+    }
+);
+
+
+function renderNews(news) {
+
+    const grid =
+        document.getElementById("newsGrid");
+
+    if (!news.length) {
+
+        grid.innerHTML = `
+            <div class="loading">
+                Er is momenteel geen nieuws.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    news.sort((a, b) => {
+
+        return String(b.date || "")
+            .localeCompare(
+                String(a.date || "")
+            );
+
+    });
+
+
+    grid.innerHTML =
+        news.map(item => `
+
+            <article class="news-card">
+
+                <div class="news-image">
+
+                    ${
+                        item.image
+                        ?
+                        `<img
+                            src="${escapeHTML(item.image)}"
+                            alt="${escapeHTML(item.title)}"
+                        >`
+                        :
+                        ""
+                    }
+
+                </div>
+
+                <div class="news-content">
+
+                    <div class="news-date">
+                        ${escapeHTML(item.date || "")}
+                    </div>
+
+                    <h3>
+                        ${escapeHTML(
+                            item.title ||
+                            "Mistery Duo Nieuws"
+                        )}
+                    </h3>
+
+                    <p>
+                        ${escapeHTML(
+                            item.text ||
+                            item.description ||
+                            ""
+                        )}
+                    </p>
+
+                </div>
+
+            </article>
+
+        `).join("");
+
+}
+
+
+/* =========================================================
+   PHOTOS
+========================================================= */
+
+onValue(
+    ref(db, "photos"),
+    snapshot => {
+
+        const photos =
+            objectToArray(snapshot.val());
+
+        renderPhotos(photos);
+
+    }
+);
+
+
+function renderPhotos(photos) {
+
+    const grid =
+        document.getElementById("photoGrid");
+
+    if (!photos.length) {
+
+        grid.innerHTML = `
+            <div class="loading">
+                De fotogalerij wordt binnenkort gevuld.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    grid.innerHTML =
+        photos.map(photo => `
+
+            <div class="photo">
+
+                <img
+                    src="${escapeHTML(photo.image)}"
+                    alt="${escapeHTML(photo.title || "Mistery Duo")}"
+                >
+
+            </div>
+
+        `).join("");
+
+
+    document
+        .querySelectorAll(".photo img")
+        .forEach(image => {
+
+            image.addEventListener(
+                "click",
+                () => openLightbox(image.src)
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   SHOP
+========================================================= */
+
+onValue(
+    ref(db, "products"),
+    snapshot => {
+
+        const products =
+            objectToArray(snapshot.val());
+
+        renderProducts(products);
+
+    }
+);
+
+
+function renderProducts(products) {
+
+    const grid =
+        document.getElementById("shopGrid");
+
+    if (!products.length) {
+
+        grid.innerHTML = `
+            <div class="loading">
+                Merchandise wordt binnenkort toegevoegd.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    grid.innerHTML =
+        products.map(product => `
+
+            <article class="product-card">
+
+                <div class="product-image">
+
+                    ${
+                        product.image
+                        ?
+                        `<img
+                            src="${escapeHTML(product.image)}"
+                            alt="${escapeHTML(product.name)}"
+                        >`
+                        :
+                        ""
+                    }
+
+                </div>
+
+                <div class="product-info">
+
+                    <h3>
+                        ${escapeHTML(
+                            product.name ||
+                            "Mistery Duo Merchandise"
+                        )}
+                    </h3>
+
+                    <div class="product-price">
+                        ${escapeHTML(
+                            product.price ||
+                            "Binnenkort"
+                        )}
+                    </div>
+
+                    ${
+                        product.url
+                        ?
+                        `<a
+                            class="button gold full"
+                            href="${escapeHTML(product.url)}"
+                            target="_blank"
+                        >
+                            Bestellen →
+                        </a>`
+                        :
+                        `<button
+                            class="button outline full"
+                            disabled
+                        >
+                            Binnenkort
+                        </button>`
+                    }
+
+                </div>
+
+            </article>
+
+        `).join("");
+
+}
+
+
+/* =========================================================
+   BOOKING
+========================================================= */
+
+const bookingForm =
+    document.getElementById("bookingForm");
+
+
+bookingForm.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+
+        const result =
+            document.getElementById("bookingResult");
+
+
+        const bookingRef =
+            push(ref(db, "bookings"));
+
+
+        const booking = {
+
+            name:
+                document.getElementById(
+                    "bookingName"
+                ).value.trim(),
+
+            email:
+                document.getElementById(
+                    "bookingEmail"
+                ).value.trim(),
+
+            date:
+                document.getElementById(
+                    "bookingDate"
+                ).value,
+
+            location:
+                document.getElementById(
+                    "bookingLocation"
+                ).value.trim(),
+
+            message:
+                document.getElementById(
+                    "bookingMessage"
+                ).value.trim(),
+
+            status:
+                "nieuw",
+
+            createdAt:
+                Date.now()
+
+        };
+
+
+        try {
+
+            await set(
+                bookingRef,
+                booking
+            );
+
+
+            result.textContent =
+                "✓ Je aanvraag is succesvol verzonden!";
+
+            result.style.color =
+                "#d6b36a";
+
+
+            bookingForm.reset();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            result.textContent =
+                "Er ging iets mis. Probeer het opnieuw.";
+
+            result.style.color =
+                "#ff6666";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   LIGHTBOX
+========================================================= */
+
+const lightbox =
+    document.getElementById("lightbox");
+
+const lightboxImage =
+    document.getElementById("lightboxImage");
+
+const closeLightbox =
+    document.getElementById("closeLightbox");
+
+
+function openLightbox(src) {
+
+    lightboxImage.src = src;
+
+    lightbox.classList.add("active");
+
+}
+
+
+closeLightbox.addEventListener(
+    "click",
+    () => {
+
+        lightbox.classList.remove(
+            "active"
+        );
+
+    }
+);
+
+
+lightbox.addEventListener(
+    "click",
+    event => {
+
+        if (event.target === lightbox) {
+
+            lightbox.classList.remove(
+                "active"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   YEAR
+========================================================= */
+
+document.getElementById("year")
+    .textContent =
+    new Date().getFullYear();
