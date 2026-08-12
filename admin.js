@@ -1,311 +1,343 @@
-// ============================================
-// MISTERY DUO - CLOUDINARY CONFIGURATIE
-// ============================================
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 
-const CLOUDINARY_CLOUD_NAME = "aorisbce";
-const CLOUDINARY_UPLOAD_PRESET = "mistery_duo_upload";
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 
-// ============================================
+// ======================================
+// FIREBASE
+// ======================================
+
+const firebaseConfig = {
+
+    apiKey: "VUL_HIER_JE_API_KEY_IN",
+
+    authDomain:
+        "VUL_HIER_JE_PROJECT.firebaseapp.com",
+
+    projectId:
+        "VUL_HIER_JE_PROJECT_ID",
+
+    storageBucket:
+        "VUL_HIER_JE_PROJECT.firebasestorage.app",
+
+    messagingSenderId:
+        "VUL_HIER_JE_SENDER_ID",
+
+    appId:
+        "VUL_HIER_JE_APP_ID"
+};
+
+
+const app =
+    initializeApp(firebaseConfig);
+
+const db =
+    getFirestore(app);
+
+
+// ======================================
+// CLOUDINARY
+// ======================================
+
+const CLOUDINARY_CLOUD_NAME =
+    "aorisbce";
+
+const CLOUDINARY_UPLOAD_PRESET =
+    "mistery_duo_upload";
+
+
+// ======================================
 // ELEMENTEN
-// ============================================
+// ======================================
 
-const uploadBtn = document.getElementById("uploadBtn");
-const uploadStatus = document.getElementById("uploadStatus");
-const latestUpload = document.getElementById("latestUpload");
-const logoutBtn = document.getElementById("logoutBtn");
-const year = document.getElementById("year");
+const newsForm =
+    document.getElementById("newsForm");
+
+const eventForm =
+    document.getElementById("eventForm");
+
+const mediaForm =
+    document.getElementById("mediaForm");
+
+const message =
+    document.getElementById("message");
+
+const uploadProgress =
+    document.getElementById("uploadProgress");
 
 
-// ============================================
-// JAAR
-// ============================================
+// ======================================
+// MELDING
+// ======================================
 
-year.textContent = new Date().getFullYear();
+function showMessage(text) {
 
+    message.textContent = text;
 
-// ============================================
-// STATUS FUNCTIE
-// ============================================
-
-function showStatus(message, type) {
-
-    uploadStatus.textContent = message;
-
-    uploadStatus.className = "status " + type;
+    message.style.display = "block";
 }
 
 
-// ============================================
-// CLOUDINARY WIDGET
-// ============================================
+// ======================================
+// NIEUWS TOEVOEGEN
+// ======================================
 
-const cloudinaryWidget = cloudinary.createUploadWidget(
+newsForm.addEventListener(
+    "submit",
+    async (event) => {
 
-    {
-        cloudName: CLOUDINARY_CLOUD_NAME,
+        event.preventDefault();
 
-        uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+        const title =
+            document.getElementById("newsTitle").value;
 
-        sources: [
-            "local"
-        ],
+        const text =
+            document.getElementById("newsText").value;
 
-        multiple: false,
 
-        maxFileSize: 1000000000,
+        try {
 
-        clientAllowedFormats: [
-            "jpg",
-            "jpeg",
-            "png",
-            "webp",
-            "gif",
-            "mp4",
-            "mov",
-            "webm"
-        ],
+            await addDoc(
+                collection(db, "news"),
+                {
 
-        showAdvancedOptions: false,
+                    title: title,
 
-        showCompletedButton: true,
+                    text: text,
 
-        showUploadMoreButton: true,
+                    date: serverTimestamp()
 
-        singleUploadAutoClose: false,
-
-        folder: "mistery-duo",
-
-        language: "nl",
-
-        resourceType: "auto",
-
-        theme: "minimal",
-
-        text: {
-            en: {
-                or: "of",
-                browse: "Bestand kiezen"
-            }
-        }
-    },
-
-    (error, result) => {
-
-        // ----------------------------------------
-        // FOUT
-        // ----------------------------------------
-
-        if (error) {
-
-            console.error("Cloudinary fout:", error);
-
-            showStatus(
-                "❌ Er is iets misgegaan tijdens het uploaden.",
-                "error"
+                }
             );
 
-            uploadBtn.disabled = false;
+
+            newsForm.reset();
+
+            showMessage(
+                "Nieuws succesvol gepubliceerd!"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Er ging iets fout bij het publiceren."
+            );
+        }
+    }
+);
+
+
+// ======================================
+// OPTREDEN TOEVOEGEN
+// ======================================
+
+eventForm.addEventListener(
+    "submit",
+    async (event) => {
+
+        event.preventDefault();
+
+
+        const title =
+            document.getElementById("eventTitle").value;
+
+        const date =
+            document.getElementById("eventDate").value;
+
+        const location =
+            document.getElementById("eventLocation").value;
+
+
+        try {
+
+            await addDoc(
+                collection(db, "events"),
+                {
+
+                    title: title,
+
+                    date: date,
+
+                    location: location,
+
+                    createdAt: serverTimestamp()
+
+                }
+            );
+
+
+            eventForm.reset();
+
+            showMessage(
+                "Optreden succesvol toegevoegd!"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Er ging iets fout bij het toevoegen."
+            );
+        }
+    }
+);
+
+
+// ======================================
+// CLOUDINARY UPLOAD
+// ======================================
+
+mediaForm.addEventListener(
+    "submit",
+    async (event) => {
+
+        event.preventDefault();
+
+
+        const file =
+            document.getElementById("mediaFile").files[0];
+
+        const title =
+            document.getElementById("mediaTitle").value;
+
+        const selectedType =
+            document.getElementById("mediaType").value;
+
+
+        if (!file) {
+
+            showMessage(
+                "Selecteer eerst een foto of video."
+            );
 
             return;
         }
 
 
-        // ----------------------------------------
-        // UPLOAD GESTART
-        // ----------------------------------------
+        try {
 
-        if (
-            result &&
-            result.event === "upload-added"
-        ) {
+            uploadProgress.textContent =
+                "Uploaden naar Cloudinary...";
 
-            showStatus(
-                "⏳ Upload wordt voorbereid...",
-                "loading"
+
+            // ==================================
+            // CLOUDINARY UPLOAD
+            // ==================================
+
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                "file",
+                file
             );
 
-            uploadBtn.disabled = true;
-        }
 
-
-        // ----------------------------------------
-        // UPLOAD GESLAAGD
-        // ----------------------------------------
-
-        if (
-            result &&
-            result.event === "success"
-        ) {
-
-            console.log(
-                "Cloudinary upload:",
-                result.info
+            formData.append(
+                "upload_preset",
+                CLOUDINARY_UPLOAD_PRESET
             );
 
-            const info = result.info;
 
-            showStatus(
-                "✅ Upload succesvol!",
-                "success"
+            const resourceType =
+                selectedType === "video"
+                    ? "video"
+                    : "image";
+
+
+            const cloudinaryURL =
+                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+
+
+            const response =
+                await fetch(
+                    cloudinaryURL,
+                    {
+
+                        method: "POST",
+
+                        body: formData
+
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Cloudinary upload mislukt."
+                );
+            }
+
+
+            const result =
+                await response.json();
+
+
+            // URL van Cloudinary
+            const fileURL =
+                result.secure_url;
+
+
+            uploadProgress.textContent =
+                "Upload gelukt! Gegevens opslaan...";
+
+
+            // ==================================
+            // FIREBASE
+            // ==================================
+
+            await addDoc(
+                collection(db, "media"),
+                {
+
+                    title: title,
+
+                    url: fileURL,
+
+                    type: selectedType,
+
+                    publicId:
+                        result.public_id,
+
+                    createdAt:
+                        serverTimestamp()
+
+                }
             );
 
-            uploadBtn.disabled = false;
 
-            showLatestUpload(info);
+            mediaForm.reset();
+
+            uploadProgress.textContent = "";
+
+            showMessage(
+                "Media succesvol geüpload!"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            uploadProgress.textContent = "";
+
+            showMessage(
+                "Upload mislukt. Controleer Cloudinary en Firebase."
+            );
         }
-
-
-        // ----------------------------------------
-        // WIDGET GESLOTEN
-        // ----------------------------------------
-
-        if (
-            result &&
-            result.event === "close"
-        ) {
-
-            uploadBtn.disabled = false;
-        }
-
     }
 );
-
-
-// ============================================
-// UPLOAD KNOP
-// ============================================
-
-uploadBtn.addEventListener("click", () => {
-
-    showStatus(
-        "📂 Kies een foto of video...",
-        "loading"
-    );
-
-    cloudinaryWidget.open();
-
-});
-
-
-// ============================================
-// LAATSTE UPLOAD TONEN
-// ============================================
-
-function showLatestUpload(info) {
-
-    if (!info) {
-        return;
-    }
-
-
-    const secureUrl = info.secure_url;
-
-    const resourceType = info.resource_type;
-
-    const fileName =
-        info.original_filename || "Mistery Duo media";
-
-
-    latestUpload.innerHTML = "";
-
-
-    // ----------------------------------------
-    // FOTO
-    // ----------------------------------------
-
-    if (resourceType === "image") {
-
-        const image = document.createElement("img");
-
-        image.src = secureUrl;
-
-        image.alt = fileName;
-
-        latestUpload.appendChild(image);
-    }
-
-
-    // ----------------------------------------
-    // VIDEO
-    // ----------------------------------------
-
-    else if (resourceType === "video") {
-
-        const video = document.createElement("video");
-
-        video.src = secureUrl;
-
-        video.controls = true;
-
-        video.preload = "metadata";
-
-        latestUpload.appendChild(video);
-    }
-
-
-    // ----------------------------------------
-    // BESTANDSNAAM
-    // ----------------------------------------
-
-    const name = document.createElement("strong");
-
-    name.textContent = fileName;
-
-    latestUpload.appendChild(name);
-
-
-    // ----------------------------------------
-    // URL
-    // ----------------------------------------
-
-    const url = document.createElement("a");
-
-    url.href = secureUrl;
-
-    url.target = "_blank";
-
-    url.rel = "noopener noreferrer";
-
-    url.textContent = secureUrl;
-
-    url.className = "media-url";
-
-    latestUpload.appendChild(url);
-
-
-    // ----------------------------------------
-    // CONSOLE
-    // ----------------------------------------
-
-    console.log("Media URL:");
-
-    console.log(secureUrl);
-
-    console.log("Resource type:");
-
-    console.log(resourceType);
-
-}
-
-
-// ============================================
-// UITLOGGEN
-// ============================================
-
-logoutBtn.addEventListener("click", () => {
-
-    const confirmed =
-        confirm("Wil je uitloggen?");
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    // Dit wordt later gekoppeld aan
-    // Firebase Authentication.
-
-    window.location.href = "index.html";
-
-});
