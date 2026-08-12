@@ -1,13 +1,3 @@
-/* ============================================================
-   MISTERY DUO - ADMIN PLATFORM
-   Firebase + Cloudinary
-============================================================ */
-
-
-/* ============================================================
-   FIREBASE IMPORTS
-============================================================ */
-
 import {
     initializeApp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -15,2073 +5,1143 @@ import {
 import {
     getFirestore,
     collection,
-    addDoc,
-    getDocs,
-    getDoc,
     doc,
+    getDoc,
+    getDocs,
+    addDoc,
+    setDoc,
     updateDoc,
     deleteDoc,
-    setDoc,
-    query,
-    orderBy
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-/* ============================================================
-   FIREBASE CONFIG
-   VERVANG DIT DOOR JOUW BESTAANDE CONFIG
-============================================================ */
+/* =========================================================
+   FIREBASE
+   ========================================================= */
 
 const firebaseConfig = {
 
-    apiKey: "JOUW_FIREBASE_API_KEY",
-
+    // PLAATS HIER JE BESTAANDE FIREBASE CONFIG
+    apiKey: "JOUW_API_KEY",
     authDomain: "JOUW_PROJECT.firebaseapp.com",
-
     projectId: "JOUW_PROJECT_ID",
-
     storageBucket: "JOUW_PROJECT.firebasestorage.app",
-
-    messagingSenderId: "JOUW_MESSAGING_SENDER_ID",
-
+    messagingSenderId: "JOUW_SENDER_ID",
     appId: "JOUW_APP_ID"
 
 };
 
-
-/* ============================================================
-   FIREBASE STARTEN
-============================================================ */
-
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore(app);
 
 
-/* ============================================================
+/* =========================================================
    CLOUDINARY
-============================================================ */
+   ========================================================= */
 
 const CLOUDINARY_CLOUD_NAME = "aorisbce";
-
 const CLOUDINARY_UPLOAD_PRESET = "mistery_duo_upload";
 
 
-/* ============================================================
-   ELEMENTEN
-============================================================ */
-
-const navItems = document.querySelectorAll(".nav-item");
-
-const sections = document.querySelectorAll(".admin-section");
-
-const pageTitle = document.getElementById("pageTitle");
-
-
-/* ============================================================
-   PAGINA NAVIGATIE
-============================================================ */
+/* =========================================================
+   NAVIGATIE
+   ========================================================= */
 
 const titles = {
 
-    dashboard: "Dashboard",
+    dashboard: ["Dashboard", "Overzicht van Mistery Duo"],
 
-    shows: "Optredens",
+    home: ["Home", "Beheer de homepagina"],
 
-    about: "Over ons",
+    about: ["Over ons", "Beheer de informatie over Mistery Duo"],
 
-    news: "Nieuws",
+    shows: ["Optredens", "Beheer optredens"],
 
-    videos: "Video's",
+    live: ["Live", "Beheer de livestream"],
 
-    photos: "Foto's",
+    videos: ["Video", "Beheer video's"],
 
-    shop: "Merch",
+    news: ["Nieuws", "Beheer nieuws"],
 
-    logo: "Logo"
+    photos: ["Foto's", "Beheer foto's"],
+
+    shop: ["Merch", "Beheer merchandise"],
+
+    settings: ["Instellingen", "Website-instellingen"]
 
 };
 
 
-function openSection(sectionName) {
+document.querySelectorAll(".nav-btn").forEach(button => {
 
-    sections.forEach(section => {
+    button.addEventListener("click", () => {
 
-        section.classList.remove("active-section");
-
-    });
-
-    navItems.forEach(item => {
-
-        item.classList.remove("active");
+        openSection(button.dataset.section);
 
     });
 
+});
 
-    const section = document.getElementById(sectionName);
+
+window.openSection = function(section) {
+
+    document.querySelectorAll(".nav-btn")
+        .forEach(btn => btn.classList.remove("active"));
 
     const nav = document.querySelector(
-        `.nav-item[data-section="${sectionName}"]`
+        `.nav-btn[data-section="${section}"]`
     );
 
-
-    if (section) {
-
-        section.classList.add("active-section");
-
-    }
+    if (nav) nav.classList.add("active");
 
 
-    if (nav) {
+    document.querySelectorAll(".admin-section")
+        .forEach(sec => sec.classList.remove("active"));
 
-        nav.classList.add("active");
+    const target = document.getElementById(section);
 
-    }
-
-
-    pageTitle.textContent =
-        titles[sectionName] || "Dashboard";
+    if (target) target.classList.add("active");
 
 
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+    document.getElementById("pageTitle").textContent =
+        titles[section]?.[0] || "Dashboard";
+
+    document.getElementById("pageSubtitle").textContent =
+        titles[section]?.[1] || "";
 
 
-    if (sectionName === "shows") {
-        loadShows();
-    }
+    if (section === "shows") loadShows();
+    if (section === "videos") loadVideos();
+    if (section === "news") loadNews();
+    if (section === "photos") loadPhotos();
+    if (section === "shop") loadShop();
+    if (section === "live") loadLive();
 
-    if (sectionName === "news") {
-        loadNews();
-    }
-
-    if (sectionName === "photos") {
-        loadPhotos();
-    }
-
-    if (sectionName === "videos") {
-        loadVideos();
-    }
-
-    if (sectionName === "shop") {
-        loadShop();
-    }
-
-    if (sectionName === "about") {
-        loadAbout();
-    }
-
-    if (sectionName === "logo") {
-        loadLogo();
-    }
-
-}
+};
 
 
-navItems.forEach(item => {
-
-    item.addEventListener("click", () => {
-
-        openSection(
-            item.dataset.section
-        );
-
-    });
-
-});
-
-
-document.querySelectorAll("[data-open]").forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        openSection(button.dataset.open);
-
-    });
-
-});
-
-
-/* ============================================================
-   FORMULIEREN OPENEN / SLUITEN
-============================================================ */
-
-document.querySelectorAll("[data-close]").forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        const element =
-            document.getElementById(button.dataset.close);
-
-        if (element) {
-
-            element.classList.add("hidden");
-
-        }
-
-    });
-
-});
-
-
-/* ============================================================
+/* =========================================================
    TOAST
-============================================================ */
+   ========================================================= */
 
-function showToast(message, type = "success") {
+function toast(message) {
 
-    const toast =
-        document.getElementById("toast");
+    const el = document.getElementById("toast");
 
-    const toastMessage =
-        document.getElementById("toastMessage");
-
-    const toastIcon =
-        document.getElementById("toastIcon");
-
-
-    toastMessage.textContent = message;
-
-    toastIcon.textContent =
-        type === "error" ? "!" : "✓";
-
-    toastIcon.style.color =
-        type === "error"
-            ? "#e56b6f"
-            : "#72d19a";
-
-
-    toast.classList.add("show");
-
+    el.textContent = message;
+    el.classList.add("show");
 
     setTimeout(() => {
-
-        toast.classList.remove("show");
-
+        el.classList.remove("show");
     }, 3000);
 
 }
 
 
-/* ============================================================
-   FIREBASE STATUS
-============================================================ */
+/* =========================================================
+   HOME
+   ========================================================= */
 
-function firebaseConnected() {
+async function loadHome() {
 
-    const element =
-        document.getElementById("firebaseStatus");
+    const snap = await getDoc(
+        doc(db, "settings", "home")
+    );
 
-    element.textContent = "Verbonden";
+    if (!snap.exists()) return;
 
-    element.classList.add("connected");
+    const data = snap.data();
 
-}
+    document.getElementById("homeTitle").value =
+        data.title || "";
 
+    document.getElementById("homeSubtitle").value =
+        data.subtitle || "";
 
-/* ============================================================
-   CLOUDINARY UPLOAD WIDGET
-============================================================ */
-
-function openCloudinaryUpload(options = {}) {
-
-    return new Promise((resolve, reject) => {
-
-        if (!window.cloudinary) {
-
-            reject(
-                new Error("Cloudinary is niet geladen.")
-            );
-
-            return;
-
-        }
-
-
-        const widget =
-            window.cloudinary.createUploadWidget(
-
-                {
-
-                    cloudName:
-                        CLOUDINARY_CLOUD_NAME,
-
-                    uploadPreset:
-                        CLOUDINARY_UPLOAD_PRESET,
-
-                    multiple:
-                        options.multiple ?? false,
-
-                    resourceType:
-                        options.resourceType ?? "auto",
-
-                    sources: [
-                        "local",
-                        "camera"
-                    ],
-
-                    showAdvancedOptions: false,
-
-                    cropping:
-                        options.cropping ?? false,
-
-                    folder:
-                        options.folder ?? "mistery-duo",
-
-                    clientAllowedFormats:
-                        options.formats || undefined
-
-                },
-
-
-                (error, result) => {
-
-                    if (error) {
-
-                        console.error(
-                            "Cloudinary error:",
-                            error
-                        );
-
-                        reject(error);
-
-                        return;
-
-                    }
-
-
-                    if (
-                        result &&
-                        result.event === "success"
-                    ) {
-
-                        resolve(result.info);
-
-                    }
-
-                }
-
-            );
-
-
-        widget.open();
-
-    });
+    document.getElementById("homeText").value =
+        data.text || "";
 
 }
 
 
-/* ============================================================
-   SHOWS
-============================================================ */
+window.saveHome = async function() {
 
-const newShowButton =
-    document.getElementById("newShowButton");
+    await setDoc(
+        doc(db, "settings", "home"),
+        {
+            title: document.getElementById("homeTitle").value,
+            subtitle: document.getElementById("homeSubtitle").value,
+            text: document.getElementById("homeText").value,
+            updatedAt: serverTimestamp()
+        },
+        { merge: true }
+    );
 
+    toast("Home opgeslagen!");
 
-newShowButton.addEventListener("click", () => {
-
-    document.getElementById("showForm")
-        .classList.remove("hidden");
-
-    document.getElementById("showFormTitle")
-        .textContent = "Nieuw optreden";
-
-    document.getElementById("showFormElement")
-        .reset();
-
-    document.getElementById("showId")
-        .value = "";
-
-});
+};
 
 
-const showForm =
-    document.getElementById("showFormElement");
+/* =========================================================
+   ABOUT
+   ========================================================= */
+
+async function loadAbout() {
+
+    const snap = await getDoc(
+        doc(db, "settings", "about")
+    );
+
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+
+    document.getElementById("aboutTitle").value =
+        data.title || "";
+
+    document.getElementById("aboutText").value =
+        data.text || "";
+
+}
 
 
-showForm.addEventListener("submit", async event => {
+window.saveAbout = async function() {
 
-    event.preventDefault();
+    await setDoc(
+        doc(db, "settings", "about"),
+        {
+            title: document.getElementById("aboutTitle").value,
+            text: document.getElementById("aboutText").value,
+            updatedAt: serverTimestamp()
+        },
+        { merge: true }
+    );
+
+    toast("Over ons opgeslagen!");
+
+};
 
 
-    const id =
-        document.getElementById("showId").value;
+/* =========================================================
+   LIVE
+   ========================================================= */
 
+async function loadLive() {
+
+    const snap = await getDoc(
+        doc(db, "settings", "live")
+    );
+
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+
+    document.getElementById("liveEnabled").checked =
+        data.enabled === true;
+
+    document.getElementById("liveTitle").value =
+        data.title || "";
+
+    document.getElementById("liveDescription").value =
+        data.description || "";
+
+    document.getElementById("liveUrl").value =
+        data.url || "";
+
+    document.getElementById("liveYoutube").value =
+        data.youtube || "";
+
+    updateLivePreview(data);
+
+}
+
+
+window.saveLive = async function() {
 
     const data = {
 
-        name:
-            document.getElementById("showName").value.trim(),
+        enabled:
+            document.getElementById("liveEnabled").checked,
 
-        date:
-            document.getElementById("showDate").value,
-
-        time:
-            document.getElementById("showTime").value,
-
-        location:
-            document.getElementById("showLocation").value.trim(),
+        title:
+            document.getElementById("liveTitle").value,
 
         description:
-            document.getElementById("showDescription").value.trim(),
+            document.getElementById("liveDescription").value,
 
-        updatedAt:
-            new Date().toISOString()
+        url:
+            document.getElementById("liveUrl").value,
+
+        youtube:
+            document.getElementById("liveYoutube").value,
+
+        updatedAt: serverTimestamp()
 
     };
 
 
-    try {
+    await setDoc(
+        doc(db, "settings", "live"),
+        data,
+        { merge: true }
+    );
 
-        if (id) {
 
-            await updateDoc(
-                doc(db, "shows", id),
-                data
-            );
+    updateLivePreview(data);
 
-            showToast("Optreden aangepast.");
+    toast(
+        data.enabled
+            ? "🔴 Live staat AAN!"
+            : "Live staat UIT."
+    );
 
-        } else {
+};
 
-            data.createdAt =
-                new Date().toISOString();
 
-            await addDoc(
-                collection(db, "shows"),
-                data
-            );
+function updateLivePreview(data) {
 
-            showToast("Optreden toegevoegd.");
+    const preview =
+        document.getElementById("livePreview");
 
+    const dashboard =
+        document.getElementById("dashboardLive");
+
+
+    if (data?.enabled) {
+
+        preview.innerHTML = `
+            <div class="play-icon">🔴</div>
+            <h3>${escapeHTML(data.title || "Mistery Duo LIVE")}</h3>
+            <p>${escapeHTML(data.description || "Live!")}</p>
+        `;
+
+        dashboard.innerHTML = `
+            <span style="
+                display:inline-block;
+                width:9px;
+                height:9px;
+                border-radius:50%;
+                background:#35c878;
+                margin-right:7px;">
+            </span>
+            <strong>LIVE</strong>
+            — ${escapeHTML(data.title || "")}
+        `;
+
+    } else {
+
+        preview.innerHTML = `
+            <div class="play-icon">▶</div>
+            <h3>Niet live</h3>
+            <p>Er is momenteel geen livestream.</p>
+        `;
+
+        dashboard.innerHTML = `
+            <span class="offline-dot"></span>
+            Niet live
+        `;
+
+    }
+
+}
+
+
+/* =========================================================
+   SHOWS
+   ========================================================= */
+
+async function loadShows() {
+
+    const snapshot =
+        await getDocs(collection(db, "shows"));
+
+    const list =
+        document.getElementById("showsList");
+
+    list.innerHTML = "";
+
+    document.getElementById("statShows").textContent =
+        snapshot.size;
+
+
+    snapshot.forEach(item => {
+
+        const data = item.data();
+
+        list.innerHTML += `
+
+            <div class="item-card">
+
+                <h3>${escapeHTML(data.title || "Optreden")}</h3>
+
+                <p>
+                    📅 ${escapeHTML(data.date || "")}
+                </p>
+
+                <p>
+                    📍 ${escapeHTML(data.location || "")}
+                </p>
+
+                <div class="item-actions">
+
+                    <button
+                        onclick="editShow('${item.id}')">
+                        ✏️ Bewerken
+                    </button>
+
+                    <button
+                        onclick="deleteItem('shows','${item.id}')">
+                        🗑️ Verwijderen
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+    });
+
+}
+
+
+window.openShowModal = function() {
+
+    document.getElementById("modalContent").innerHTML = `
+
+        <h2>Optreden toevoegen</h2>
+
+        <div class="form-panel">
+
+            <label>
+                Naam
+                <input id="mShowTitle">
+            </label>
+
+            <label>
+                Datum
+                <input id="mShowDate" type="date">
+            </label>
+
+            <label>
+                Locatie
+                <input id="mShowLocation">
+            </label>
+
+            <label>
+                Beschrijving
+                <textarea id="mShowDescription"></textarea>
+            </label>
+
+            <button
+                class="primary-btn"
+                onclick="saveShow()">
+                Opslaan
+            </button>
+
+        </div>
+    `;
+
+    showModal();
+
+};
+
+
+window.saveShow = async function() {
+
+    await addDoc(
+        collection(db, "shows"),
+        {
+            title: document.getElementById("mShowTitle").value,
+            date: document.getElementById("mShowDate").value,
+            location: document.getElementById("mShowLocation").value,
+            description:
+                document.getElementById("mShowDescription").value,
+            createdAt: serverTimestamp()
+        }
+    );
+
+    closeModal();
+    toast("Optreden toegevoegd!");
+    loadShows();
+
+};
+
+
+/* =========================================================
+   VIDEOS
+   ========================================================= */
+
+async function loadVideos() {
+
+    const snapshot =
+        await getDocs(collection(db, "videos"));
+
+    const list =
+        document.getElementById("videosList");
+
+    list.innerHTML = "";
+
+    document.getElementById("statVideos").textContent =
+        snapshot.size;
+
+
+    snapshot.forEach(item => {
+
+        const data = item.data();
+
+        list.innerHTML += `
+
+            <div class="item-card">
+
+                <h3>
+                    ${escapeHTML(data.title || "Video")}
+                </h3>
+
+                <p>
+                    ${escapeHTML(data.url || "")}
+                </p>
+
+                <div class="item-actions">
+
+                    <button
+                        onclick="deleteItem('videos','${item.id}')">
+                        🗑️ Verwijderen
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+    });
+
+}
+
+
+window.openVideoModal = function() {
+
+    document.getElementById("modalContent").innerHTML = `
+
+        <h2>Video toevoegen</h2>
+
+        <div class="form-panel">
+
+            <label>
+                Titel
+                <input id="mVideoTitle">
+            </label>
+
+            <label>
+                Video URL
+                <input id="mVideoUrl"
+                       placeholder="YouTube of Cloudinary URL">
+            </label>
+
+            <button
+                class="primary-btn"
+                onclick="saveVideo()">
+                Opslaan
+            </button>
+
+        </div>
+    `;
+
+    showModal();
+
+};
+
+
+window.saveVideo = async function() {
+
+    await addDoc(
+        collection(db, "videos"),
+        {
+            title: document.getElementById("mVideoTitle").value,
+            url: document.getElementById("mVideoUrl").value,
+            createdAt: serverTimestamp()
+        }
+    );
+
+    closeModal();
+    toast("Video toegevoegd!");
+    loadVideos();
+
+};
+
+
+/* =========================================================
+   NEWS
+   ========================================================= */
+
+async function loadNews() {
+
+    const snapshot =
+        await getDocs(collection(db, "news"));
+
+    const list =
+        document.getElementById("newsList");
+
+    list.innerHTML = "";
+
+    document.getElementById("statNews").textContent =
+        snapshot.size;
+
+
+    snapshot.forEach(item => {
+
+        const data = item.data();
+
+        list.innerHTML += `
+
+            <div class="item-card">
+
+                <h3>
+                    ${escapeHTML(data.title || "Nieuws")}
+                </h3>
+
+                <p>
+                    ${escapeHTML(data.text || "")}
+                </p>
+
+                <div class="item-actions">
+
+                    <button
+                        onclick="deleteItem('news','${item.id}')">
+                        🗑️ Verwijderen
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+window.openNewsModal = function() {
+
+    document.getElementById("modalContent").innerHTML = `
+
+        <h2>Nieuws toevoegen</h2>
+
+        <div class="form-panel">
+
+            <label>
+                Titel
+                <input id="mNewsTitle">
+            </label>
+
+            <label>
+                Bericht
+                <textarea id="mNewsText" rows="8"></textarea>
+            </label>
+
+            <button
+                class="primary-btn"
+                onclick="saveNews()">
+                Publiceren
+            </button>
+
+        </div>
+    `;
+
+    showModal();
+
+};
+
+
+window.saveNews = async function() {
+
+    await addDoc(
+        collection(db, "news"),
+        {
+            title: document.getElementById("mNewsTitle").value,
+            text: document.getElementById("mNewsText").value,
+            createdAt: serverTimestamp()
+        }
+    );
+
+    closeModal();
+    toast("Nieuws gepubliceerd!");
+    loadNews();
+
+};
+
+
+/* =========================================================
+   FOTO'S + CLOUDINARY
+   ========================================================= */
+
+document.getElementById("photoUpload")
+.addEventListener("change", async event => {
+
+    const files = [...event.target.files];
+
+    for (const file of files) {
+
+        await uploadToCloudinary(file, "photo");
+
+    }
+
+    event.target.value = "";
+
+    loadPhotos();
+
+});
+
+
+async function uploadToCloudinary(file, type) {
+
+    const progress =
+        document.getElementById("uploadProgress");
+
+    const progressBar =
+        document.getElementById("progressBar");
+
+    const progressText =
+        document.getElementById("progressText");
+
+
+    progress.classList.remove("hidden");
+
+    progressText.textContent =
+        `Uploaden: ${file.name}`;
+
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    formData.append(
+        "upload_preset",
+        CLOUDINARY_UPLOAD_PRESET
+    );
+
+
+    const resourceType =
+        file.type.startsWith("video/")
+            ? "video"
+            : "image";
+
+
+    const response = await fetch(
+
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
+
+        {
+            method: "POST",
+            body: formData
         }
 
+    );
 
-        document.getElementById("showForm")
-            .classList.add("hidden");
 
-        await loadShows();
+    if (!response.ok) {
 
-        updateStats();
+        progress.classList.add("hidden");
 
-    } catch (error) {
+        throw new Error("Cloudinary upload mislukt.");
+
+    }
+
+
+    const data = await response.json();
+
+
+    if (type === "photo") {
+
+        await addDoc(
+            collection(db, "photos"),
+            {
+                url: data.secure_url,
+                publicId: data.public_id,
+                createdAt: serverTimestamp()
+            }
+        );
+
+    }
+
+
+    progressBar.style.width = "100%";
+
+    progressText.textContent =
+        "Upload voltooid!";
+
+    setTimeout(() => {
+        progress.classList.add("hidden");
+        progressBar.style.width = "0%";
+    }, 1000);
+
+}
+
+
+async function loadPhotos() {
+
+    const snapshot =
+        await getDocs(collection(db, "photos"));
+
+    const list =
+        document.getElementById("photosList");
+
+    list.innerHTML = "";
+
+    document.getElementById("statPhotos").textContent =
+        snapshot.size;
+
+
+    snapshot.forEach(item => {
+
+        const data = item.data();
+
+        list.innerHTML += `
+
+            <div class="photo-card">
+
+                <img
+                    src="${escapeHTML(data.url)}"
+                    loading="lazy">
+
+                <button
+                    class="photo-delete"
+                    onclick="deleteItem('photos','${item.id}')">
+                    🗑️
+                </button>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================================
+   LOGO UPLOAD
+   ========================================================= */
+
+document.getElementById("logoUpload")
+.addEventListener("change", async event => {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    formData.append(
+        "upload_preset",
+        CLOUDINARY_UPLOAD_PRESET
+    );
+
+
+    try {
+
+        toast("Logo wordt geüpload...");
+
+
+        const response = await fetch(
+
+            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+
+            {
+                method: "POST",
+                body: formData
+            }
+
+        );
+
+
+        if (!response.ok)
+            throw new Error("Upload mislukt");
+
+
+        const data = await response.json();
+
+
+        await setDoc(
+            doc(db, "settings", "logo"),
+            {
+                url: data.secure_url,
+                publicId: data.public_id,
+                updatedAt: serverTimestamp()
+            }
+        );
+
+
+        setLogo(data.secure_url);
+
+        toast("Logo veranderd!");
+
+    }
+
+    catch(error) {
 
         console.error(error);
 
-        showToast(
-            "Opslaan van optreden mislukt.",
-            "error"
-        );
+        toast("Logo uploaden mislukt.");
 
     }
 
 });
 
 
-async function loadShows() {
+async function loadLogo() {
 
-    const list =
-        document.getElementById("showsList");
-
-
-    list.innerHTML =
-        `<div class="loading">Optredens laden...</div>`;
-
-
-    try {
-
-        const snapshot =
-            await getDocs(
-                collection(db, "shows")
-            );
-
-
-        if (snapshot.empty) {
-
-            list.innerHTML =
-                `<div class="empty">
-                    Nog geen optredens.
-                </div>`;
-
-            document.getElementById("statShows")
-                .textContent = "0";
-
-            return;
-
-        }
-
-
-        let shows = [];
-
-        snapshot.forEach(item => {
-
-            shows.push({
-                id: item.id,
-                ...item.data()
-            });
-
-        });
-
-
-        shows.sort((a, b) =>
-            String(a.date || "")
-                .localeCompare(String(b.date || ""))
+    const snap =
+        await getDoc(
+            doc(db, "settings", "logo")
         );
 
+    if (!snap.exists()) return;
 
-        list.innerHTML = "";
-
-
-        shows.forEach(show => {
-
-            const row =
-                document.createElement("div");
-
-            row.className = "item-row";
-
-
-            row.innerHTML = `
-
-                <div class="item-info">
-
-                    <strong>
-                        ${escapeHTML(show.name || "Zonder naam")}
-                    </strong>
-
-                    <span>
-                        ${escapeHTML(show.date || "Geen datum")}
-                        ${show.time ? " • " + escapeHTML(show.time) : ""}
-                        ${show.location ? " • " + escapeHTML(show.location) : ""}
-                    </span>
-
-                </div>
-
-                <div class="item-actions">
-
-                    <button class="small-button edit-show">
-                        Bewerken
-                    </button>
-
-                    <button class="small-button delete delete-show">
-                        Verwijderen
-                    </button>
-
-                </div>
-
-            `;
-
-
-            row.querySelector(".edit-show")
-                .addEventListener("click", () => {
-
-                    editShow(show);
-
-                });
-
-
-            row.querySelector(".delete-show")
-                .addEventListener("click", () => {
-
-                    deleteShow(show.id);
-
-                });
-
-
-            list.appendChild(row);
-
-        });
-
-
-        document.getElementById("statShows")
-            .textContent = shows.length;
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        list.innerHTML =
-            `<div class="empty">
-                Kon de optredens niet laden.
-            </div>`;
-
-    }
+    setLogo(snap.data().url);
 
 }
 
 
-function editShow(show) {
+function setLogo(url) {
 
-    openSection("shows");
+    document.getElementById("logoPreview").innerHTML =
+        `<img src="${escapeHTML(url)}">`;
 
-
-    document.getElementById("showForm")
-        .classList.remove("hidden");
-
-
-    document.getElementById("showFormTitle")
-        .textContent = "Optreden aanpassen";
-
-
-    document.getElementById("showId")
-        .value = show.id;
-
-    document.getElementById("showName")
-        .value = show.name || "";
-
-    document.getElementById("showDate")
-        .value = show.date || "";
-
-    document.getElementById("showTime")
-        .value = show.time || "";
-
-    document.getElementById("showLocation")
-        .value = show.location || "";
-
-    document.getElementById("showDescription")
-        .value = show.description || "";
+    document.getElementById("adminLogoPreview").innerHTML =
+        `<img src="${escapeHTML(url)}">`;
 
 }
 
 
-async function deleteShow(id) {
-
-    if (!confirm(
-        "Weet je zeker dat je dit optreden wilt verwijderen?"
-    )) {
-        return;
-    }
-
-
-    try {
-
-        await deleteDoc(
-            doc(db, "shows", id)
-        );
-
-        showToast("Optreden verwijderd.");
-
-        loadShows();
-
-        updateStats();
-
-    } catch (error) {
-
-        console.error(error);
-
-        showToast(
-            "Verwijderen mislukt.",
-            "error"
-        );
-
-    }
-
-}
-
-
-/* ============================================================
-   ABOUT
-============================================================ */
-
-async function loadAbout() {
-
-    try {
-
-        const snapshot =
-            await getDoc(
-                doc(db, "settings", "about")
-            );
-
-
-        if (!snapshot.exists()) {
-            return;
-        }
-
-
-        const data = snapshot.data();
-
-
-        document.getElementById("aboutTitle")
-            .value = data.title || "";
-
-        document.getElementById("aboutText")
-            .value = data.text || "";
-
-
-    } catch (error) {
-
-        console.error(error);
-
-    }
-
-}
-
-
-document.getElementById("aboutForm")
-    .addEventListener("submit", async event => {
-
-        event.preventDefault();
-
-
-        try {
-
-            await setDoc(
-                doc(db, "settings", "about"),
-                {
-
-                    title:
-                        document.getElementById("aboutTitle").value,
-
-                    text:
-                        document.getElementById("aboutText").value,
-
-                    updatedAt:
-                        new Date().toISOString()
-
-                },
-                {
-                    merge: true
-                }
-            );
-
-
-            showToast("Over ons opgeslagen.");
-
-        } catch (error) {
-
-            console.error(error);
-
-            showToast(
-                "Opslaan mislukt.",
-                "error"
-            );
-
-        }
-
-    });
-
-
-/* ============================================================
-   NEWS
-============================================================ */
-
-document.getElementById("newNewsButton")
-    .addEventListener("click", () => {
-
-        document.getElementById("newsForm")
-            .classList.remove("hidden");
-
-        document.getElementById("newsFormElement")
-            .reset();
-
-        document.getElementById("newsId")
-            .value = "";
-
-    });
-
-
-document.getElementById("newsFormElement")
-    .addEventListener("submit", async event => {
-
-        event.preventDefault();
-
-
-        const id =
-            document.getElementById("newsId").value;
-
-
-        const data = {
-
-            title:
-                document.getElementById("newsTitle").value.trim(),
-
-            text:
-                document.getElementById("newsText").value.trim(),
-
-            date:
-                document.getElementById("newsDate").value,
-
-            updatedAt:
-                new Date().toISOString()
-
-        };
-
-
-        try {
-
-            if (id) {
-
-                await updateDoc(
-                    doc(db, "news", id),
-                    data
-                );
-
-                showToast("Nieuws aangepast.");
-
-            } else {
-
-                data.createdAt =
-                    new Date().toISOString();
-
-                await addDoc(
-                    collection(db, "news"),
-                    data
-                );
-
-                showToast("Nieuws gepubliceerd.");
-
-            }
-
-
-            document.getElementById("newsForm")
-                .classList.add("hidden");
-
-            loadNews();
-
-            updateStats();
-
-        } catch (error) {
-
-            console.error(error);
-
-            showToast(
-                "Nieuws kon niet worden opgeslagen.",
-                "error"
-            );
-
-        }
-
-    });
-
-
-async function loadNews() {
-
-    const list =
-        document.getElementById("newsList");
-
-
-    list.innerHTML =
-        `<div class="loading">Nieuws laden...</div>`;
-
-
-    try {
-
-        const snapshot =
-            await getDocs(
-                collection(db, "news")
-            );
-
-
-        if (snapshot.empty) {
-
-            list.innerHTML =
-                `<div class="empty">
-                    Nog geen nieuws.
-                </div>`;
-
-            document.getElementById("statNews")
-                .textContent = "0";
-
-            return;
-
-        }
-
-
-        let news = [];
-
-        snapshot.forEach(item => {
-
-            news.push({
-                id: item.id,
-                ...item.data()
-            });
-
-        });
-
-
-        news.sort((a, b) =>
-            String(b.date || "")
-                .localeCompare(String(a.date || ""))
-        );
-
-
-        list.innerHTML = "";
-
-
-        news.forEach(article => {
-
-            const row =
-                document.createElement("div");
-
-            row.className = "item-row";
-
-
-            row.innerHTML = `
-
-                <div class="item-info">
-
-                    <strong>
-                        ${escapeHTML(article.title || "Zonder titel")}
-                    </strong>
-
-                    <span>
-                        ${escapeHTML(article.date || "")}
-                    </span>
-
-                </div>
-
-                <div class="item-actions">
-
-                    <button class="small-button edit-news">
-                        Bewerken
-                    </button>
-
-                    <button class="small-button delete delete-news">
-                        Verwijderen
-                    </button>
-
-                </div>
-
-            `;
-
-
-            row.querySelector(".edit-news")
-                .addEventListener("click", () => {
-
-                    document.getElementById("newsForm")
-                        .classList.remove("hidden");
-
-                    document.getElementById("newsId")
-                        .value = article.id;
-
-                    document.getElementById("newsTitle")
-                        .value = article.title || "";
-
-                    document.getElementById("newsText")
-                        .value = article.text || "";
-
-                    document.getElementById("newsDate")
-                        .value = article.date || "";
-
-                });
-
-
-            row.querySelector(".delete-news")
-                .addEventListener("click", () => {
-
-                    deleteNews(article.id);
-
-                });
-
-
-            list.appendChild(row);
-
-        });
-
-
-        document.getElementById("statNews")
-            .textContent = news.length;
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        list.innerHTML =
-            `<div class="empty">
-                Kon nieuws niet laden.
-            </div>`;
-
-    }
-
-}
-
-
-async function deleteNews(id) {
-
-    if (!confirm(
-        "Weet je zeker dat je dit nieuwsbericht wilt verwijderen?"
-    )) {
-        return;
-    }
-
-
-    try {
-
-        await deleteDoc(
-            doc(db, "news", id)
-        );
-
-        showToast("Nieuws verwijderd.");
-
-        loadNews();
-
-        updateStats();
-
-    } catch (error) {
-
-        console.error(error);
-
-        showToast(
-            "Verwijderen mislukt.",
-            "error"
-        );
-
-    }
-
-}
-
-
-/* ============================================================
-   FOTO UPLOAD
-============================================================ */
-
-document.getElementById("uploadPhotoButton")
-    .addEventListener("click", async () => {
-
-        try {
-
-            const result =
-                await openCloudinaryUpload({
-
-                    resourceType: "image",
-
-                    folder: "mistery-duo/photos",
-
-                    multiple: true,
-
-                    formats: [
-                        "jpg",
-                        "jpeg",
-                        "png",
-                        "webp"
-                    ]
-
-                });
-
-
-            await saveMedia(
-                result,
-                "photo"
-            );
-
-
-            showToast("Foto geüpload.");
-
-            loadPhotos();
-
-            updateStats();
-
-
-        } catch (error) {
-
-            console.error(error);
-
-            showToast(
-                "Foto upload mislukt.",
-                "error"
-            );
-
-        }
-
-    });
-
-
-async function saveMedia(info, type) {
-
-    await addDoc(
-        collection(db, "media"),
-        {
-
-            type: type,
-
-            url:
-                info.secure_url,
-
-            publicId:
-                info.public_id || "",
-
-            format:
-                info.format || "",
-
-            resourceType:
-                info.resource_type || type,
-
-            originalFilename:
-                info.original_filename || "",
-
-            createdAt:
-                new Date().toISOString()
-
-        }
-    );
-
-}
-
-
-/* ============================================================
-   VIDEO UPLOAD
-============================================================ */
-
-document.getElementById("uploadVideoButton")
-    .addEventListener("click", async () => {
-
-        try {
-
-            const result =
-                await openCloudinaryUpload({
-
-                    resourceType: "video",
-
-                    folder: "mistery-duo/videos",
-
-                    multiple: false
-
-                });
-
-
-            await saveMedia(
-                result,
-                "video"
-            );
-
-
-            showToast("Video geüpload.");
-
-            loadVideos();
-
-            updateStats();
-
-
-        } catch (error) {
-
-            console.error(error);
-
-            showToast(
-                "Video upload mislukt.",
-                "error"
-            );
-
-        }
-
-    });
-
-
-/* ============================================================
-   FOTO'S LADEN
-============================================================ */
-
-async function loadPhotos() {
-
-    const container =
-        document.getElementById("photosList");
-
-
-    container.innerHTML =
-        `<div class="loading">Foto's laden...</div>`;
-
-
-    try {
-
-        const snapshot =
-            await getDocs(
-                collection(db, "media")
-            );
-
-
-        const photos = [];
-
-
-        snapshot.forEach(item => {
-
-            const data = item.data();
-
-
-            if (data.type === "photo") {
-
-                photos.push({
-                    id: item.id,
-                    ...data
-                });
-
-            }
-
-        });
-
-
-        if (photos.length === 0) {
-
-            container.innerHTML =
-                `<div class="empty">
-                    Nog geen foto's.
-                </div>`;
-
-            document.getElementById("statPhotos")
-                .textContent = "0";
-
-            return;
-
-        }
-
-
-        container.innerHTML = "";
-
-
-        photos.forEach(photo => {
-
-            container.appendChild(
-                createMediaCard(
-                    photo,
-                    false
-                )
-            );
-
-        });
-
-
-        document.getElementById("statPhotos")
-            .textContent = photos.length;
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        container.innerHTML =
-            `<div class="empty">
-                Foto's konden niet worden geladen.
-            </div>`;
-
-    }
-
-}
-
-
-/* ============================================================
-   VIDEO'S LADEN
-============================================================ */
-
-async function loadVideos() {
-
-    const container =
-        document.getElementById("videosList");
-
-
-    container.innerHTML =
-        `<div class="loading">Video's laden...</div>`;
-
-
-    try {
-
-        const snapshot =
-            await getDocs(
-                collection(db, "media")
-            );
-
-
-        const videos = [];
-
-
-        snapshot.forEach(item => {
-
-            const data = item.data();
-
-
-            if (data.type === "video") {
-
-                videos.push({
-                    id: item.id,
-                    ...data
-                });
-
-            }
-
-        });
-
-
-        if (videos.length === 0) {
-
-            container.innerHTML =
-                `<div class="empty">
-                    Nog geen video's.
-                </div>`;
-
-            document.getElementById("statVideos")
-                .textContent = "0";
-
-            return;
-
-        }
-
-
-        container.innerHTML = "";
-
-
-        videos.forEach(video => {
-
-            container.appendChild(
-                createMediaCard(
-                    video,
-                    true
-                )
-            );
-
-        });
-
-
-        document.getElementById("statVideos")
-            .textContent = videos.length;
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        container.innerHTML =
-            `<div class="empty">
-                Video's konden niet worden geladen.
-            </div>`;
-
-    }
-
-}
-
-
-/* ============================================================
-   MEDIA CARD
-============================================================ */
-
-function createMediaCard(media, isVideo) {
-
-    const card =
-        document.createElement("div");
-
-    card.className = "media-card";
-
-
-    const preview =
-        document.createElement("div");
-
-    preview.className = "media-preview";
-
-
-    if (isVideo) {
-
-        const video =
-            document.createElement("video");
-
-        video.src = media.url;
-
-        video.controls = true;
-
-        video.preload = "metadata";
-
-        preview.appendChild(video);
-
-    } else {
-
-        const image =
-            document.createElement("img");
-
-        image.src = media.url;
-
-        image.alt = "Mistery Duo foto";
-
-        image.loading = "lazy";
-
-        preview.appendChild(image);
-
-    }
-
-
-    const content =
-        document.createElement("div");
-
-    content.className = "media-content";
-
-
-    const title =
-        document.createElement("strong");
-
-    title.textContent =
-        media.originalFilename ||
-        "Mistery Duo media";
-
-
-    const deleteButton =
-        document.createElement("button");
-
-    deleteButton.className =
-        "small-button delete";
-
-    deleteButton.textContent =
-        "Verwijderen";
-
-
-    deleteButton.addEventListener(
-        "click",
-        async () => {
-
-            if (!confirm(
-                "Deze media uit Firebase verwijderen?"
-            )) {
-                return;
-            }
-
-
-            try {
-
-                await deleteDoc(
-                    doc(db, "media", media.id)
-                );
-
-
-                showToast(
-                    "Media verwijderd."
-                );
-
-
-                if (isVideo) {
-
-                    loadVideos();
-
-                } else {
-
-                    loadPhotos();
-
-                }
-
-
-                updateStats();
-
-
-            } catch (error) {
-
-                console.error(error);
-
-                showToast(
-                    "Verwijderen mislukt.",
-                    "error"
-                );
-
-            }
-
-        }
-    );
-
-
-    content.appendChild(title);
-
-    content.appendChild(deleteButton);
-
-
-    card.appendChild(preview);
-
-    card.appendChild(content);
-
-
-    return card;
-
-}
-
-
-/* ============================================================
-   SHOP
-============================================================ */
-
-document.getElementById("newShopButton")
-    .addEventListener("click", () => {
-
-        document.getElementById("shopForm")
-            .classList.remove("hidden");
-
-        document.getElementById("shopFormElement")
-            .reset();
-
-        document.getElementById("shopId")
-            .value = "";
-
-        document.getElementById("shopImage")
-            .value = "";
-
-        document.getElementById("shopImagePreview")
-            .innerHTML = "";
-
-    });
-
-
-document.getElementById("uploadShopImageButton")
-    .addEventListener("click", async () => {
-
-        try {
-
-            const result =
-                await openCloudinaryUpload({
-
-                    resourceType: "image",
-
-                    folder: "mistery-duo/shop",
-
-                    formats: [
-                        "jpg",
-                        "jpeg",
-                        "png",
-                        "webp"
-                    ]
-
-                });
-
-
-            document.getElementById("shopImage")
-                .value = result.secure_url;
-
-
-            document.getElementById("shopImagePreview")
-                .innerHTML = `
-
-                    <img
-                        src="${result.secure_url}"
-                        alt="Productafbeelding"
-                    >
-
-                `;
-
-
-            showToast(
-                "Productafbeelding geüpload."
-            );
-
-
-        } catch (error) {
-
-            console.error(error);
-
-            showToast(
-                "Afbeelding upload mislukt.",
-                "error"
-            );
-
-        }
-
-    });
-
-
-document.getElementById("shopFormElement")
-    .addEventListener("submit", async event => {
-
-        event.preventDefault();
-
-
-        const id =
-            document.getElementById("shopId").value;
-
-
-        const data = {
-
-            name:
-                document.getElementById("shopName").value.trim(),
-
-            price:
-                document.getElementById("shopPrice").value.trim(),
-
-            description:
-                document.getElementById("shopDescription").value.trim(),
-
-            image:
-                document.getElementById("shopImage").value.trim(),
-
-            updatedAt:
-                new Date().toISOString()
-
-        };
-
-
-        try {
-
-            if (id) {
-
-                await updateDoc(
-                    doc(db, "shop", id),
-                    data
-                );
-
-                showToast("Product aangepast.");
-
-            } else {
-
-                data.createdAt =
-                    new Date().toISOString();
-
-                await addDoc(
-                    collection(db, "shop"),
-                    data
-                );
-
-                showToast("Product toegevoegd.");
-
-            }
-
-
-            document.getElementById("shopForm")
-                .classList.add("hidden");
-
-            loadShop();
-
-
-        } catch (error) {
-
-            console.error(error);
-
-            showToast(
-                "Product kon niet worden opgeslagen.",
-                "error"
-            );
-
-        }
-
-    });
-
+/* =========================================================
+   MERCH
+   ========================================================= */
 
 async function loadShop() {
+
+    const snapshot =
+        await getDocs(collection(db, "shop"));
 
     const list =
         document.getElementById("shopList");
 
-
-    list.innerHTML =
-        `<div class="loading">Producten laden...</div>`;
+    list.innerHTML = "";
 
 
-    try {
+    snapshot.forEach(item => {
 
-        const snapshot =
-            await getDocs(
-                collection(db, "shop")
-            );
+        const data = item.data();
 
+        list.innerHTML += `
 
-        if (snapshot.empty) {
+            <div class="item-card">
 
-            list.innerHTML =
-                `<div class="empty">
-                    Nog geen producten.
-                </div>`;
+                <h3>
+                    ${escapeHTML(data.name || "Product")}
+                </h3>
 
-            return;
-
-        }
-
-
-        list.innerHTML = "";
-
-
-        snapshot.forEach(item => {
-
-            const product =
-                item.data();
-
-
-            const row =
-                document.createElement("div");
-
-            row.className = "item-row";
-
-
-            row.innerHTML = `
-
-                <div class="item-info">
-
-                    <strong>
-                        ${escapeHTML(product.name || "Product")}
-                    </strong>
-
-                    <span>
-                        ${escapeHTML(product.price || "")}
-                    </span>
-
-                </div>
+                <p>
+                    € ${escapeHTML(data.price || "0")}
+                </p>
 
                 <div class="item-actions">
 
-                    <button class="small-button edit-product">
-                        Bewerken
-                    </button>
-
-                    <button class="small-button delete delete-product">
-                        Verwijderen
+                    <button
+                        onclick="deleteItem('shop','${item.id}')">
+                        🗑️ Verwijderen
                     </button>
 
                 </div>
 
-            `;
+            </div>
 
-
-            row.querySelector(".edit-product")
-                .addEventListener("click", () => {
-
-                    document.getElementById("shopForm")
-                        .classList.remove("hidden");
-
-                    document.getElementById("shopId")
-                        .value = item.id;
-
-                    document.getElementById("shopName")
-                        .value = product.name || "";
-
-                    document.getElementById("shopPrice")
-                        .value = product.price || "";
-
-                    document.getElementById("shopDescription")
-                        .value = product.description || "";
-
-                    document.getElementById("shopImage")
-                        .value = product.image || "";
-
-
-                    if (product.image) {
-
-                        document.getElementById(
-                            "shopImagePreview"
-                        ).innerHTML = `
-
-                            <img
-                                src="${product.image}"
-                                alt="Product"
-                            >
-
-                        `;
-
-                    }
-
-                });
-
-
-            row.querySelector(".delete-product")
-                .addEventListener("click", async () => {
-
-                    if (!confirm(
-                        "Product verwijderen?"
-                    )) {
-                        return;
-                    }
-
-
-                    await deleteDoc(
-                        doc(db, "shop", item.id)
-                    );
-
-
-                    showToast(
-                        "Product verwijderd."
-                    );
-
-
-                    loadShop();
-
-                });
-
-
-            list.appendChild(row);
-
-        });
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        list.innerHTML =
-            `<div class="empty">
-                Producten konden niet worden geladen.
-            </div>`;
-
-    }
-
-}
-
-
-/* ============================================================
-   LOGO
-============================================================ */
-
-document.getElementById("uploadLogoButton")
-    .addEventListener("click", async () => {
-
-        try {
-
-            const result =
-                await openCloudinaryUpload({
-
-                    resourceType: "image",
-
-                    folder: "mistery-duo/logo",
-
-                    multiple: false,
-
-                    cropping: false,
-
-                    formats: [
-                        "png",
-                        "jpg",
-                        "jpeg",
-                        "webp",
-                        "svg"
-                    ]
-
-                });
-
-
-            const logoURL =
-                result.secure_url;
-
-
-            await setDoc(
-                doc(db, "settings", "site"),
-                {
-
-                    logo:
-                        logoURL,
-
-                    logoPublicId:
-                        result.public_id || "",
-
-                    updatedAt:
-                        new Date().toISOString()
-
-                },
-                {
-                    merge: true
-                }
-            );
-
-
-            document.getElementById("currentLogo")
-                .src = logoURL;
-
-
-            document.getElementById("sidebarLogo")
-                .src = logoURL;
-
-
-            document.getElementById("newLogoPreview")
-                .innerHTML = `
-
-                    <img
-                        src="${logoURL}"
-                        alt="Nieuw Mistery Duo logo"
-                    >
-
-                `;
-
-
-            showToast(
-                "Logo succesvol veranderd."
-            );
-
-
-        } catch (error) {
-
-            console.error(error);
-
-            showToast(
-                "Logo upload mislukt.",
-                "error"
-            );
-
-        }
+        `;
 
     });
 
-
-async function loadLogo() {
-
-    try {
-
-        const snapshot =
-            await getDoc(
-                doc(db, "settings", "site")
-            );
+}
 
 
-        if (!snapshot.exists()) {
-            return;
+window.openShopModal = function() {
+
+    document.getElementById("modalContent").innerHTML = `
+
+        <h2>Merch toevoegen</h2>
+
+        <div class="form-panel">
+
+            <label>
+                Productnaam
+                <input id="mShopName">
+            </label>
+
+            <label>
+                Prijs
+                <input id="mShopPrice"
+                       type="number"
+                       step="0.01">
+            </label>
+
+            <label>
+                Beschrijving
+                <textarea id="mShopDescription"></textarea>
+            </label>
+
+            <button
+                class="primary-btn"
+                onclick="saveShop()">
+                Product toevoegen
+            </button>
+
+        </div>
+
+    `;
+
+    showModal();
+
+};
+
+
+window.saveShop = async function() {
+
+    await addDoc(
+        collection(db, "shop"),
+        {
+            name:
+                document.getElementById("mShopName").value,
+
+            price:
+                document.getElementById("mShopPrice").value,
+
+            description:
+                document.getElementById("mShopDescription").value,
+
+            createdAt: serverTimestamp()
         }
+    );
+
+    closeModal();
+
+    toast("Product toegevoegd!");
+
+    loadShop();
+
+};
 
 
-        const data =
-            snapshot.data();
+/* =========================================================
+   VERWIJDEREN
+   ========================================================= */
+
+window.deleteItem = async function(collectionName, id) {
+
+    if (!confirm("Weet je zeker dat je dit wilt verwijderen?"))
+        return;
 
 
-        if (!data.logo) {
-            return;
-        }
+    await deleteDoc(
+        doc(db, collectionName, id)
+    );
 
 
-        document.getElementById("currentLogo")
-            .src = data.logo;
+    toast("Verwijderd!");
+
+    if (collectionName === "shows")
+        loadShows();
+
+    if (collectionName === "videos")
+        loadVideos();
+
+    if (collectionName === "news")
+        loadNews();
+
+    if (collectionName === "photos")
+        loadPhotos();
+
+    if (collectionName === "shop")
+        loadShop();
+
+};
 
 
-        document.getElementById("sidebarLogo")
-            .src = data.logo;
+/* =========================================================
+   MODAL
+   ========================================================= */
 
+function showModal() {
 
-    } catch (error) {
-
-        console.error(error);
-
-    }
+    document
+        .getElementById("modal")
+        .classList.add("show");
 
 }
 
 
-/* ============================================================
-   DASHBOARD STATS
-============================================================ */
+window.closeModal = function() {
 
-async function updateStats() {
+    document
+        .getElementById("modal")
+        .classList.remove("show");
 
-    try {
-
-        const [
-            shows,
-            news,
-            media
-        ] = await Promise.all([
-
-            getDocs(
-                collection(db, "shows")
-            ),
-
-            getDocs(
-                collection(db, "news")
-            ),
-
-            getDocs(
-                collection(db, "media")
-            )
-
-        ]);
+};
 
 
-        let photos = 0;
-
-        let videos = 0;
-
-
-        media.forEach(item => {
-
-            const type =
-                item.data().type;
-
-
-            if (type === "photo") {
-                photos++;
-            }
-
-            if (type === "video") {
-                videos++;
-            }
-
-        });
-
-
-        document.getElementById("statShows")
-            .textContent = shows.size;
-
-        document.getElementById("statNews")
-            .textContent = news.size;
-
-        document.getElementById("statPhotos")
-            .textContent = photos;
-
-        document.getElementById("statVideos")
-            .textContent = videos;
-
-
-    } catch (error) {
-
-        console.error(
-            "Stats konden niet geladen worden:",
-            error
-        );
-
-    }
-
-}
-
-
-/* ============================================================
-   HTML VEILIG MAKEN
-============================================================ */
+/* =========================================================
+   HELPERS
+   ========================================================= */
 
 function escapeHTML(value) {
 
-    return String(value)
-
+    return String(value ?? "")
         .replaceAll("&", "&amp;")
-
         .replaceAll("<", "&lt;")
-
         .replaceAll(">", "&gt;")
-
         .replaceAll('"', "&quot;")
-
         .replaceAll("'", "&#039;");
 
 }
 
 
-/* ============================================================
+/* =========================================================
    START
-============================================================ */
+   ========================================================= */
 
-async function startAdmin() {
+async function init() {
 
     try {
 
-        firebaseConnected();
-
         await Promise.all([
-
-            loadShows(),
-
-            loadNews(),
-
-            loadPhotos(),
-
-            loadVideos(),
-
-            loadShop(),
-
+            loadHome(),
             loadAbout(),
-
-            loadLogo()
-
+            loadLive(),
+            loadLogo(),
+            loadShows(),
+            loadVideos(),
+            loadNews(),
+            loadPhotos(),
+            loadShop()
         ]);
 
+        console.log(
+            "Mistery Duo admin volledig geladen."
+        );
 
-        await updateStats();
+    }
 
-
-    } catch (error) {
+    catch(error) {
 
         console.error(
-            "Admin start error:",
+            "Firebase fout:",
             error
         );
 
-
-        document.getElementById(
-            "firebaseStatus"
-        ).textContent = "Fout";
-
-
-        showToast(
-            "Er is een probleem met Firebase.",
-            "error"
+        toast(
+            "Er ging iets mis met Firebase. Controleer je configuratie."
         );
 
     }
@@ -2089,4 +1149,4 @@ async function startAdmin() {
 }
 
 
-startAdmin();
+init();
