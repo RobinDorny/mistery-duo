@@ -1,147 +1,190 @@
-const SUPABASE_URL =
-    "https://msvesugylaeffjqiizzm.supabase.co";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
-const SUPABASE_KEY =
-    "sb_publishable_DhtWMC4YaXFG6NUiqmiyHg_0ERj8Bgk";
+import {
+    getDatabase,
+    ref,
+    set,
+    push,
+    remove,
+    update,
+    onValue
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-const db = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDf15-6xqLR32Hq4xXeW5hvfUTqPzi52Vs",
+    authDomain: "mistery-duo.firebaseapp.com",
+    databaseURL: "https://mistery-duo-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "mistery-duo",
+    storageBucket: "mistery-duo.firebasestorage.app",
+    messagingSenderId: "36695107825",
+    appId: "1:36695107825:web:d92d202a3dd50c1f932150",
+    measurementId: "G-P37CVN099B"
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const loginScreen =
+    document.getElementById("loginScreen");
+
+const adminApp =
+    document.getElementById("adminApp");
+
+const loginForm =
+    document.getElementById("loginForm");
+
+const loginError =
+    document.getElementById("loginError");
+
+const logoutButton =
+    document.getElementById("logoutButton");
+
+const modal =
+    document.getElementById("modal");
+
+const modalForm =
+    document.getElementById("modalForm");
+
+const modalTitle =
+    document.getElementById("modalTitle");
+
+const closeModal =
+    document.getElementById("closeModal");
+
+
+/* =========================================================
+   AUTH
+========================================================= */
+
+onAuthStateChanged(
+    auth,
+    user => {
+
+        if (user) {
+
+            loginScreen.classList.add(
+                "hidden"
+            );
+
+            adminApp.classList.remove(
+                "hidden"
+            );
+
+            loadEverything();
+
+        } else {
+
+            loginScreen.classList.remove(
+                "hidden"
+            );
+
+            adminApp.classList.add(
+                "hidden"
+            );
+
+        }
+
+    }
 );
 
 
-// ======================================
-// HELPERS
-// ======================================
+/* =========================================================
+   LOGIN
+========================================================= */
 
-function toast(message) {
+loginForm.addEventListener(
+    "submit",
+    async event => {
 
-    const el =
-        document.getElementById("toast");
+        event.preventDefault();
 
-    el.textContent = message;
+        loginError.textContent = "";
 
-    el.classList.add("show");
+        const email =
+            document.getElementById(
+                "loginEmail"
+            ).value;
 
-    setTimeout(() => {
-        el.classList.remove("show");
-    }, 3000);
-}
-
-
-function escapeHtml(value) {
-
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
+        const password =
+            document.getElementById(
+                "loginPassword"
+            ).value;
 
 
-async function uploadFile(bucket, folder, file) {
+        try {
 
-    const extension =
-        file.name.split(".").pop();
-
-    const filename =
-        `${Date.now()}-${Math.random()
-            .toString(36)
-            .substring(2)}.${extension}`;
-
-    const path =
-        `${folder}/${filename}`;
-
-    const { error } =
-        await db.storage
-            .from(bucket)
-            .upload(path, file, {
-                upsert: false
-            });
-
-    if (error) {
-        throw error;
-    }
-
-    const { data } =
-        db.storage
-            .from(bucket)
-            .getPublicUrl(path);
-
-    return data.publicUrl;
-}
-
-
-async function deleteStorageFile(bucket, url) {
-
-    try {
-
-        const marker =
-            `${bucket}/`;
-
-        const index =
-            url.indexOf(marker);
-
-        if (index === -1) return;
-
-        const path =
-            url.substring(
-                index + marker.length
+            await signInWithEmailAndPassword(
+                auth,
+                email,
+                password
             );
 
-        await db.storage
-            .from(bucket)
-            .remove([path]);
+        } catch (error) {
 
-    } catch (error) {
+            console.error(error);
 
-        console.error(error);
+            loginError.textContent =
+                "E-mailadres of wachtwoord is incorrect.";
+
+        }
 
     }
-}
+);
 
 
-// ======================================
-// NAVIGATIE
-// ======================================
+/* =========================================================
+   LOGOUT
+========================================================= */
 
-document.querySelectorAll(".menu")
+logoutButton.addEventListener(
+    "click",
+    async () => {
+
+        await signOut(auth);
+
+    }
+);
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".sidebar nav button"
+    )
     .forEach(button => {
 
         button.addEventListener(
             "click",
             () => {
 
-                document
-                    .querySelectorAll(".menu")
-                    .forEach(item =>
-                        item.classList.remove(
-                            "active"
-                        )
-                    );
-
-                button.classList.add("active");
-
-                document
-                    .querySelectorAll(".panel")
-                    .forEach(panel =>
-                        panel.classList.remove(
-                            "active"
-                        )
-                    );
-
                 const section =
-                    document.getElementById(
-                        button.dataset.section
-                    );
+                    button.dataset.section;
 
-                section.classList.add("active");
-
-                document.getElementById(
-                    "pageTitle"
-                ).textContent =
-                    button.textContent.trim();
+                showSection(section);
 
             }
         );
@@ -149,1078 +192,1039 @@ document.querySelectorAll(".menu")
     });
 
 
-// ======================================
-// DASHBOARD
-// ======================================
+function showSection(name) {
 
-async function updateStats() {
+    document
+        .querySelectorAll(".admin-section")
+        .forEach(section => {
 
-    const tables = [
-        ["news", "statNews"],
-        ["shows", "statShows"],
-        ["bookings", "statBookings"],
-        ["photos", "statPhotos"]
-    ];
-
-    for (const [table, element] of tables) {
-
-        const { count } =
-            await db
-                .from(table)
-                .select("*", {
-                    count: "exact",
-                    head: true
-                });
-
-        document.getElementById(element)
-            .textContent =
-            count ?? 0;
-    }
-}
-
-
-// ======================================
-// NIEUWS TOEVOEGEN
-// ======================================
-
-document
-    .getElementById("newsForm")
-    .addEventListener("submit", async e => {
-
-        e.preventDefault();
-
-        const { error } =
-            await db
-                .from("news")
-                .insert({
-
-                    title:
-                        document.getElementById(
-                            "newsTitle"
-                        ).value,
-
-                    content:
-                        document.getElementById(
-                            "newsContent"
-                        ).value,
-
-                    image_url:
-                        document.getElementById(
-                            "newsImage"
-                        ).value || null
-
-                });
-
-        if (error) {
-
-            console.error(error);
-
-            toast(
-                "Nieuws kon niet worden toegevoegd."
+            section.classList.remove(
+                "active"
             );
 
-            return;
-        }
-
-        toast("Nieuws gepubliceerd!");
-
-        e.target.reset();
-
-        loadNewsAdmin();
-        updateStats();
-    });
+        });
 
 
-// ======================================
-// NIEUWS LADEN
-// ======================================
+    const target =
+        document.getElementById(name);
 
-async function loadNewsAdmin() {
-
-    const container =
-        document.getElementById(
-            "newsList"
-        );
-
-    const { data, error } =
-        await db
-            .from("news")
-            .select("*")
-            .order("created_at", {
-                ascending: false
-            });
-
-    if (error) {
-
-        container.innerHTML =
-            "<p>Fout bij laden.</p>";
-
-        return;
+    if (target) {
+        target.classList.add("active");
     }
 
-    if (!data.length) {
 
-        container.innerHTML =
-            "<p>Geen nieuws.</p>";
+    document
+        .querySelectorAll(".sidebar nav button")
+        .forEach(button => {
 
-        return;
-    }
-
-    container.innerHTML =
-        data.map(item => `
-
-        <div class="admin-item">
-
-            <div>
-
-                <h3>
-                    ${escapeHtml(item.title)}
-                </h3>
-
-                <p>
-                    ${escapeHtml(item.content)}
-                </p>
-
-            </div>
-
-            <button
-                class="delete"
-                onclick="deleteNews(${item.id})"
-            >
-                Verwijderen
-            </button>
-
-        </div>
-
-    `).join("");
-}
-
-
-window.deleteNews = async function(id) {
-
-    if (!confirm(
-        "Dit nieuwsbericht verwijderen?"
-    )) return;
-
-    const { error } =
-        await db
-            .from("news")
-            .delete()
-            .eq("id", id);
-
-    if (error) {
-
-        toast("Verwijderen mislukt.");
-
-        return;
-    }
-
-    toast("Nieuws verwijderd.");
-
-    loadNewsAdmin();
-    updateStats();
-};
-
-
-// ======================================
-// OPTREDEN TOEVOEGEN
-// ======================================
-
-document
-    .getElementById("showForm")
-    .addEventListener("submit", async e => {
-
-        e.preventDefault();
-
-        const { error } =
-            await db
-                .from("shows")
-                .insert({
-
-                    name:
-                        document.getElementById(
-                            "showName"
-                        ).value,
-
-                    date:
-                        document.getElementById(
-                            "showDate"
-                        ).value,
-
-                    time:
-                        document.getElementById(
-                            "showTime"
-                        ).value,
-
-                    location:
-                        document.getElementById(
-                            "showLocation"
-                        ).value,
-
-                    info:
-                        document.getElementById(
-                            "showInfo"
-                        ).value
-
-                });
-
-        if (error) {
-
-            console.error(error);
-
-            toast(
-                "Optreden kon niet worden toegevoegd."
+            button.classList.toggle(
+                "active",
+                button.dataset.section === name
             );
 
-            return;
-        }
-
-        toast("Optreden toegevoegd!");
-
-        e.target.reset();
-
-        loadShowsAdmin();
-        updateStats();
-    });
+        });
 
 
-// ======================================
-// OPTREDENS LADEN
-// ======================================
+    const titles = {
 
-async function loadShowsAdmin() {
+        dashboard:
+            "Dashboard",
 
-    const container =
-        document.getElementById(
-            "showsList"
-        );
+        settings:
+            "Website",
 
-    const { data, error } =
-        await db
-            .from("shows")
-            .select("*")
-            .order("date", {
-                ascending: true
-            });
+        shows:
+            "Optredens",
 
-    if (error) {
+        news:
+            "Nieuws",
 
-        container.innerHTML =
-            "<p>Fout bij laden.</p>";
+        videos:
+            "Video's",
 
-        return;
-    }
+        photos:
+            "Foto's",
 
-    container.innerHTML =
-        data.map(item => `
+        products:
+            "Merchandise",
 
-        <div class="admin-item">
+        bookings:
+            "Boekingen"
 
-            <div>
+    };
 
-                <h3>
-                    ${escapeHtml(item.name)}
-                </h3>
 
-                <p>
-                    ${escapeHtml(item.date)}
-                    •
-                    ${escapeHtml(item.location || "")}
-                </p>
+    document.getElementById(
+        "pageTitle"
+    ).textContent =
+        titles[name] || "Dashboard";
 
-            </div>
-
-            <button
-                class="delete"
-                onclick="deleteShow(${item.id})"
-            >
-                Verwijderen
-            </button>
-
-        </div>
-
-    `).join("");
 }
 
 
-window.deleteShow = async function(id) {
+/* =========================================================
+   LOAD EVERYTHING
+========================================================= */
 
-    if (!confirm(
-        "Dit optreden verwijderen?"
-    )) return;
+function loadEverything() {
 
-    const { error } =
-        await db
-            .from("shows")
-            .delete()
-            .eq("id", id);
+    loadSettings();
 
-    if (error) {
-
-        toast("Verwijderen mislukt.");
-
-        return;
-    }
-
-    toast("Optreden verwijderd.");
-
-    loadShowsAdmin();
-    updateStats();
-};
-
-
-// ======================================
-// BOEKINGEN
-// ======================================
-
-async function loadBookings() {
-
-    const container =
-        document.getElementById(
-            "bookingsList"
-        );
-
-    const { data, error } =
-        await db
-            .from("bookings")
-            .select("*")
-            .order("created_at", {
-                ascending: false
-            });
-
-    if (error) {
-
-        container.innerHTML =
-            "<p>Fout bij laden van aanvragen.</p>";
-
-        return;
-    }
-
-    if (!data.length) {
-
-        container.innerHTML =
-            "<p>Geen boekingsaanvragen.</p>";
-
-        return;
-    }
-
-    container.innerHTML =
-        data.map(item => `
-
-        <div class="admin-item">
-
-            <div>
-
-                <h3>
-                    ${escapeHtml(item.name)}
-                </h3>
-
-                <p>
-                    ${escapeHtml(item.email)}
-                </p>
-
-                <p>
-                    ${escapeHtml(item.phone || "")}
-                </p>
-
-                <p>
-                    ${escapeHtml(item.date || "")}
-                    •
-                    ${escapeHtml(item.location || "")}
-                </p>
-
-                <p>
-                    ${escapeHtml(item.message || "")}
-                </p>
-
-            </div>
-
-        </div>
-
-    `).join("");
-}
-
-
-// ======================================
-// FOTO UPLOAD
-// ======================================
-
-document
-    .getElementById("photoForm")
-    .addEventListener("submit", async e => {
-
-        e.preventDefault();
-
-        const file =
-            document.getElementById(
-                "photoFile"
-            ).files[0];
-
-        if (!file) {
-
-            toast("Selecteer eerst een foto.");
-
-            return;
-        }
-
-        try {
-
-            toast("Foto wordt geüpload...");
-
-            const url =
-                await uploadFile(
-                    "mistery-images",
-                    "photos",
-                    file
-                );
-
-            const { error } =
-                await db
-                    .from("photos")
-                    .insert({
-
-                        title:
-                            document.getElementById(
-                                "photoTitle"
-                            ).value,
-
-                        image_url: url
-
-                    });
-
-            if (error)
-                throw error;
-
-            toast("Foto succesvol toegevoegd!");
-
-            e.target.reset();
-
-            loadPhotosAdmin();
-
-            updateStats();
-
-        } catch (error) {
-
-            console.error(error);
-
-            toast(
-                "Upload mislukt: " +
-                error.message
-            );
-        }
-    });
-
-
-// ======================================
-// FOTO'S LADEN
-// ======================================
-
-async function loadPhotosAdmin() {
-
-    const container =
-        document.getElementById(
-            "photosList"
-        );
-
-    const { data, error } =
-        await db
-            .from("photos")
-            .select("*")
-            .order("created_at", {
-                ascending: false
-            });
-
-    if (error) return;
-
-    container.innerHTML =
-        data.map(photo => `
-
-        <div class="media-card">
-
-            <img
-                src="${escapeHtml(photo.image_url)}"
-            >
-
-            <div class="media-card-content">
-
-                <p>
-                    ${escapeHtml(photo.title || "")}
-                </p>
-
-                <button
-                    class="delete"
-                    onclick="deletePhoto(
-                        ${photo.id},
-                        '${escapeHtml(photo.image_url)}'
-                    )"
-                >
-                    Verwijderen
-                </button>
-
-            </div>
-
-        </div>
-
-    `).join("");
-}
-
-
-window.deletePhoto = async function(id, url) {
-
-    if (!confirm("Foto verwijderen?"))
-        return;
-
-    await deleteStorageFile(
-        "mistery-images",
-        url
+    loadCollection(
+        "shows",
+        "showsAdminList",
+        "show"
     );
 
-    const { error } =
-        await db
-            .from("photos")
-            .delete()
-            .eq("id", id);
-
-    if (error) {
-
-        toast("Verwijderen mislukt.");
-
-        return;
-    }
-
-    toast("Foto verwijderd.");
-
-    loadPhotosAdmin();
-    updateStats();
-};
-
-
-// ======================================
-// VIDEO UPLOAD
-// ======================================
-
-document
-    .getElementById("videoForm")
-    .addEventListener("submit", async e => {
-
-        e.preventDefault();
-
-        const file =
-            document.getElementById(
-                "videoFile"
-            ).files[0];
-
-        if (!file) {
-
-            toast("Selecteer eerst een video.");
-
-            return;
-        }
-
-        try {
-
-            toast("Video wordt geüpload...");
-
-            const url =
-                await uploadFile(
-                    "mistery-videos",
-                    "videos",
-                    file
-                );
-
-            const { error } =
-                await db
-                    .from("videos")
-                    .insert({
-
-                        title:
-                            document.getElementById(
-                                "videoTitle"
-                            ).value,
-
-                        video_url: url
-
-                    });
-
-            if (error)
-                throw error;
-
-            toast("Video toegevoegd!");
-
-            e.target.reset();
-
-            loadVideosAdmin();
-
-        } catch (error) {
-
-            console.error(error);
-
-            toast(
-                "Video upload mislukt: " +
-                error.message
-            );
-        }
-    });
-
-
-// ======================================
-// VIDEO'S LADEN
-// ======================================
-
-async function loadVideosAdmin() {
-
-    const container =
-        document.getElementById(
-            "videosList"
-        );
-
-    const { data, error } =
-        await db
-            .from("videos")
-            .select("*")
-            .order("created_at", {
-                ascending: false
-            });
-
-    if (error) return;
-
-    container.innerHTML =
-        data.map(video => `
-
-        <div class="media-card">
-
-            <video controls>
-
-                <source
-                    src="${escapeHtml(video.video_url)}"
-                >
-
-            </video>
-
-            <div class="media-card-content">
-
-                <p>
-                    ${escapeHtml(video.title || "")}
-                </p>
-
-                <button
-                    class="delete"
-                    onclick="deleteVideo(
-                        ${video.id},
-                        '${escapeHtml(video.video_url)}'
-                    )"
-                >
-                    Verwijderen
-                </button>
-
-            </div>
-
-        </div>
-
-    `).join("");
-}
-
-
-window.deleteVideo = async function(id, url) {
-
-    if (!confirm("Video verwijderen?"))
-        return;
-
-    await deleteStorageFile(
-        "mistery-videos",
-        url
+    loadCollection(
+        "news",
+        "newsAdminList",
+        "news"
     );
 
-    const { error } =
-        await db
-            .from("videos")
-            .delete()
-            .eq("id", id);
+    loadCollection(
+        "videos",
+        "videosAdminList",
+        "video"
+    );
 
-    if (error) {
+    loadCollection(
+        "photos",
+        "photosAdminList",
+        "photo"
+    );
 
-        toast("Verwijderen mislukt.");
+    loadCollection(
+        "products",
+        "productsAdminList",
+        "product"
+    );
 
-        return;
-    }
+    loadBookings();
 
-    toast("Video verwijderd.");
-
-    loadVideosAdmin();
-};
+}
 
 
-// ======================================
-// MERCHANDISE
-// ======================================
+/* =========================================================
+   SETTINGS
+========================================================= */
 
-document
-    .getElementById("merchForm")
-    .addEventListener("submit", async e => {
+function loadSettings() {
 
-        e.preventDefault();
+    onValue(
+        ref(db, "settings"),
+        snapshot => {
 
-        const { error } =
-            await db
-                .from("merchandise")
-                .insert({
+            const data =
+                snapshot.val() || {};
 
-                    name:
-                        document.getElementById(
-                            "merchName"
-                        ).value,
+            document.getElementById(
+                "settingLogo"
+            ).value =
+                data.logo || "";
 
-                    price:
-                        Number(
-                            document.getElementById(
-                                "merchPrice"
-                            ).value
-                        ) || null,
+            document.getElementById(
+                "settingFacebook"
+            ).value =
+                data.facebook || "";
 
-                    description:
-                        document.getElementById(
-                            "merchDescription"
-                        ).value,
+            document.getElementById(
+                "settingInstagram"
+            ).value =
+                data.instagram || "";
 
-                    image_url:
-                        document.getElementById(
-                            "merchImage"
-                        ).value || null
+            document.getElementById(
+                "settingYoutube"
+            ).value =
+                data.youtube || "";
 
-                });
+            document.getElementById(
+                "settingLive"
+            ).checked =
+                data.live?.enabled || false;
 
-        if (error) {
+            document.getElementById(
+                "settingLiveUrl"
+            ).value =
+                data.live?.url || "";
 
-            toast(
-                "Product kon niet worden toegevoegd."
-            );
-
-            return;
         }
+    );
 
-        toast("Product toegevoegd!");
-
-        e.target.reset();
-
-        loadMerchAdmin();
-
-    });
-
-
-// ======================================
-// MERCH LADEN
-// ======================================
-
-async function loadMerchAdmin() {
-
-    const container =
-        document.getElementById(
-            "merchList"
-        );
-
-    const { data, error } =
-        await db
-            .from("merchandise")
-            .select("*")
-            .order("created_at", {
-                ascending: false
-            });
-
-    if (error) return;
-
-    container.innerHTML =
-        data.map(item => `
-
-        <div class="admin-item">
-
-            <div>
-
-                <h3>
-                    ${escapeHtml(item.name)}
-                </h3>
-
-                <p>
-                    € ${Number(
-                        item.price || 0
-                    ).toFixed(2)}
-                </p>
-
-            </div>
-
-            <button
-                class="delete"
-                onclick="deleteMerch(${item.id})"
-            >
-                Verwijderen
-            </button>
-
-        </div>
-
-    `).join("");
-}
-
-
-window.deleteMerch = async function(id) {
-
-    if (!confirm("Product verwijderen?"))
-        return;
-
-    const { error } =
-        await db
-            .from("merchandise")
-            .delete()
-            .eq("id", id);
-
-    if (error) {
-
-        toast("Verwijderen mislukt.");
-
-        return;
-    }
-
-    toast("Product verwijderd.");
-
-    loadMerchAdmin();
-};
-
-
-// ======================================
-// LIVESTREAM
-// ======================================
-
-async function loadLiveAdmin() {
-
-    const { data, error } =
-        await db
-            .from("livestream")
-            .select("*")
-            .eq("id", 1)
-            .single();
-
-    if (error) return;
-
-    document.getElementById(
-        "liveActive"
-    ).checked = data.active;
-
-    document.getElementById(
-        "liveTitle"
-    ).value = data.title || "";
-
-    document.getElementById(
-        "liveUrl"
-    ).value = data.url || "";
-
-    showLivePreview(data);
-}
-
-
-function showLivePreview(data) {
-
-    const container =
-        document.getElementById(
-            "livePreview"
-        );
-
-    if (!data.active || !data.url) {
-
-        container.innerHTML =
-            "<p>Livestream staat uit.</p>";
-
-        return;
-    }
-
-    container.innerHTML = `
-
-        <iframe
-            src="${escapeHtml(data.url)}"
-            allowfullscreen>
-        </iframe>
-
-    `;
-}
-
-
-document
-    .getElementById("liveForm")
-    .addEventListener("submit", async e => {
-
-        e.preventDefault();
-
-        const active =
-            document.getElementById(
-                "liveActive"
-            ).checked;
-
-        const url =
-            document.getElementById(
-                "liveUrl"
-            ).value;
-
-        const title =
-            document.getElementById(
-                "liveTitle"
-            ).value;
-
-        const { data, error } =
-            await db
-                .from("livestream")
-                .update({
-
-                    active,
-                    url,
-                    title,
-                    updated_at:
-                        new Date().toISOString()
-
-                })
-                .eq("id", 1)
-                .select()
-                .single();
-
-        if (error) {
-
-            console.error(error);
-
-            toast(
-                "Livestream kon niet worden opgeslagen."
-            );
-
-            return;
-        }
-
-        toast("Livestream opgeslagen!");
-
-        showLivePreview(data);
-
-    });
-
-
-// ======================================
-// SETTINGS / LOGO
-// ======================================
-
-async function loadSettingsAdmin() {
-
-    const { data, error } =
-        await db
-            .from("settings")
-            .select("*")
-            .eq("id", 1)
-            .single();
-
-    if (error) return;
-
-    document.getElementById(
-        "siteName"
-    ).value = data.site_name || "";
-
-    if (data.logo_url) {
-
-        document.getElementById(
-            "currentLogo"
-        ).src = data.logo_url;
-
-    }
 }
 
 
 document
     .getElementById("settingsForm")
-    .addEventListener("submit", async e => {
+    .addEventListener(
+        "submit",
+        async event => {
 
-        e.preventDefault();
+            event.preventDefault();
 
-        try {
 
-            const siteName =
-                document.getElementById(
-                    "siteName"
-                ).value;
+            const data = {
 
-            const file =
-                document.getElementById(
-                    "logoFile"
-                ).files[0];
+                logo:
+                    document.getElementById(
+                        "settingLogo"
+                    ).value.trim(),
 
-            let logoUrl = null;
+                facebook:
+                    document.getElementById(
+                        "settingFacebook"
+                    ).value.trim(),
 
-            if (file) {
+                instagram:
+                    document.getElementById(
+                        "settingInstagram"
+                    ).value.trim(),
 
-                toast("Logo wordt geüpload...");
+                youtube:
+                    document.getElementById(
+                        "settingYoutube"
+                    ).value.trim(),
 
-                logoUrl =
-                    await uploadFile(
-                        "mistery-images",
-                        "logo",
-                        file
-                    );
-            }
+                live: {
 
-            const updateData = {
+                    enabled:
+                        document.getElementById(
+                            "settingLive"
+                        ).checked,
 
-                site_name: siteName,
+                    url:
+                        document.getElementById(
+                            "settingLiveUrl"
+                        ).value.trim()
 
-                updated_at:
-                    new Date().toISOString()
+                }
 
             };
 
-            if (logoUrl)
-                updateData.logo_url =
-                    logoUrl;
 
-            const { error } =
-                await db
-                    .from("settings")
-                    .update(updateData)
-                    .eq("id", 1);
+            try {
 
-            if (error)
-                throw error;
+                await set(
+                    ref(db, "settings"),
+                    data
+                );
 
-            toast(
-                "Instellingen opgeslagen!"
-            );
 
-            loadSettingsAdmin();
+                document.getElementById(
+                    "settingsResult"
+                ).textContent =
+                    "✓ Instellingen opgeslagen.";
 
-        } catch (error) {
+            } catch (error) {
 
-            console.error(error);
+                console.error(error);
 
-            toast(
-                "Opslaan mislukt: " +
-                error.message
-            );
+                document.getElementById(
+                    "settingsResult"
+                ).textContent =
+                    "Opslaan mislukt.";
+
+            }
+
         }
-    });
+    );
 
 
-// ======================================
-// START
-// ======================================
+/* =========================================================
+   COLLECTIONS
+========================================================= */
 
-async function startAdmin() {
+function loadCollection(
+    path,
+    containerId,
+    type
+) {
 
-    await updateStats();
+    onValue(
+        ref(db, path),
+        snapshot => {
 
-    await loadNewsAdmin();
+            const data =
+                snapshot.val() || {};
 
-    await loadShowsAdmin();
+            const entries =
+                Object.entries(data);
 
-    await loadBookings();
+            renderAdminList(
+                entries,
+                containerId,
+                path,
+                type
+            );
 
-    await loadPhotosAdmin();
 
-    await loadVideosAdmin();
+            updateCount(
+                path,
+                entries.length
+            );
 
-    await loadMerchAdmin();
-
-    await loadLiveAdmin();
-
-    await loadSettingsAdmin();
+        }
+    );
 
 }
 
-startAdmin();
+
+/* =========================================================
+   RENDER ADMIN LIST
+========================================================= */
+
+function renderAdminList(
+    entries,
+    containerId,
+    path,
+    type
+) {
+
+    const container =
+        document.getElementById(
+            containerId
+        );
+
+
+    if (!entries.length) {
+
+        container.innerHTML = `
+            <div class="admin-item">
+                <div class="admin-item-info">
+                    <p>Nog niets toegevoegd.</p>
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        entries.map(
+            ([id, item]) => {
+
+                let title =
+                    item.title ||
+                    item.name ||
+                    "Item";
+
+                let description =
+                    item.date ||
+                    item.location ||
+                    item.description ||
+                    item.price ||
+                    "";
+
+
+                return `
+
+                    <div class="admin-item">
+
+                        <div class="admin-item-info">
+
+                            <h3>
+                                ${escapeHTML(title)}
+                            </h3>
+
+                            <p>
+                                ${escapeHTML(description)}
+                            </p>
+
+                        </div>
+
+                        <div class="admin-actions">
+
+                            <button
+                                class="action-button"
+                                data-edit-path="${path}"
+                                data-edit-id="${id}"
+                                data-type="${type}"
+                            >
+                                Bewerken
+                            </button>
+
+                            <button
+                                class="action-button delete"
+                                data-delete-path="${path}"
+                                data-delete-id="${id}"
+                            >
+                                Verwijderen
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+        ).join("");
+
+
+    container
+        .querySelectorAll(
+            "[data-edit-path]"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    editItem(
+                        button.dataset.editPath,
+                        button.dataset.editId,
+                        button.dataset.type
+                    );
+
+                }
+            );
+
+        });
+
+
+    container
+        .querySelectorAll(
+            "[data-delete-path]"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                async () => {
+
+                    const confirmed =
+                        confirm(
+                            "Weet je zeker dat je dit wilt verwijderen?"
+                        );
+
+                    if (!confirmed) {
+                        return;
+                    }
+
+
+                    await remove(
+                        ref(
+                            db,
+                            `${button.dataset.deletePath}/${button.dataset.deleteId}`
+                        )
+                    );
+
+                }
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   ADD BUTTONS
+========================================================= */
+
+document
+    .querySelectorAll(
+        "[data-add]"
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                openAddModal(
+                    button.dataset.add
+                );
+
+            }
+        );
+
+    });
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+closeModal.addEventListener(
+    "click",
+    closeModalWindow
+);
+
+
+modal.addEventListener(
+    "click",
+    event => {
+
+        if (event.target === modal) {
+            closeModalWindow();
+        }
+
+    }
+);
+
+
+function closeModalWindow() {
+
+    modal.classList.remove(
+        "active"
+    );
+
+}
+
+
+/* =========================================================
+   ADD MODAL
+========================================================= */
+
+function openAddModal(path) {
+
+    const configs = {
+
+        shows: {
+
+            title: "Optreden toevoegen",
+
+            fields: `
+                ${field("Titel", "title", "Bijv. Mistery Duo Live")}
+                ${field("Datum", "date", "Bijv. 24 augustus 2026")}
+                ${field("Uur", "time", "Bijv. 20:00")}
+                ${field("Locatie", "location", "Bijv. Blankenberge")}
+            `
+
+        },
+
+
+        news: {
+
+            title: "Nieuws toevoegen",
+
+            fields: `
+                ${field("Titel", "title", "Titel van het nieuws")}
+                ${field("Datum", "date", "13 augustus 2026")}
+                ${textareaField("Tekst", "text")}
+                ${field("Afbeelding URL", "image", "https://...")}
+            `
+
+        },
+
+
+        videos: {
+
+            title: "Video toevoegen",
+
+            fields: `
+                ${field("Titel", "title", "Videotitel")}
+                ${field("Video URL", "url", "https://...")}
+                ${field("Thumbnail URL", "image", "https://...")}
+                ${textareaField("Beschrijving", "description")}
+            `
+
+        },
+
+
+        photos: {
+
+            title: "Foto toevoegen",
+
+            fields: `
+                ${field("Foto URL", "image", "https://...")}
+                ${field("Titel", "title", "Optionele titel")}
+            `
+
+        },
+
+
+        products: {
+
+            title: "Product toevoegen",
+
+            fields: `
+                ${field("Productnaam", "name", "Bijv. T-shirt")}
+                ${field("Prijs", "price", "Bijv. €20")}
+                ${field("Afbeelding URL", "image", "https://...")}
+                ${field("Bestel URL", "url", "https://...")}
+            `
+
+        }
+
+    };
+
+
+    const config =
+        configs[path];
+
+    if (!config) return;
+
+
+    modalTitle.textContent =
+        config.title;
+
+
+    modalForm.innerHTML = `
+
+        ${config.fields}
+
+        <button
+            class="admin-button gold modal-form-submit"
+            type="submit"
+        >
+            Opslaan
+        </button>
+
+    `;
+
+
+    modalForm.onsubmit =
+        async event => {
+
+            event.preventDefault();
+
+            const data =
+                formToObject(
+                    modalForm
+                );
+
+            data.createdAt =
+                Date.now();
+
+
+            const newRef =
+                push(
+                    ref(db, path)
+                );
+
+
+            await set(
+                newRef,
+                data
+            );
+
+
+            closeModalWindow();
+
+        };
+
+
+    modal.classList.add(
+        "active"
+    );
+
+}
+
+
+/* =========================================================
+   EDIT
+========================================================= */
+
+async function editItem(
+    path,
+    id,
+    type
+) {
+
+    const snapshot =
+        await new Promise(resolve => {
+
+            onValue(
+                ref(
+                    db,
+                    `${path}/${id}`
+                ),
+                resolve,
+                {
+                    onlyOnce: true
+                }
+            );
+
+        });
+
+
+    const item =
+        snapshot.val();
+
+    if (!item) return;
+
+
+    const fields =
+        Object.entries(item)
+            .filter(
+                ([key]) =>
+                    key !== "createdAt"
+            )
+            .map(
+                ([key, value]) => {
+
+                    if (
+                        key === "text" ||
+                        key === "description"
+                    ) {
+
+                        return textareaField(
+                            labelName(key),
+                            key,
+                            value
+                        );
+
+                    }
+
+
+                    return field(
+                        labelName(key),
+                        key,
+                        value
+                    );
+
+                }
+            )
+            .join("");
+
+
+    modalTitle.textContent =
+        "Item bewerken";
+
+
+    modalForm.innerHTML = `
+
+        ${fields}
+
+        <button
+            class="admin-button gold modal-form-submit"
+            type="submit"
+        >
+            Wijzigingen opslaan
+        </button>
+
+    `;
+
+
+    modalForm.onsubmit =
+        async event => {
+
+            event.preventDefault();
+
+            const data =
+                formToObject(
+                    modalForm
+                );
+
+
+            await update(
+                ref(
+                    db,
+                    `${path}/${id}`
+                ),
+                data
+            );
+
+
+            closeModalWindow();
+
+        };
+
+
+    modal.classList.add(
+        "active"
+    );
+
+}
+
+
+/* =========================================================
+   FORM HELPERS
+========================================================= */
+
+function field(
+    label,
+    name,
+    value = ""
+) {
+
+    return `
+
+        <label class="modal-form-label">
+
+            ${escapeHTML(label)}
+
+            <input
+                name="${escapeHTML(name)}"
+                value="${escapeHTML(value)}"
+            >
+
+        </label>
+
+    `;
+
+}
+
+
+function textareaField(
+    label,
+    name,
+    value = ""
+) {
+
+    return `
+
+        <label class="modal-form-label">
+
+            ${escapeHTML(label)}
+
+            <textarea
+                name="${escapeHTML(name)}"
+                rows="5"
+            >${escapeHTML(value)}</textarea>
+
+        </label>
+
+    `;
+
+}
+
+
+function formToObject(form) {
+
+    const data = {};
+
+    new FormData(form)
+        .forEach(
+            (value, key) => {
+
+                data[key] =
+                    String(value).trim();
+
+            }
+        );
+
+    return data;
+
+}
+
+
+function labelName(key) {
+
+    const names = {
+
+        title: "Titel",
+
+        name: "Naam",
+
+        date: "Datum",
+
+        time: "Uur",
+
+        location: "Locatie",
+
+        url: "URL",
+
+        image: "Afbeelding URL",
+
+        price: "Prijs",
+
+        text: "Tekst",
+
+        description: "Beschrijving"
+
+    };
+
+    return names[key] || key;
+
+}
+
+
+function escapeHTML(value) {
+
+    if (
+        value === undefined ||
+        value === null
+    ) {
+        return "";
+    }
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+/* =========================================================
+   BOOKINGS
+========================================================= */
+
+function loadBookings() {
+
+    onValue(
+        ref(db, "bookings"),
+        snapshot => {
+
+            const data =
+                snapshot.val() || {};
+
+            const entries =
+                Object.entries(data);
+
+            document.getElementById(
+                "countBookings"
+            ).textContent =
+                entries.length;
+
+
+            const container =
+                document.getElementById(
+                    "bookingsAdminList"
+                );
+
+
+            if (!entries.length) {
+
+                container.innerHTML = `
+                    <div class="admin-item">
+                        <div class="admin-item-info">
+                            <p>Geen boekingsaanvragen.</p>
+                        </div>
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            entries.sort(
+                ([,a], [,b]) =>
+                    (b.createdAt || 0) -
+                    (a.createdAt || 0)
+            );
+
+
+            container.innerHTML =
+                entries.map(
+                    ([id, booking]) => `
+
+                        <div class="admin-item">
+
+                            <div class="admin-item-info">
+
+                                <h3>
+                                    ${escapeHTML(
+                                        booking.name
+                                    )}
+                                </h3>
+
+                                <p>
+                                    ${escapeHTML(
+                                        booking.email
+                                    )}
+                                </p>
+
+                                <p>
+                                    📅 ${escapeHTML(
+                                        booking.date || "Geen datum"
+                                    )}
+                                </p>
+
+                                <p>
+                                    📍 ${escapeHTML(
+                                        booking.location || "Geen locatie"
+                                    )}
+                                </p>
+
+                                <p>
+                                    ${escapeHTML(
+                                        booking.message || ""
+                                    )}
+                                </p>
+
+                            </div>
+
+                            <div class="admin-actions">
+
+                                <button
+                                    class="action-button delete"
+                                    data-booking="${id}"
+                                >
+                                    Verwijderen
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    `
+                ).join("");
+
+
+            container
+                .querySelectorAll(
+                    "[data-booking]"
+                )
+                .forEach(button => {
+
+                    button.addEventListener(
+                        "click",
+                        async () => {
+
+                            if (
+                                confirm(
+                                    "Deze aanvraag verwijderen?"
+                                )
+                            ) {
+
+                                await remove(
+                                    ref(
+                                        db,
+                                        `bookings/${button.dataset.booking}`
+                                    )
+                                );
+
+                            }
+
+                        }
+                    );
+
+                });
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   COUNTERS
+========================================================= */
+
+function updateCount(
+    path,
+    amount
+) {
+
+    const ids = {
+
+        shows:
+            "countShows",
+
+        news:
+            "countNews",
+
+        videos:
+            "countVideos"
+
+    };
+
+
+    if (ids[path]) {
+
+        document.getElementById(
+            ids[path]
+        ).textContent =
+            amount;
+
+    }
+
+}
