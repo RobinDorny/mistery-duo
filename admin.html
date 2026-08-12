@@ -1,176 +1,751 @@
 <!DOCTYPE html>
 <html lang="nl">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Mistery Duo - Beheer</title>
+    <title>Mistery Duo | Beheer</title>
 
     <link rel="stylesheet" href="admin.css">
 
-</head>
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Cloudinary Upload Widget -->
+    <script src="https://upload-widget.cloudinary.com/latest/global/all.js"></script>
+</head>
 
 <body>
 
-<header class="admin-header">
+<div class="admin-layout">
 
-    <div>
-        <span>M</span>istery Duo
-    </div>
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
 
-    <p>Beheerplatform</p>
+    <aside class="sidebar">
 
-    <a href="index.html">
-        Website bekijken
-    </a>
+        <div class="sidebar-logo">
+            <div class="logo-preview">
+                <img id="sidebarLogo"
+                     src="https://res.cloudinary.com/aorisbce/image/upload/f_auto,q_auto/mistery-duo-logo"
+                     alt="Mistery Duo">
+            </div>
 
-</header>
+            <div>
+                <strong>MISTERY DUO</strong>
+                <span>Beheerplatform</span>
+            </div>
+        </div>
 
+        <nav class="sidebar-nav">
 
-<main class="admin-container">
-
-
-    <!-- NIEUWS -->
-
-    <section class="admin-card">
-
-        <h2>Nieuws toevoegen</h2>
-
-        <form id="newsForm">
-
-            <input
-                id="newsTitle"
-                type="text"
-                placeholder="Titel"
-                required
-            >
-
-            <textarea
-                id="newsText"
-                placeholder="Nieuwsbericht"
-                required
-            ></textarea>
-
-            <button type="submit">
-                Nieuws publiceren
+            <button class="nav-item active" data-section="dashboard">
+                <span>⌂</span>
+                Dashboard
             </button>
 
-        </form>
-
-    </section>
-
-
-    <!-- AGENDA -->
-
-    <section class="admin-card">
-
-        <h2>Optreden toevoegen</h2>
-
-        <form id="eventForm">
-
-            <input
-                id="eventTitle"
-                type="text"
-                placeholder="Naam optreden"
-                required
-            >
-
-            <input
-                id="eventDate"
-                type="date"
-                required
-            >
-
-            <input
-                id="eventLocation"
-                type="text"
-                placeholder="Locatie"
-                required
-            >
-
-            <button type="submit">
-                Optreden toevoegen
+            <button class="nav-item" data-section="shows">
+                <span>📅</span>
+                Optredens
             </button>
 
-        </form>
-
-    </section>
-
-
-    <!-- MEDIA -->
-
-    <section class="admin-card">
-
-        <h2>Foto of video uploaden</h2>
-
-        <p class="info">
-            Foto's en video's worden opgeslagen via Cloudinary.
-        </p>
-
-
-        <form id="mediaForm">
-
-            <input
-                id="mediaTitle"
-                type="text"
-                placeholder="Titel"
-            >
-
-
-            <select id="mediaType">
-
-                <option value="image">
-                    Foto
-                </option>
-
-                <option value="video">
-                    Video
-                </option>
-
-            </select>
-
-
-            <input
-                id="mediaFile"
-                type="file"
-                accept="image/*,video/*"
-                required
-            >
-
-
-            <button type="submit">
-                Uploaden
+            <button class="nav-item" data-section="about">
+                <span>👥</span>
+                Over ons
             </button>
 
-        </form>
+            <button class="nav-item" data-section="news">
+                <span>📰</span>
+                Nieuws
+            </button>
+
+            <button class="nav-item" data-section="videos">
+                <span>▶</span>
+                Video's
+            </button>
+
+            <button class="nav-item" data-section="photos">
+                <span>📷</span>
+                Foto's
+            </button>
+
+            <button class="nav-item" data-section="shop">
+                <span>🛍</span>
+                Merch
+            </button>
+
+            <button class="nav-item" data-section="logo">
+                <span>✦</span>
+                Logo
+            </button>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <a href="index.html" target="_blank" class="website-button">
+                🌐 Bekijk website
+            </a>
+
+        </div>
+
+    </aside>
 
 
-        <div id="uploadProgress"></div>
+    <!-- =========================
+         MAIN
+    ========================== -->
 
-    </section>
+    <main class="main-content">
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <div>
+                <p class="topbar-small">MISTERY DUO</p>
+                <h1 id="pageTitle">Dashboard</h1>
+            </div>
+
+            <div class="topbar-right">
+
+                <span class="status">
+                    <span class="status-dot"></span>
+                    Online
+                </span>
+
+                <a href="index.html" target="_blank" class="topbar-site">
+                    Website →
+                </a>
+
+            </div>
+
+        </header>
 
 
-    <div
-        id="message"
-        class="message"
-    ></div>
+        <!-- =========================
+             DASHBOARD
+        ========================== -->
+
+        <section id="dashboard" class="admin-section active-section">
+
+            <div class="hero-card">
+
+                <div>
+                    <span class="eyebrow">MISTERY DUO</span>
+
+                    <h2>
+                        Welkom in het
+                        <span>beheerplatform.</span>
+                    </h2>
+
+                    <p>
+                        Beheer hier de website, optredens, foto's,
+                        video's, nieuws, merch en het logo van Mistery Duo.
+                    </p>
+                </div>
+
+                <div class="hero-symbol">
+                    ♪
+                </div>
+
+            </div>
 
 
-</main>
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <span>Optredens</span>
+                    <strong id="statShows">0</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>Nieuws</span>
+                    <strong id="statNews">0</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>Foto's</span>
+                    <strong id="statPhotos">0</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>Video's</span>
+                    <strong id="statVideos">0</strong>
+                </div>
+
+            </div>
 
 
-<script
-    type="module"
-    src="admin.js"
-></script>
+            <div class="dashboard-grid">
+
+                <div class="content-card">
+
+                    <div class="card-header">
+                        <div>
+                            <span class="card-label">SNELLE ACTIES</span>
+                            <h3>Wat wil je doen?</h3>
+                        </div>
+                    </div>
+
+                    <div class="quick-actions">
+
+                        <button class="quick-button" data-open="shows">
+                            <span>📅</span>
+                            <strong>Optreden toevoegen</strong>
+                            <small>Nieuw optreden</small>
+                        </button>
+
+                        <button class="quick-button" data-open="news">
+                            <span>📰</span>
+                            <strong>Nieuws toevoegen</strong>
+                            <small>Nieuw nieuwsbericht</small>
+                        </button>
+
+                        <button class="quick-button" data-open="photos">
+                            <span>📷</span>
+                            <strong>Foto uploaden</strong>
+                            <small>Cloudinary</small>
+                        </button>
+
+                        <button class="quick-button" data-open="videos">
+                            <span>▶</span>
+                            <strong>Video uploaden</strong>
+                            <small>Cloudinary</small>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="content-card">
+
+                    <div class="card-header">
+                        <div>
+                            <span class="card-label">STATUS</span>
+                            <h3>Website</h3>
+                        </div>
+                    </div>
+
+                    <div class="website-status">
+
+                        <div class="status-line">
+                            <span>Firebase</span>
+                            <strong id="firebaseStatus">Verbinden...</strong>
+                        </div>
+
+                        <div class="status-line">
+                            <span>Cloudinary</span>
+                            <strong class="connected">Beschikbaar</strong>
+                        </div>
+
+                        <div class="status-line">
+                            <span>Publieke website</span>
+                            <strong class="connected">Actief</strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             SHOWS
+        ========================== -->
+
+        <section id="shows" class="admin-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="eyebrow">OPTREDENS</span>
+                    <h2>Optredens beheren</h2>
+                    <p>Voeg nieuwe optredens toe of wijzig bestaande optredens.</p>
+                </div>
+
+                <button class="primary-button" id="newShowButton">
+                    + Optreden toevoegen
+                </button>
+
+            </div>
+
+
+            <div class="form-card hidden" id="showForm">
+
+                <div class="form-title">
+                    <h3 id="showFormTitle">Nieuw optreden</h3>
+                    <button class="close-form" data-close="showForm">×</button>
+                </div>
+
+                <form id="showFormElement">
+
+                    <input type="hidden" id="showId">
+
+                    <div class="form-grid">
+
+                        <div class="input-group">
+                            <label>Naam optreden</label>
+                            <input id="showName" type="text" required placeholder="Bijvoorbeeld: Zomeravond">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Datum</label>
+                            <input id="showDate" type="date" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Tijd</label>
+                            <input id="showTime" type="time">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Locatie</label>
+                            <input id="showLocation" type="text" placeholder="Blankenberge">
+                        </div>
+
+                    </div>
+
+                    <div class="input-group">
+                        <label>Beschrijving</label>
+                        <textarea id="showDescription" rows="4"
+                                  placeholder="Vertel iets over het optreden..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="secondary-button" data-close="showForm">
+                            Annuleren
+                        </button>
+
+                        <button type="submit" class="primary-button">
+                            Opslaan
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <div class="items-card">
+
+                <div class="card-header">
+                    <div>
+                        <span class="card-label">AGENDA</span>
+                        <h3>Alle optredens</h3>
+                    </div>
+                </div>
+
+                <div id="showsList" class="items-list">
+                    <div class="loading">Optredens laden...</div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             ABOUT
+        ========================== -->
+
+        <section id="about" class="admin-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="eyebrow">MISTERY DUO</span>
+                    <h2>Over ons</h2>
+                    <p>Pas de tekst van de pagina "Over ons" aan.</p>
+                </div>
+
+            </div>
+
+            <div class="form-card">
+
+                <form id="aboutForm">
+
+                    <div class="input-group">
+                        <label>Titel</label>
+                        <input id="aboutTitle" type="text" placeholder="Over Mistery Duo">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Tekst</label>
+                        <textarea id="aboutText" rows="10"
+                                  placeholder="Schrijf hier iets over Mistery Duo..."></textarea>
+                    </div>
+
+                    <button type="submit" class="primary-button">
+                        Over ons opslaan
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             NEWS
+        ========================== -->
+
+        <section id="news" class="admin-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="eyebrow">NIEUWS</span>
+                    <h2>Nieuws beheren</h2>
+                    <p>Publiceer nieuws op de website.</p>
+                </div>
+
+                <button class="primary-button" id="newNewsButton">
+                    + Nieuws toevoegen
+                </button>
+
+            </div>
+
+
+            <div class="form-card hidden" id="newsForm">
+
+                <div class="form-title">
+                    <h3>Nieuwsbericht</h3>
+                    <button class="close-form" data-close="newsForm">×</button>
+                </div>
+
+                <form id="newsFormElement">
+
+                    <input type="hidden" id="newsId">
+
+                    <div class="input-group">
+                        <label>Titel</label>
+                        <input id="newsTitle" type="text" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Tekst</label>
+                        <textarea id="newsText" rows="8" required></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Datum</label>
+                        <input id="newsDate" type="date">
+                    </div>
+
+                    <div class="form-actions">
+
+                        <button type="button" class="secondary-button" data-close="newsForm">
+                            Annuleren
+                        </button>
+
+                        <button type="submit" class="primary-button">
+                            Publiceren
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <div class="items-card">
+
+                <div class="card-header">
+                    <h3>Nieuwsberichten</h3>
+                </div>
+
+                <div id="newsList" class="items-list">
+                    <div class="loading">Nieuws laden...</div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             VIDEOS
+        ========================== -->
+
+        <section id="videos" class="admin-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="eyebrow">MEDIA</span>
+                    <h2>Video's</h2>
+                    <p>Upload video's via Cloudinary en publiceer ze op de website.</p>
+                </div>
+
+                <button class="primary-button" id="uploadVideoButton">
+                    + Video uploaden
+                </button>
+
+            </div>
+
+
+            <div class="upload-info">
+
+                <div class="upload-icon">▶</div>
+
+                <div>
+                    <strong>Cloudinary upload</strong>
+                    <p>
+                        Video's worden rechtstreeks naar Cloudinary geüpload.
+                        De gegevens worden daarna in Firebase opgeslagen.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="items-card">
+
+                <div class="card-header">
+                    <h3>Video's op de website</h3>
+                </div>
+
+                <div id="videosList" class="media-grid">
+                    <div class="loading">Video's laden...</div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PHOTOS
+        ========================== -->
+
+        <section id="photos" class="admin-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="eyebrow">MEDIA</span>
+                    <h2>Foto's</h2>
+                    <p>Upload foto's naar Cloudinary.</p>
+                </div>
+
+                <button class="primary-button" id="uploadPhotoButton">
+                    + Foto uploaden
+                </button>
+
+            </div>
+
+
+            <div class="upload-info">
+
+                <div class="upload-icon">📷</div>
+
+                <div>
+                    <strong>Cloudinary upload</strong>
+                    <p>
+                        Foto's worden rechtstreeks naar Cloudinary geüpload.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="items-card">
+
+                <div class="card-header">
+                    <h3>Foto's op de website</h3>
+                </div>
+
+                <div id="photosList" class="media-grid">
+                    <div class="loading">Foto's laden...</div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             SHOP
+        ========================== -->
+
+        <section id="shop" class="admin-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="eyebrow">SHOP</span>
+                    <h2>Merch beheren</h2>
+                    <p>Beheer de producten die op de website verschijnen.</p>
+                </div>
+
+                <button class="primary-button" id="newShopButton">
+                    + Product toevoegen
+                </button>
+
+            </div>
+
+
+            <div class="form-card hidden" id="shopForm">
+
+                <div class="form-title">
+                    <h3>Product</h3>
+                    <button class="close-form" data-close="shopForm">×</button>
+                </div>
+
+                <form id="shopFormElement">
+
+                    <input type="hidden" id="shopId">
+
+                    <div class="form-grid">
+
+                        <div class="input-group">
+                            <label>Productnaam</label>
+                            <input id="shopName" type="text" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Prijs</label>
+                            <input id="shopPrice" type="text" placeholder="€ 20">
+                        </div>
+
+                    </div>
+
+                    <div class="input-group">
+                        <label>Beschrijving</label>
+                        <textarea id="shopDescription" rows="5"></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Productafbeelding</label>
+
+                        <button type="button"
+                                id="uploadShopImageButton"
+                                class="upload-button">
+                            📷 Afbeelding uploaden
+                        </button>
+
+                        <input type="hidden" id="shopImage">
+
+                        <div id="shopImagePreview" class="small-preview"></div>
+                    </div>
+
+                    <div class="form-actions">
+
+                        <button type="button" class="secondary-button" data-close="shopForm">
+                            Annuleren
+                        </button>
+
+                        <button type="submit" class="primary-button">
+                            Product opslaan
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <div class="items-card">
+
+                <div class="card-header">
+                    <h3>Producten</h3>
+                </div>
+
+                <div id="shopList" class="items-list">
+                    <div class="loading">Producten laden...</div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             LOGO
+        ========================== -->
+
+        <section id="logo" class="admin-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="eyebrow">HUISSTIJL</span>
+                    <h2>Logo veranderen</h2>
+                    <p>Upload hier een nieuw Mistery Duo-logo.</p>
+                </div>
+
+            </div>
+
+
+            <div class="logo-manager">
+
+                <div class="logo-current">
+
+                    <span class="card-label">HUIDIG LOGO</span>
+
+                    <div class="big-logo-preview">
+                        <img id="currentLogo"
+                             src="https://res.cloudinary.com/aorisbce/image/upload/f_auto,q_auto/mistery-duo-logo"
+                             alt="Mistery Duo logo">
+                    </div>
+
+                </div>
+
+
+                <div class="logo-upload">
+
+                    <span class="card-label">NIEUW LOGO</span>
+
+                    <h3>Upload een nieuw logo</h3>
+
+                    <p>
+                        Het nieuwe logo wordt opgeslagen in Cloudinary
+                        en de URL wordt in Firebase bewaard.
+                    </p>
+
+                    <button id="uploadLogoButton" class="primary-button">
+                        ✦ Nieuw logo uploaden
+                    </button>
+
+                    <div id="newLogoPreview" class="new-logo-preview"></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =========================
+     TOAST
+========================== -->
+
+<div id="toast" class="toast">
+    <span id="toastIcon">✓</span>
+    <span id="toastMessage">Opgeslagen</span>
+</div>
+
+
+<!-- =========================
+     FIREBASE
+========================== -->
+
+<script type="module" src="admin.js"></script>
 
 </body>
-
 </html>
