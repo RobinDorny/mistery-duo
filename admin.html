@@ -1,107 +1,176 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Mistery Duo - Beheer</title>
 
     <link rel="stylesheet" href="admin.css">
 
-    <!-- Cloudinary Upload Widget -->
-    <script src="https://upload-widget.cloudinary.com/latest/global/all.js"></script>
 </head>
+
 
 <body>
 
-    <header class="admin-header">
-        <div>
-            <h1>🎤 Mistery Duo</h1>
-            <p>Beheerplatform</p>
-        </div>
+<header class="admin-header">
 
-        <button id="logoutBtn" class="logout-btn">
-            Uitloggen
-        </button>
-    </header>
+    <div>
+        <span>M</span>istery Duo
+    </div>
 
+    <p>Beheerplatform</p>
 
-    <main class="admin-container">
+    <a href="index.html">
+        Website bekijken
+    </a>
 
-        <!-- DASHBOARD -->
-        <section class="welcome-card">
-            <h2>Welkom bij het beheerplatform</h2>
-            <p>
-                Hier kun je foto's en video's van Mistery Duo uploaden.
-            </p>
-        </section>
+</header>
 
 
-        <!-- UPLOAD -->
-        <section class="panel">
+<main class="admin-container">
 
-            <h2>📸 Foto's en 🎥 video's</h2>
 
-            <p class="description">
-                Upload hier foto's en video's voor de website.
-            </p>
+    <!-- NIEUWS -->
 
-            <button id="uploadBtn" class="upload-btn">
-                ☁️ Media uploaden
+    <section class="admin-card">
+
+        <h2>Nieuws toevoegen</h2>
+
+        <form id="newsForm">
+
+            <input
+                id="newsTitle"
+                type="text"
+                placeholder="Titel"
+                required
+            >
+
+            <textarea
+                id="newsText"
+                placeholder="Nieuwsbericht"
+                required
+            ></textarea>
+
+            <button type="submit">
+                Nieuws publiceren
             </button>
 
-            <div id="uploadStatus" class="status"></div>
+        </form>
 
-        </section>
-
-
-        <!-- LAATSTE UPLOAD -->
-        <section class="panel">
-
-            <h2>📁 Laatste upload</h2>
-
-            <div id="latestUpload" class="latest-upload">
-                <p>Nog geen upload uitgevoerd.</p>
-            </div>
-
-        </section>
+    </section>
 
 
-        <!-- INFO -->
-        <section class="panel info-panel">
+    <!-- AGENDA -->
 
-            <h2>ℹ️ Informatie</h2>
+    <section class="admin-card">
 
-            <div class="info-grid">
+        <h2>Optreden toevoegen</h2>
 
-                <div class="info-box">
-                    <strong>☁️ Opslag</strong>
-                    <span>Cloudinary</span>
-                </div>
+        <form id="eventForm">
 
-                <div class="info-box">
-                    <strong>📸 Foto's</strong>
-                    <span>Ondersteund</span>
-                </div>
+            <input
+                id="eventTitle"
+                type="text"
+                placeholder="Naam optreden"
+                required
+            >
 
-                <div class="info-box">
-                    <strong>🎥 Video's</strong>
-                    <span>Ondersteund</span>
-                </div>
+            <input
+                id="eventDate"
+                type="date"
+                required
+            >
 
-            </div>
+            <input
+                id="eventLocation"
+                type="text"
+                placeholder="Locatie"
+                required
+            >
 
-        </section>
+            <button type="submit">
+                Optreden toevoegen
+            </button>
 
-    </main>
+        </form>
+
+    </section>
 
 
-    <footer>
-        <p>© <span id="year"></span> Mistery Duo</p>
-    </footer>
+    <!-- MEDIA -->
+
+    <section class="admin-card">
+
+        <h2>Foto of video uploaden</h2>
+
+        <p class="info">
+            Foto's en video's worden opgeslagen via Cloudinary.
+        </p>
 
 
-    <script src="admin.js"></script>
+        <form id="mediaForm">
+
+            <input
+                id="mediaTitle"
+                type="text"
+                placeholder="Titel"
+            >
+
+
+            <select id="mediaType">
+
+                <option value="image">
+                    Foto
+                </option>
+
+                <option value="video">
+                    Video
+                </option>
+
+            </select>
+
+
+            <input
+                id="mediaFile"
+                type="file"
+                accept="image/*,video/*"
+                required
+            >
+
+
+            <button type="submit">
+                Uploaden
+            </button>
+
+        </form>
+
+
+        <div id="uploadProgress"></div>
+
+    </section>
+
+
+    <div
+        id="message"
+        class="message"
+    ></div>
+
+
+</main>
+
+
+<script
+    type="module"
+    src="admin.js"
+></script>
 
 </body>
+
 </html>
