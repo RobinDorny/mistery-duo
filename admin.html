@@ -3,559 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mistery Duo — Admin</title>
-    <link rel="stylesheet" href="admin.css">
+
+    <title>Mistery Duo</title>
+    <meta name="description" content="Mistery Duo – muziek van toen en nu.">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="admin-layout">
+<div id="loadingScreen">
+    <div class="loading-logo">M</div>
+    <div class="loader"></div>
+    <p>Mistery Duo wordt geladen...</p>
+</div>
 
-    <aside class="sidebar">
+<header class="header">
 
-        <div class="brand">
-            <div class="brand-logo" id="adminLogoPreview">
-                MD
+    <a href="#home" class="brand">
+        <img id="headerLogo" src="" alt="Mistery Duo logo">
+        <span id="brandText">MISTERY DUO</span>
+    </a>
+
+    <button id="menuButton" class="menu-button">
+        ☰
+    </button>
+
+    <nav id="mainNav">
+        <a href="#home">Home</a>
+        <a href="#shows">Optredens</a>
+        <a href="#live">Live</a>
+        <a href="#videos">Video's</a>
+        <a href="#news">Nieuws</a>
+        <a href="#photos">Foto's</a>
+        <a href="#merch">Merch</a>
+        <a href="#booking">Boeken</a>
+    </nav>
+
+</header>
+
+<main>
+
+    <!-- HERO -->
+    <section id="home" class="hero">
+
+        <div class="hero-background"></div>
+
+        <div class="hero-content">
+
+            <div class="hero-badge">
+                🎤 MUZIEK VAN TOEN & NU
             </div>
 
-            <div>
-                <strong>Mistery Duo</strong>
-                <span>Beheerplatform</span>
+            <h1 id="heroTitle">
+                MISTERY<br>
+                <span>DUO</span>
+            </h1>
+
+            <p id="heroText">
+                Twee stemmen. Eén passie. Muziek voor iedereen.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="#shows" class="button button-primary">
+                    Bekijk optredens
+                </a>
+
+                <a href="#booking" class="button button-outline">
+                    Boek Mistery Duo
+                </a>
             </div>
+
         </div>
 
-        <nav>
-            <button class="nav-btn active" data-section="dashboard">
-                🏠 Dashboard
-            </button>
-
-            <button class="nav-btn" data-section="home">
-                🌟 Home
-            </button>
-
-            <button class="nav-btn" data-section="about">
-                👥 Over ons
-            </button>
-
-            <button class="nav-btn" data-section="shows">
-                🎤 Optredens
-            </button>
-
-            <button class="nav-btn" data-section="live">
-                🔴 Live
-            </button>
-
-            <button class="nav-btn" data-section="videos">
-                🎥 Video
-            </button>
-
-            <button class="nav-btn" data-section="news">
-                📰 Nieuws
-            </button>
-
-            <button class="nav-btn" data-section="photos">
-                📸 Foto's
-            </button>
-
-            <button class="nav-btn" data-section="shop">
-                🛍️ Merch
-            </button>
-
-            <button class="nav-btn" data-section="settings">
-                ⚙️ Instellingen
-            </button>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <a href="index.html" target="_blank">
-                🌐 Website bekijken
-            </a>
+        <div class="hero-scroll">
+            ↓
         </div>
 
-    </aside>
+    </section>
 
 
-    <main class="main">
+    <!-- ABOUT -->
+    <section class="section about-section">
 
-        <header class="topbar">
+        <div class="section-heading">
+            <span>01 — OVER ONS</span>
+            <h2>Muziek die <em>blijft</em>.</h2>
+        </div>
 
-            <div>
-                <h1 id="pageTitle">Dashboard</h1>
-                <p id="pageSubtitle">
-                    Beheer hier de website van Mistery Duo.
+        <div class="about-grid">
+
+            <div class="about-text">
+                <p id="aboutText">
+                    Welkom bij Mistery Duo. Wij brengen muziek van toen en nu
+                    samen op één podium.
                 </p>
-            </div>
 
-            <div class="top-actions">
-                <span class="status">
-                    <i></i> Firebase verbonden
-                </span>
-            </div>
-
-        </header>
-
-
-        <!-- DASHBOARD -->
-        <section id="dashboard" class="admin-section active">
-
-            <div class="welcome-card">
-                <div>
-                    <span class="eyebrow">MISTERY DUO</span>
-                    <h2>Welkom in het beheerplatform</h2>
-                    <p>
-                        Hier kun je alles van de Mistery Duo website beheren.
-                    </p>
-                </div>
-
-                <div class="welcome-icon">
-                    ✨
-                </div>
-            </div>
-
-
-            <div class="stats-grid">
-
-                <div class="stat-card">
-                    <span>🎤</span>
-                    <strong id="statShows">0</strong>
-                    <small>Optredens</small>
-                </div>
-
-                <div class="stat-card">
-                    <span>📸</span>
-                    <strong id="statPhotos">0</strong>
-                    <small>Foto's</small>
-                </div>
-
-                <div class="stat-card">
-                    <span>🎥</span>
-                    <strong id="statVideos">0</strong>
-                    <small>Video's</small>
-                </div>
-
-                <div class="stat-card">
-                    <span>📰</span>
-                    <strong id="statNews">0</strong>
-                    <small>Nieuwsberichten</small>
-                </div>
-
-            </div>
-
-
-            <div class="dashboard-grid">
-
-                <div class="panel">
-                    <div class="panel-header">
-                        <div>
-                            <h3>Live status</h3>
-                            <p>De huidige live-uitzending.</p>
-                        </div>
-                    </div>
-
-                    <div id="dashboardLive" class="live-preview">
-                        <span class="offline-dot"></span>
-                        Niet live
-                    </div>
-                </div>
-
-
-                <div class="panel">
-                    <div class="panel-header">
-                        <div>
-                            <h3>Snelle acties</h3>
-                            <p>Direct naar een onderdeel.</p>
-                        </div>
-                    </div>
-
-                    <div class="quick-actions">
-                        <button onclick="openSection('live')">
-                            🔴 Live beheren
-                        </button>
-
-                        <button onclick="openSection('photos')">
-                            📸 Foto toevoegen
-                        </button>
-
-                        <button onclick="openSection('videos')">
-                            🎥 Video toevoegen
-                        </button>
-
-                        <button onclick="openSection('news')">
-                            📰 Nieuws toevoegen
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- HOME -->
-        <section id="home" class="admin-section">
-
-            <div class="section-heading">
-                <div>
-                    <h2>Home</h2>
-                    <p>Beheer de inhoud van de homepagina.</p>
-                </div>
-
-                <button class="primary-btn" onclick="saveHome()">
-                    💾 Opslaan
-                </button>
-            </div>
-
-            <div class="panel form-panel">
-
-                <label>
-                    Titel
-                    <input id="homeTitle" type="text"
-                        placeholder="Mistery Duo">
-                </label>
-
-                <label>
-                    Ondertitel
-                    <input id="homeSubtitle" type="text"
-                        placeholder="Samen brengen wij muziek tot leven">
-                </label>
-
-                <label>
-                    Beschrijving
-                    <textarea id="homeText" rows="6"></textarea>
-                </label>
-
-            </div>
-
-        </section>
-
-
-        <!-- ABOUT -->
-        <section id="about" class="admin-section">
-
-            <div class="section-heading">
-                <div>
-                    <h2>Over ons</h2>
-                    <p>Pas de informatie over Mistery Duo aan.</p>
-                </div>
-
-                <button class="primary-btn" onclick="saveAbout()">
-                    💾 Opslaan
-                </button>
-            </div>
-
-            <div class="panel form-panel">
-
-                <label>
-                    Titel
-                    <input id="aboutTitle" type="text">
-                </label>
-
-                <label>
-                    Tekst
-                    <textarea id="aboutText" rows="10"></textarea>
-                </label>
-
-            </div>
-
-        </section>
-
-
-        <!-- SHOWS -->
-        <section id="shows" class="admin-section">
-
-            <div class="section-heading">
-
-                <div>
-                    <h2>Optredens</h2>
-                    <p>Beheer komende optredens.</p>
-                </div>
-
-                <button class="primary-btn" onclick="openShowModal()">
-                    + Optreden toevoegen
-                </button>
-
-            </div>
-
-            <div id="showsList" class="items-grid"></div>
-
-        </section>
-
-
-        <!-- LIVE -->
-        <section id="live" class="admin-section">
-
-            <div class="section-heading">
-
-                <div>
-                    <h2>🔴 Live</h2>
-                    <p>Beheer de livepagina van Mistery Duo.</p>
-                </div>
-
-                <button class="primary-btn" onclick="saveLive()">
-                    💾 Live opslaan
-                </button>
-
-            </div>
-
-
-            <div class="live-admin-grid">
-
-                <div class="panel">
-
-                    <div class="live-switch-row">
-
-                        <div>
-                            <h3>Live uitzending</h3>
-                            <p>
-                                Zet deze schakelaar aan wanneer Mistery Duo
-                                live is.
-                            </p>
-                        </div>
-
-                        <label class="switch">
-                            <input type="checkbox" id="liveEnabled">
-                            <span></span>
-                        </label>
-
-                    </div>
-
-                    <label>
-                        Live titel
-                        <input
-                            id="liveTitle"
-                            type="text"
-                            placeholder="Mistery Duo LIVE">
-                    </label>
-
-                    <label>
-                        Live beschrijving
-                        <textarea
-                            id="liveDescription"
-                            rows="5"
-                            placeholder="Welkom bij onze livestream!"></textarea>
-                    </label>
-
-                    <label>
-                        Livestream URL
-                        <input
-                            id="liveUrl"
-                            type="url"
-                            placeholder="https://...">
-                    </label>
-
-                    <label>
-                        YouTube video-ID
-                        <input
-                            id="liveYoutube"
-                            type="text"
-                            placeholder="Bijvoorbeeld: dQw4w9WgXcQ">
-                    </label>
-
-                </div>
-
-
-                <div class="panel live-preview-panel">
-
-                    <span class="live-label">
-                        ● LIVE VOORBEELD
-                    </span>
-
-                    <div id="livePreview" class="big-live-preview">
-
-                        <div class="play-icon">▶</div>
-
-                        <h3>Mistery Duo LIVE</h3>
-
-                        <p>
-                            De livestream wordt hier weergegeven.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- VIDEOS -->
-        <section id="videos" class="admin-section">
-
-            <div class="section-heading">
-
-                <div>
-                    <h2>Video</h2>
-                    <p>Upload en beheer video's.</p>
-                </div>
-
-                <button class="primary-btn"
-                        onclick="openVideoModal()">
-                    + Video toevoegen
-                </button>
-
-            </div>
-
-            <div id="videosList" class="items-grid"></div>
-
-        </section>
-
-
-        <!-- NEWS -->
-        <section id="news" class="admin-section">
-
-            <div class="section-heading">
-
-                <div>
-                    <h2>Nieuws</h2>
-                    <p>Beheer nieuwsberichten.</p>
-                </div>
-
-                <button class="primary-btn"
-                        onclick="openNewsModal()">
-                    + Nieuws toevoegen
-                </button>
-
-            </div>
-
-            <div id="newsList" class="items-grid"></div>
-
-        </section>
-
-
-        <!-- PHOTOS -->
-        <section id="photos" class="admin-section">
-
-            <div class="section-heading">
-
-                <div>
-                    <h2>Foto's</h2>
-                    <p>Upload foto's naar Cloudinary.</p>
-                </div>
-
-                <button class="primary-btn"
-                        onclick="document.getElementById('photoUpload').click()">
-                    📸 Foto uploaden
-                </button>
-
-                <input
-                    type="file"
-                    id="photoUpload"
-                    accept="image/*"
-                    multiple
-                    hidden>
-
-            </div>
-
-            <div id="uploadProgress" class="upload-progress hidden">
-                <div class="progress-bar">
-                    <div id="progressBar"></div>
-                </div>
-                <span id="progressText">Uploaden...</span>
-            </div>
-
-            <div id="photosList" class="photo-grid"></div>
-
-        </section>
-
-
-        <!-- SHOP -->
-        <section id="shop" class="admin-section">
-
-            <div class="section-heading">
-
-                <div>
-                    <h2>Merch</h2>
-                    <p>Beheer de merchandise.</p>
-                </div>
-
-                <button class="primary-btn"
-                        onclick="openShopModal()">
-                    + Product toevoegen
-                </button>
-
-            </div>
-
-            <div id="shopList" class="items-grid"></div>
-
-        </section>
-
-
-        <!-- SETTINGS -->
-        <section id="settings" class="admin-section">
-
-            <div class="section-heading">
-                <div>
-                    <h2>Instellingen</h2>
-                    <p>Logo en algemene instellingen.</p>
-                </div>
-            </div>
-
-
-            <div class="panel">
-
-                <h3>Logo</h3>
-
-                <div class="logo-manager">
-
-                    <div id="logoPreview"
-                         class="logo-large">
-                        MD
+                <div class="stats">
+                    <div>
+                        <strong>♪</strong>
+                        <span>Live muziek</span>
                     </div>
 
                     <div>
-
-                        <p>
-                            Upload hier het logo van Mistery Duo.
-                        </p>
-
-                        <input
-                            type="file"
-                            id="logoUpload"
-                            accept="image/*"
-                            hidden>
-
-                        <button
-                            class="primary-btn"
-                            onclick="document.getElementById('logoUpload').click()">
-                            🖼️ Logo veranderen
-                        </button>
-
+                        <strong>♥</strong>
+                        <span>Voor iedereen</span>
                     </div>
+
+                    <div>
+                        <strong>★</strong>
+                        <span>Live optredens</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="about-card">
+                <div class="card-glow"></div>
+                <span>🎶</span>
+                <h3>Mistery Duo</h3>
+                <p>Muziek van toen en nu</p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- SHOWS -->
+    <section id="shows" class="section dark-section">
+
+        <div class="section-heading light">
+            <span>02 — LIVE</span>
+            <h2>Onze <em>optredens</em></h2>
+        </div>
+
+        <div id="showsContainer" class="shows-grid">
+            <div class="empty-state">
+                Nog geen optredens aangekondigd.
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- LIVE -->
+    <section id="live" class="section live-section">
+
+        <div class="section-heading">
+            <span>03 — LIVE STREAM</span>
+            <h2>Bekijk ons <em>live</em></h2>
+        </div>
+
+        <div id="liveContainer">
+
+            <div class="live-offline">
+                <div class="live-icon">●</div>
+                <h3>Momenteel niet live</h3>
+                <p>
+                    Wanneer Mistery Duo live gaat, verschijnt de livestream hier.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- VIDEOS -->
+    <section id="videos" class="section dark-section">
+
+        <div class="section-heading light">
+            <span>04 — VIDEO</span>
+            <h2>Bekijk <em>ons</em></h2>
+        </div>
+
+        <div id="videosContainer" class="media-grid">
+            <div class="empty-state">
+                Nog geen video's toegevoegd.
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- NEWS -->
+    <section id="news" class="section">
+
+        <div class="section-heading">
+            <span>05 — NIEUWS</span>
+            <h2>Het laatste <em>nieuws</em></h2>
+        </div>
+
+        <div id="newsContainer" class="news-grid">
+            <div class="empty-state">
+                Nog geen nieuwsberichten.
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- PHOTOS -->
+    <section id="photos" class="section photo-section dark-section">
+
+        <div class="section-heading light">
+            <span>06 — FOTO'S</span>
+            <h2>Op het <em>podium</em></h2>
+        </div>
+
+        <div id="photosContainer" class="photo-grid">
+            <div class="empty-state">
+                Nog geen foto's toegevoegd.
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- MERCH -->
+    <section id="merch" class="section">
+
+        <div class="section-heading">
+            <span>07 — MERCHANDISE</span>
+            <h2>Mistery Duo <em>shop</em></h2>
+        </div>
+
+        <div id="merchContainer" class="merch-grid">
+            <div class="empty-state">
+                Nog geen merchandise beschikbaar.
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- BOOKING -->
+    <section id="booking" class="section booking-section">
+
+        <div class="section-heading light">
+            <span>08 — BOEKEN</span>
+            <h2>Boek <em>Mistery Duo</em></h2>
+        </div>
+
+        <div class="booking-layout">
+
+            <div class="booking-info">
+                <h3>Een optreden boeken?</h3>
+
+                <p>
+                    Wil je Mistery Duo op jouw evenement, feest of locatie?
+                    Stuur ons een aanvraag.
+                </p>
+
+                <div class="booking-point">
+                    <span>✓</span>
+                    <p>Vul het formulier in</p>
+                </div>
+
+                <div class="booking-point">
+                    <span>✓</span>
+                    <p>Wij bekijken je aanvraag</p>
+                </div>
+
+                <div class="booking-point">
+                    <span>✓</span>
+                    <p>Je ontvangt een antwoord</p>
+                </div>
+            </div>
+
+
+            <form id="bookingForm" class="booking-form">
+
+                <div class="form-row">
+
+                    <label>
+                        Naam
+                        <input
+                            id="bookingName"
+                            type="text"
+                            required
+                            placeholder="Je naam"
+                        >
+                    </label>
+
+                    <label>
+                        E-mail
+                        <input
+                            id="bookingEmail"
+                            type="email"
+                            required
+                            placeholder="jouw@email.be"
+                        >
+                    </label>
 
                 </div>
 
-            </div>
+                <div class="form-row">
 
-        </section>
+                    <label>
+                        Telefoon
+                        <input
+                            id="bookingPhone"
+                            type="tel"
+                            placeholder="Telefoonnummer"
+                        >
+                    </label>
 
-    </main>
+                    <label>
+                        Gewenste datum
+                        <input
+                            id="bookingDate"
+                            type="date"
+                            required
+                        >
+                    </label>
 
-</div>
+                </div>
+
+                <label>
+                    Locatie
+                    <input
+                        id="bookingLocation"
+                        type="text"
+                        required
+                        placeholder="Waar vindt het optreden plaats?"
+                    >
+                </label>
+
+                <label>
+                    Bericht
+                    <textarea
+                        id="bookingMessage"
+                        rows="5"
+                        placeholder="Vertel iets over het evenement..."
+                    ></textarea>
+                </label>
+
+                <button class="button button-primary" type="submit">
+                    Aanvraag versturen →
+                </button>
+
+                <div id="bookingStatus"></div>
+
+            </form>
+
+        </div>
+
+    </section>
+
+</main>
 
 
-<!-- MODAL -->
+<footer class="footer">
 
-<div id="modal" class="modal">
-
-    <div class="modal-box">
-
-        <button class="modal-close"
-                onclick="closeModal()">
-            ×
-        </button>
-
-        <div id="modalContent"></div>
-
+    <div class="footer-logo">
+        <img id="footerLogo" src="" alt="Mistery Duo">
+        <strong>MISTERY DUO</strong>
     </div>
 
-</div>
+    <p id="footerText">
+        Muziek van toen en nu.
+    </p>
+
+    <div class="footer-links">
+        <a href="#home">Home</a>
+        <a href="#shows">Optredens</a>
+        <a href="#booking">Boeken</a>
+    </div>
+
+    <div class="footer-bottom">
+        © <span id="year"></span> Mistery Duo. Alle rechten voorbehouden.
+    </div>
+
+</footer>
 
 
-<div id="toast"></div>
-
-
-<script type="module" src="admin.js"></script>
+<script type="module" src="script.js"></script>
 
 </body>
 </html>
