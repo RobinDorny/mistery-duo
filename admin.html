@@ -1,852 +1,511 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
 
     <meta charset="UTF-8">
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        content="width=device-width, initial-scale=1.0">
 
     <title>Mistery Duo — Beheer</title>
 
-    <link rel="stylesheet" href="admin.css">
+    <link
+        rel="stylesheet"
+        href="admin.css">
+
+    <script
+        type="module"
+        src="admin.js">
+    </script>
 
 </head>
 
+
 <body>
 
-<!-- LOGIN -->
 
-<div id="loginScreen" class="login-screen">
+<header class="admin-header">
 
-    <div class="login-card">
+    <div class="admin-brand">
 
-        <div class="login-logo">
-            M
+        <div class="admin-logo">
+            MD
         </div>
 
-        <span class="eyebrow">
-            MISTERY DUO
-        </span>
-
-        <h1>Beheer</h1>
-
-        <p>
-            Log in om de website te beheren.
-        </p>
-
-        <form id="loginForm">
-
-            <input
-                id="loginEmail"
-                type="email"
-                placeholder="E-mailadres"
-                required
-            >
-
-            <input
-                id="loginPassword"
-                type="password"
-                placeholder="Wachtwoord"
-                required
-            >
-
-            <button type="submit" class="admin-button primary">
-                Inloggen
-            </button>
-
-        </form>
-
-        <div id="loginMessage"></div>
+        <div>
+            <span>MISTERY DUO</span>
+            <h1>Beheerplatform</h1>
+        </div>
 
     </div>
 
-</div>
+
+    <button
+        id="logoutBtn"
+        class="logout-button">
+
+        Uitloggen
+
+    </button>
+
+</header>
 
 
-<!-- ADMIN APP -->
+<main class="admin-main">
 
-<div id="adminApp" class="admin-app hidden">
 
-    <aside class="sidebar">
+<!-- INSTELLINGEN -->
 
-        <div class="sidebar-brand">
+<section class="panel">
 
-            <div class="sidebar-logo">
-                M
-            </div>
+    <div class="panel-title">
 
-            <div>
-                <strong>MISTERY DUO</strong>
-                <span>BEHEER</span>
-            </div>
+        <div>
+            <span>WEBSITE</span>
+            <h2>Algemene instellingen</h2>
+        </div>
+
+    </div>
+
+
+    <form id="settingsForm">
+
+
+        <label>
+
+            Titel
+
+            <input
+                id="heroTitle"
+                type="text"
+                placeholder="Mistery Duo">
+
+        </label>
+
+
+        <label>
+
+            Welkomsttekst
+
+            <textarea
+                id="heroText"
+                rows="4"></textarea>
+
+        </label>
+
+
+        <label>
+
+            Over ons
+
+            <textarea
+                id="aboutText"
+                rows="7"></textarea>
+
+        </label>
+
+
+        <label>
+
+            Footer tekst
+
+            <input
+                id="footerText"
+                type="text">
+
+        </label>
+
+
+        <label>
+
+            Logo URL
+
+            <input
+                id="logoUrl"
+                type="url"
+                placeholder="Cloudinary URL">
+
+        </label>
+
+
+        <button
+            type="submit"
+            class="gold-button">
+
+            Instellingen opslaan
+
+        </button>
+
+
+        <p
+            id="settingsStatus"
+            class="status">
+        </p>
+
+
+    </form>
+
+</section>
+
+
+<!-- CLOUDINARY -->
+
+<section class="panel">
+
+    <div class="panel-title">
+
+        <div>
+            <span>CLOUDINARY</span>
+            <h2>Media uploaden</h2>
+        </div>
+
+    </div>
+
+
+    <div class="upload-grid">
+
+
+        <!-- FOTO -->
+
+        <div class="upload-card">
+
+            <h3>📷 Foto uploaden</h3>
+
+            <input
+                id="photoInput"
+                type="file"
+                accept="image/*">
+
+
+            <input
+                id="photoTitle"
+                type="text"
+                placeholder="Titel">
+
+
+            <input
+                id="photoDescription"
+                type="text"
+                placeholder="Beschrijving">
+
+
+            <button
+                id="uploadPhotoBtn"
+                class="gold-button">
+
+                Foto uploaden
+
+            </button>
+
+
+            <p
+                id="photoStatus"
+                class="status">
+            </p>
 
         </div>
 
 
-        <nav>
+        <!-- VIDEO -->
 
-            <button class="nav-button active" data-section="dashboard">
-                <span>⌂</span>
-                Dashboard
+        <div class="upload-card">
+
+            <h3>🎬 Video uploaden</h3>
+
+            <input
+                id="videoInput"
+                type="file"
+                accept="video/*">
+
+
+            <input
+                id="videoTitle"
+                type="text"
+                placeholder="Titel">
+
+
+            <input
+                id="videoDescription"
+                type="text"
+                placeholder="Beschrijving">
+
+
+            <button
+                id="uploadVideoBtn"
+                class="gold-button">
+
+                Video uploaden
+
             </button>
 
-            <button class="nav-button" data-section="website">
-                <span>✦</span>
-                Website
-            </button>
 
-            <button class="nav-button" data-section="shows">
-                <span>♪</span>
-                Optredens
-            </button>
-
-            <button class="nav-button" data-section="news">
-                <span>▤</span>
-                Nieuws
-            </button>
-
-            <button class="nav-button" data-section="videos">
-                <span>▶</span>
-                Video's
-            </button>
-
-            <button class="nav-button" data-section="photos">
-                <span>▧</span>
-                Foto's
-            </button>
-
-            <button class="nav-button" data-section="live">
-                <span>●</span>
-                Livestream
-            </button>
-
-            <button class="nav-button" data-section="merch">
-                <span>◇</span>
-                Merchandise
-            </button>
-
-            <button class="nav-button" data-section="bookings">
-                <span>✉</span>
-                Boekingen
-            </button>
-
-        </nav>
-
-
-        <div class="sidebar-bottom">
-
-            <a
-                href="index.html"
-                target="_blank"
-                class="view-site"
-            >
-                ↗ Bekijk website
-            </a>
-
-            <button id="logoutButton" class="logout-button">
-                Uitloggen
-            </button>
+            <p
+                id="videoStatus"
+                class="status">
+            </p>
 
         </div>
 
-    </aside>
 
+        <!-- LOGO -->
 
-    <main class="admin-main">
+        <div class="upload-card">
 
-        <header class="admin-header">
+            <h3>⭐ Logo wijzigen</h3>
 
-            <div>
+            <input
+                id="logoInput"
+                type="file"
+                accept="image/*">
 
-                <span class="eyebrow">
-                    MISTERY DUO / BEHEER
-                </span>
 
-                <h1 id="pageTitle">
-                    Dashboard
-                </h1>
+            <button
+                id="uploadLogoBtn"
+                class="gold-button">
 
-            </div>
+                Nieuw logo uploaden
 
-            <div class="user-area">
+            </button>
 
-                <span id="userEmail"></span>
 
-                <div class="user-avatar">
-                    M
-                </div>
+            <p
+                id="logoStatus"
+                class="status">
+            </p>
 
-            </div>
+        </div>
 
-        </header>
 
+    </div>
 
-        <!-- DASHBOARD -->
+</section>
 
-        <section id="dashboard" class="admin-section active">
 
-            <div class="welcome-card">
+<!-- LIVESTREAM -->
 
-                <div>
+<section class="panel">
 
-                    <span class="eyebrow">
-                        WELKOM TERUG
-                    </span>
+    <div class="panel-title">
 
-                    <h2>
-                        Mistery Duo
-                    </h2>
+        <div>
+            <span>LIVE</span>
+            <h2>Livestream</h2>
+        </div>
 
-                    <p>
-                        Beheer hier alles van de website.
-                    </p>
+    </div>
 
-                </div>
 
-                <a
-                    href="index.html"
-                    target="_blank"
-                    class="admin-button primary"
-                >
-                    Website bekijken →
-                </a>
+    <form id="streamForm">
 
-            </div>
 
+        <label class="checkbox-row">
 
-            <div class="stats-grid">
+            <input
+                id="livestreamActive"
+                type="checkbox">
 
-                <div class="stat-card">
-                    <span>Optredens</span>
-                    <strong id="statShows">0</strong>
-                </div>
+            <span>
+                Livestream actief
+            </span>
 
-                <div class="stat-card">
-                    <span>Nieuws</span>
-                    <strong id="statNews">0</strong>
-                </div>
+        </label>
 
-                <div class="stat-card">
-                    <span>Video's</span>
-                    <strong id="statVideos">0</strong>
-                </div>
 
-                <div class="stat-card">
-                    <span>Boekingen</span>
-                    <strong id="statBookings">0</strong>
-                </div>
+        <label>
 
-            </div>
+            Livestream URL
 
-        </section>
+            <input
+                id="livestreamUrl"
+                type="url"
+                placeholder="https://...">
 
+        </label>
 
-        <!-- WEBSITE -->
 
-        <section id="website" class="admin-section">
+        <button
+            type="submit"
+            class="gold-button">
 
-            <div class="section-title">
-                <h2>Website</h2>
-                <p>Pas de algemene informatie van Mistery Duo aan.</p>
-            </div>
+            Livestream opslaan
 
-            <form id="websiteForm" class="admin-form">
-
-                <label>
-                    Naam
-                    <input
-                        id="siteName"
-                        type="text"
-                        value="Mistery Duo"
-                        required
-                    >
-                </label>
-
-                <label>
-                    Logo URL
-                    <input
-                        id="siteLogo"
-                        type="url"
-                        placeholder="https://..."
-                    >
-                </label>
-
-                <div class="logo-preview">
-
-                    <span>Logo voorbeeld</span>
-
-                    <img
-                        id="logoPreview"
-                        src=""
-                        alt=""
-                    >
-
-                </div>
-
-                <label>
-                    Hero titel
-                    <input
-                        id="siteHeroTitle"
-                        type="text"
-                        placeholder="MISTERY DUO"
-                    >
-                </label>
-
-                <label>
-                    Hero tekst
-                    <textarea
-                        id="siteHeroText"
-                        rows="3"
-                    ></textarea>
-                </label>
-
-                <label>
-                    Over ons
-                    <textarea
-                        id="siteAboutText"
-                        rows="5"
-                    ></textarea>
-                </label>
-
-                <label>
-                    Footer tekst
-                    <input
-                        id="siteFooterText"
-                        type="text"
-                    >
-                </label>
-
-                <button class="admin-button primary" type="submit">
-                    Wijzigingen opslaan
-                </button>
-
-                <div id="websiteMessage"></div>
-
-            </form>
-
-        </section>
-
-
-        <!-- SHOWS -->
-
-        <section id="shows" class="admin-section">
-
-            <div class="section-title">
-                <h2>Optredens</h2>
-                <p>Voeg optredens toe en beheer ze.</p>
-            </div>
-
-            <form id="showForm" class="admin-form">
-
-                <input id="showId" type="hidden">
-
-                <label>
-                    Titel
-                    <input
-                        id="showTitle"
-                        type="text"
-                        required
-                        placeholder="Zomeroptreden"
-                    >
-                </label>
-
-                <div class="form-grid">
-
-                    <label>
-                        Datum
-                        <input
-                            id="showDate"
-                            type="date"
-                            required
-                        >
-                    </label>
-
-                    <label>
-                        Uur
-                        <input
-                            id="showTime"
-                            type="time"
-                        >
-                    </label>
-
-                </div>
-
-                <label>
-                    Locatie
-                    <input
-                        id="showLocation"
-                        type="text"
-                        required
-                        placeholder="Blankenberge"
-                    >
-                </label>
-
-                <label>
-                    Beschrijving
-                    <textarea
-                        id="showDescription"
-                        rows="3"
-                    ></textarea>
-                </label>
-
-                <label>
-                    Ticketlink
-                    <input
-                        id="showTicket"
-                        type="url"
-                        placeholder="https://..."
-                    >
-                </label>
-
-                <label class="checkbox">
-
-                    <input
-                        id="showPublished"
-                        type="checkbox"
-                        checked
-                    >
-
-                    Tonen op website
-
-                </label>
-
-                <div class="button-row">
-
-                    <button
-                        class="admin-button primary"
-                        type="submit"
-                    >
-                        Optreden opslaan
-                    </button>
-
-                    <button
-                        id="cancelShowEdit"
-                        class="admin-button secondary hidden"
-                        type="button"
-                    >
-                        Annuleren
-                    </button>
+        </button>
 
-                </div>
 
-                <div id="showMessage"></div>
+        <p
+            id="streamStatus"
+            class="status">
+        </p>
 
-            </form>
 
+    </form>
 
-            <div class="items-list">
+</section>
 
-                <h3>Bestaande optredens</h3>
 
-                <div id="showsList"></div>
+<!-- AGENDA -->
 
-            </div>
+<section class="panel">
 
-        </section>
+    <div class="panel-title">
 
+        <div>
+            <span>AGENDA</span>
+            <h2>Optreden toevoegen</h2>
+        </div>
 
-        <!-- NEWS -->
+    </div>
 
-        <section id="news" class="admin-section">
 
-            <div class="section-title">
-                <h2>Nieuws</h2>
-                <p>Maak nieuwsberichten voor de website.</p>
-            </div>
+    <form id="agendaForm">
 
-            <form id="newsForm" class="admin-form">
 
-                <input id="newsId" type="hidden">
+        <label>
 
-                <label>
-                    Titel
-                    <input
-                        id="newsTitle"
-                        type="text"
-                        required
-                    >
-                </label>
+            Datum
 
-                <label>
-                    Datum
-                    <input
-                        id="newsDate"
-                        type="date"
-                        required
-                    >
-                </label>
+            <input
+                id="agendaDate"
+                type="date"
+                required>
 
-                <label>
-                    Afbeelding URL
-                    <input
-                        id="newsImage"
-                        type="url"
-                        placeholder="https://..."
-                    >
-                </label>
+        </label>
 
-                <label>
-                    Bericht
-                    <textarea
-                        id="newsText"
-                        rows="7"
-                        required
-                    ></textarea>
-                </label>
 
-                <label class="checkbox">
+        <label>
 
-                    <input
-                        id="newsPublished"
-                        type="checkbox"
-                        checked
-                    >
+            Titel
 
-                    Publiceren
+            <input
+                id="agendaTitle"
+                type="text"
+                placeholder="Optreden"
+                required>
 
-                </label>
+        </label>
 
-                <button class="admin-button primary">
-                    Nieuws opslaan
-                </button>
 
-                <div id="newsMessage"></div>
+        <label>
 
-            </form>
+            Locatie
 
+            <input
+                id="agendaLocation"
+                type="text"
+                required>
 
-            <div class="items-list">
+        </label>
 
-                <h3>Bestaande berichten</h3>
 
-                <div id="newsList"></div>
+        <label>
 
-            </div>
+            Beschrijving
 
-        </section>
+            <textarea
+                id="agendaDescription"
+                rows="4"></textarea>
 
+        </label>
 
-        <!-- VIDEOS -->
 
-        <section id="videos" class="admin-section">
+        <button
+            type="submit"
+            class="gold-button">
 
-            <div class="section-title">
+            Optreden toevoegen
 
-                <h2>Video's</h2>
+        </button>
 
-                <p>
-                    Voeg bijvoorbeeld YouTube-video's toe.
-                </p>
 
-            </div>
+        <p
+            id="agendaStatus"
+            class="status">
+        </p>
 
-            <form id="videoForm" class="admin-form">
 
-                <input id="videoId" type="hidden">
+    </form>
 
-                <label>
-                    Titel
-                    <input
-                        id="videoTitle"
-                        type="text"
-                        required
-                    >
-                </label>
 
-                <label>
-                    Video URL
-                    <input
-                        id="videoUrl"
-                        type="url"
-                        required
-                        placeholder="https://youtube.com/..."
-                    >
-                </label>
+    <div
+        id="adminAgendaList"
+        class="admin-list">
 
-                <label>
-                    Beschrijving
-                    <textarea
-                        id="videoDescription"
-                        rows="3"
-                    ></textarea>
-                </label>
+    </div>
 
-                <label class="checkbox">
+</section>
 
-                    <input
-                        id="videoPublished"
-                        type="checkbox"
-                        checked
-                    >
 
-                    Tonen op website
+<!-- AANVRAGEN -->
 
-                </label>
+<section class="panel">
 
-                <button class="admin-button primary">
-                    Video opslaan
-                </button>
+    <div class="panel-title">
 
-                <div id="videoMessage"></div>
+        <div>
+            <span>AANVRAGEN</span>
+            <h2>Boekingsaanvragen</h2>
+        </div>
 
-            </form>
 
-            <div class="items-list">
+        <button
+            id="refreshRequestsBtn"
+            class="small-button">
 
-                <h3>Bestaande video's</h3>
+            Vernieuwen
 
-                <div id="videosList"></div>
+        </button>
 
-            </div>
+    </div>
 
-        </section>
 
+    <div
+        id="requestsList"
+        class="requests-list">
 
-        <!-- PHOTOS -->
+        Aanvragen laden...
 
-        <section id="photos" class="admin-section">
+    </div>
 
-            <div class="section-title">
+</section>
 
-                <h2>Foto's</h2>
 
-                <p>
-                    Gebruik een directe afbeeldingslink.
-                </p>
+<!-- MEDIA -->
 
-            </div>
+<section class="panel">
 
-            <form id="photoForm" class="admin-form">
+    <div class="panel-title">
 
-                <input id="photoId" type="hidden">
+        <div>
+            <span>MEDIA</span>
+            <h2>Website media</h2>
+        </div>
 
-                <label>
-                    Titel
-                    <input
-                        id="photoTitle"
-                        type="text"
-                    >
-                </label>
 
-                <label>
-                    Foto URL
-                    <input
-                        id="photoUrl"
-                        type="url"
-                        required
-                        placeholder="https://..."
-                    >
-                </label>
+        <button
+            id="refreshMediaBtn"
+            class="small-button">
 
-                <label class="checkbox">
+            Vernieuwen
 
-                    <input
-                        id="photoPublished"
-                        type="checkbox"
-                        checked
-                    >
+        </button>
 
-                    Tonen op website
+    </div>
 
-                </label>
 
-                <button class="admin-button primary">
-                    Foto opslaan
-                </button>
+    <div
+        id="adminMediaList"
+        class="admin-media-list">
 
-                <div id="photoMessage"></div>
+        Media laden...
 
-            </form>
+    </div>
 
-            <div class="items-list">
+</section>
 
-                <h3>Bestaande foto's</h3>
 
-                <div id="photosList"></div>
-
-            </div>
-
-        </section>
-
-
-        <!-- LIVE -->
-
-        <section id="live" class="admin-section">
-
-            <div class="section-title">
-
-                <h2>Livestream</h2>
-
-                <p>
-                    Stel hier de livestream in.
-                </p>
-
-            </div>
-
-            <form id="liveForm" class="admin-form">
-
-                <label class="checkbox live-checkbox">
-
-                    <input
-                        id="liveActive"
-                        type="checkbox"
-                    >
-
-                    <strong>
-                        Mistery Duo is momenteel LIVE
-                    </strong>
-
-                </label>
-
-                <label>
-                    Livestream URL
-                    <input
-                        id="liveUrl"
-                        type="url"
-                        placeholder="https://youtube.com/..."
-                    >
-                </label>
-
-                <button class="admin-button primary">
-                    Livestream opslaan
-                </button>
-
-                <div id="liveMessage"></div>
-
-            </form>
-
-        </section>
-
-
-        <!-- MERCH -->
-
-        <section id="merch" class="admin-section">
-
-            <div class="section-title">
-
-                <h2>Merchandise</h2>
-
-                <p>
-                    Beheer producten.
-                </p>
-
-            </div>
-
-            <form id="merchForm" class="admin-form">
-
-                <input id="merchId" type="hidden">
-
-                <label>
-                    Productnaam
-                    <input
-                        id="merchName"
-                        type="text"
-                        required
-                    >
-                </label>
-
-                <label>
-                    Beschrijving
-                    <textarea
-                        id="merchDescription"
-                        rows="3"
-                    ></textarea>
-                </label>
-
-                <div class="form-grid">
-
-                    <label>
-                        Prijs
-                        <input
-                            id="merchPrice"
-                            type="text"
-                            placeholder="€ 15"
-                        >
-                    </label>
-
-                    <label>
-                        Afbeelding URL
-                        <input
-                            id="merchImage"
-                            type="url"
-                        >
-                    </label>
-
-                </div>
-
-                <label>
-                    Bestel URL
-                    <input
-                        id="merchOrderUrl"
-                        type="url"
-                        placeholder="https://..."
-                    >
-                </label>
-
-                <label class="checkbox">
-
-                    <input
-                        id="merchAvailable"
-                        type="checkbox"
-                        checked
-                    >
-
-                    Beschikbaar
-
-                </label>
-
-                <button class="admin-button primary">
-                    Product opslaan
-                </button>
-
-                <div id="merchMessage"></div>
-
-            </form>
-
-            <div class="items-list">
-
-                <h3>Bestaande producten</h3>
-
-                <div id="merchList"></div>
-
-            </div>
-
-        </section>
-
-
-        <!-- BOOKINGS -->
-
-        <section id="bookings" class="admin-section">
-
-            <div class="section-title">
-
-                <h2>Boekingen</h2>
-
-                <p>
-                    Bekijk aanvragen van bezoekers.
-                </p>
-
-            </div>
-
-            <div id="bookingsList" class="booking-admin-list">
-
-                <div class="empty-admin">
-                    Geen boekingen.
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
-
-</div>
-
-
-<script type="module" src="admin.js"></script>
+</main>
 
 </body>
 </html>
