@@ -1,780 +1,55 @@
-import { db } from "./firebase.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
 import {
-    ref,
-    onValue,
-    push,
-    set
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+    getFirestore,
+    doc,
+    getDoc,
+    collection,
+    getDocs,
+    addDoc,
+    query,
+    orderBy
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-const $ = (id) => document.getElementById(id);
+const firebaseConfig = {
 
-const defaultSettings = {
-    name: "Mistery Duo",
-    heroTitle: "MISTERY DUO",
-    heroText: "Twee stemmen. Eén passie. Muziek voor iedereen.",
-    aboutText: "Welkom bij Mistery Duo. Wij brengen muziek van toen en nu samen op één podium.",
-    footerText: "Muziek van toen en nu.",
-    logoUrl: ""
+    apiKey:
+        "AIzaSyDf15-6xqLR32Hq4xXeW5hvfUTqPzi52Vs",
+
+    authDomain:
+        "mistery-duo.firebaseapp.com",
+
+    databaseURL:
+        "https://mistery-duo-default-rtdb.europe-west1.firebasedatabase.app",
+
+    projectId:
+        "mistery-duo",
+
+    storageBucket:
+        "mistery-duo.firebasestorage.app",
+
+    messagingSenderId:
+        "36695107825",
+
+    appId:
+        "1:36695107825:web:d92d202a3dd50c1f932150",
+
+    measurementId:
+        "G-P37CVN099B"
 };
 
 
-/* =========================
-   LOADING
-========================= */
+const app =
+    initializeApp(firebaseConfig);
 
-window.addEventListener("load", () => {
+const db =
+    getFirestore(app);
 
-    setTimeout(() => {
 
-        const loading = $("loadingScreen");
-
-        if (loading) {
-            loading.style.opacity = "0";
-
-            setTimeout(() => {
-                loading.remove();
-            }, 500);
-        }
-
-    }, 500);
-
-});
-
-
-/* =========================
-   NAVIGATION
-========================= */
-
-const menuButton = $("menuButton");
-const mainNav = $("mainNav");
-
-if (menuButton) {
-
-    menuButton.addEventListener("click", () => {
-        mainNav.classList.toggle("open");
-    });
-
-}
-
-document.querySelectorAll("#mainNav a").forEach(link => {
-
-    link.addEventListener("click", () => {
-        mainNav.classList.remove("open");
-    });
-
-});
-
-
-/* =========================
-   SETTINGS
-========================= */
-
-onValue(ref(db, "settings"), (snapshot) => {
-
-    const data = snapshot.val() || defaultSettings;
-
-    applySettings(data);
-
-});
-
-
-function applySettings(data) {
-
-    $("brandText").textContent =
-        data.name || "MISTERY DUO";
-
-    $("heroText").textContent =
-        data.heroText || defaultSettings.heroText;
-
-    $("aboutText").textContent =
-        data.aboutText || defaultSettings.aboutText;
-
-    $("footerText").textContent =
-        data.footerText || defaultSettings.footerText;
-
-
-    if (data.heroTitle) {
-
-        const words = String(data.heroTitle).split(" ");
-
-        if (words.length >= 2) {
-
-            $("heroTitle").innerHTML =
-                `${escapeHtml(words[0])}<br><span>${escapeHtml(words.slice(1).join(" "))}</span>`;
-
-        } else {
-
-            $("heroTitle").textContent = data.heroTitle;
-
-        }
-
-    }
-
-
-    setLogo($("headerLogo"), data.logoUrl);
-    setLogo($("footerLogo"), data.logoUrl);
-
-}
-
-
-function setLogo(element, url) {
-
-    if (!element) return;
-
-    if (url) {
-
-        element.src = url;
-        element.style.display = "block";
-
-    } else {
-
-        element.removeAttribute("src");
-        element.style.display = "none";
-
-    }
-
-}
-
-
-/* =========================
-   SHOWS
-========================= */
-
-onValue(ref(db, "shows"), (snapshot) => {
-
-    const data = snapshot.val() || {};
-
-    const shows = Object.entries(data)
-        .map(([id, value]) => ({
-            id,
-            ...value
-        }))
-        .filter(item => item.published !== false)
-        .sort((a, b) =>
-            String(a.date || "").localeCompare(String(b.date || ""))
-        );
-
-    renderShows(shows);
-
-});
-
-
-function renderShows(shows) {
-
-    const container = $("showsContainer");
-
-    if (!shows.length) {
-
-        container.innerHTML = `
-            <div class="empty-state">
-                Nog geen optredens aangekondigd.
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = shows.map(show => `
-
-        <article class="show-card">
-
-            <div class="show-date">
-                ${escapeHtml(formatDate(show.date))}
-            </div>
-
-            <div class="show-info">
-
-                <h3>
-                    ${escapeHtml(show.title || "Optreden")}
-                </h3>
-
-                <p>
-                    📍 ${escapeHtml(show.location || "Locatie wordt binnenkort bekendgemaakt")}
-                    ${show.time ? ` · 🕐 ${escapeHtml(show.time)}` : ""}
-                </p>
-
-                ${show.description ? `
-                    <p>${escapeHtml(show.description)}</p>
-                ` : ""}
-
-            </div>
-
-            ${
-                show.ticketUrl
-                ? `
-                    <a
-                        class="button button-primary"
-                        href="${safeUrl(show.ticketUrl)}"
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        Tickets
-                    </a>
-                `
-                : ""
-            }
-
-        </article>
-
-    `).join("");
-
-}
-
-
-/* =========================
-   LIVE
-========================= */
-
-onValue(ref(db, "livestream"), (snapshot) => {
-
-    const live = snapshot.val();
-
-    renderLive(live);
-
-});
-
-
-function renderLive(live) {
-
-    const container = $("liveContainer");
-
-    if (!live || live.active !== true || !live.url) {
-
-        container.innerHTML = `
-            <div class="live-offline">
-
-                <div class="live-icon">●</div>
-
-                <h3>Momenteel niet live</h3>
-
-                <p>
-                    Wanneer Mistery Duo live gaat,
-                    verschijnt de livestream hier.
-                </p>
-
-            </div>
-        `;
-
-        return;
-    }
-
-
-    const embedUrl = convertToEmbed(live.url);
-
-    if (!embedUrl) {
-
-        container.innerHTML = `
-            <div class="live-offline">
-
-                <div class="live-icon">!</div>
-
-                <h3>Livestream ingesteld</h3>
-
-                <p>
-                    De livestream-link is beschikbaar,
-                    maar kan niet automatisch worden ingebed.
-                </p>
-
-                <br>
-
-                <a
-                    class="button button-primary"
-                    href="${safeUrl(live.url)}"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    Open livestream
-                </a>
-
-            </div>
-        `;
-
-        return;
-    }
-
-
-    container.innerHTML = `
-
-        <div class="live-online">
-
-            <div class="live-label">
-                <span class="live-dot"></span>
-                NU LIVE
-            </div>
-
-            <iframe
-                class="live-frame"
-                src="${escapeAttribute(embedUrl)}"
-                title="Mistery Duo livestream"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowfullscreen>
-            </iframe>
-
-        </div>
-
-    `;
-
-}
-
-
-/* =========================
-   VIDEOS
-========================= */
-
-onValue(ref(db, "videos"), (snapshot) => {
-
-    const data = snapshot.val() || {};
-
-    const videos = Object.entries(data)
-        .map(([id, value]) => ({
-            id,
-            ...value
-        }))
-        .filter(video => video.published !== false);
-
-    renderVideos(videos);
-
-});
-
-
-function renderVideos(videos) {
-
-    const container = $("videosContainer");
-
-    if (!videos.length) {
-
-        container.innerHTML = `
-            <div class="empty-state">
-                Nog geen video's toegevoegd.
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = videos.map(video => {
-
-        const embed = convertToEmbed(video.url);
-
-        if (!embed) return "";
-
-        return `
-
-            <article class="video-card">
-
-                <iframe
-                    class="video-frame"
-                    src="${escapeAttribute(embed)}"
-                    title="${escapeAttribute(video.title || "Mistery Duo video")}"
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    allowfullscreen>
-                </iframe>
-
-                <div class="video-info">
-
-                    <h3>
-                        ${escapeHtml(video.title || "Mistery Duo")}
-                    </h3>
-
-                    ${
-                        video.description
-                        ? `<p>${escapeHtml(video.description)}</p>`
-                        : ""
-                    }
-
-                </div>
-
-            </article>
-
-        `;
-
-    }).join("");
-
-}
-
-
-/* =========================
-   NEWS
-========================= */
-
-onValue(ref(db, "news"), (snapshot) => {
-
-    const data = snapshot.val() || {};
-
-    const news = Object.entries(data)
-        .map(([id, value]) => ({
-            id,
-            ...value
-        }))
-        .filter(item => item.published !== false)
-        .sort((a, b) =>
-            String(b.date || "").localeCompare(String(a.date || ""))
-        );
-
-    renderNews(news);
-
-});
-
-
-function renderNews(news) {
-
-    const container = $("newsContainer");
-
-    if (!news.length) {
-
-        container.innerHTML = `
-            <div class="empty-state">
-                Nog geen nieuwsberichten.
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = news.map(item => `
-
-        <article class="news-card">
-
-            ${
-                item.imageUrl
-                ? `
-                    <img
-                        class="news-image"
-                        src="${safeUrl(item.imageUrl)}"
-                        alt=""
-                        loading="lazy"
-                    >
-                `
-                : ""
-            }
-
-            <div class="news-content">
-
-                <span class="news-date">
-                    ${escapeHtml(formatDate(item.date))}
-                </span>
-
-                <h3>
-                    ${escapeHtml(item.title || "Nieuws")}
-                </h3>
-
-                <p>
-                    ${escapeHtml(item.text || "")}
-                </p>
-
-            </div>
-
-        </article>
-
-    `).join("");
-
-}
-
-
-/* =========================
-   PHOTOS
-========================= */
-
-onValue(ref(db, "photos"), (snapshot) => {
-
-    const data = snapshot.val() || {};
-
-    const photos = Object.entries(data)
-        .map(([id, value]) => ({
-            id,
-            ...value
-        }))
-        .filter(item => item.published !== false);
-
-    renderPhotos(photos);
-
-});
-
-
-function renderPhotos(photos) {
-
-    const container = $("photosContainer");
-
-    if (!photos.length) {
-
-        container.innerHTML = `
-            <div class="empty-state">
-                Nog geen foto's toegevoegd.
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = photos.map(photo => `
-
-        <div class="photo-card">
-
-            <img
-                src="${safeUrl(photo.imageUrl)}"
-                alt="${escapeAttribute(photo.title || "Mistery Duo foto")}"
-                loading="lazy"
-            >
-
-        </div>
-
-    `).join("");
-
-}
-
-
-/* =========================
-   MERCH
-========================= */
-
-onValue(ref(db, "merchandise"), (snapshot) => {
-
-    const data = snapshot.val() || {};
-
-    const products = Object.entries(data)
-        .map(([id, value]) => ({
-            id,
-            ...value
-        }))
-        .filter(item => item.available !== false);
-
-    renderMerch(products);
-
-});
-
-
-function renderMerch(products) {
-
-    const container = $("merchContainer");
-
-    if (!products.length) {
-
-        container.innerHTML = `
-            <div class="empty-state">
-                Nog geen merchandise beschikbaar.
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML = products.map(product => `
-
-        <article class="merch-card">
-
-            ${
-                product.imageUrl
-                ? `
-                    <img
-                        class="merch-image"
-                        src="${safeUrl(product.imageUrl)}"
-                        alt=""
-                        loading="lazy"
-                    >
-                `
-                : ""
-            }
-
-            <div class="merch-content">
-
-                <h3>
-                    ${escapeHtml(product.name || "Mistery Duo product")}
-                </h3>
-
-                ${
-                    product.description
-                    ? `
-                        <p class="merch-description">
-                            ${escapeHtml(product.description)}
-                        </p>
-                    `
-                    : ""
-                }
-
-                <div class="merch-bottom">
-
-                    <span class="price">
-                        ${escapeHtml(product.price || "")}
-                    </span>
-
-                    ${
-                        product.orderUrl
-                        ? `
-                            <a
-                                class="button button-primary"
-                                href="${safeUrl(product.orderUrl)}"
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                Bestellen
-                            </a>
-                        `
-                        : ""
-                    }
-
-                </div>
-
-            </div>
-
-        </article>
-
-    `).join("");
-
-}
-
-
-/* =========================
-   BOOKING
-========================= */
-
-$("bookingForm").addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const status = $("bookingStatus");
-
-    status.className = "";
-    status.textContent = "Aanvraag wordt verstuurd...";
-
-
-    const booking = {
-
-        name: $("bookingName").value.trim(),
-
-        email: $("bookingEmail").value.trim(),
-
-        phone: $("bookingPhone").value.trim(),
-
-        date: $("bookingDate").value,
-
-        location: $("bookingLocation").value.trim(),
-
-        message: $("bookingMessage").value.trim(),
-
-        status: "nieuw",
-
-        createdAt: Date.now()
-
-    };
-
-
-    try {
-
-        const newBooking = push(ref(db, "bookings"));
-
-        await set(newBooking, booking);
-
-        status.className = "success";
-
-        status.textContent =
-            "✓ Je aanvraag is verstuurd! We nemen zo snel mogelijk contact op.";
-
-        $("bookingForm").reset();
-
-    } catch (error) {
-
-        console.error(error);
-
-        status.className = "error";
-
-        status.textContent =
-            "Er ging iets mis. Probeer het later opnieuw.";
-
-    }
-
-});
-
-
-/* =========================
-   HELPERS
-========================= */
-
-function formatDate(value) {
-
-    if (!value) return "Datum volgt";
-
-    const date = new Date(value + "T00:00:00");
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat("nl-BE", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric"
-    }).format(date);
-
-}
-
-
-function convertToEmbed(url) {
-
-    if (!url) return "";
-
-    try {
-
-        const parsed = new URL(url);
-
-        if (parsed.hostname.includes("youtube.com")) {
-
-            const videoId = parsed.searchParams.get("v");
-
-            if (videoId) {
-                return `https://www.youtube.com/embed/${videoId}`;
-            }
-
-            if (parsed.pathname.startsWith("/live/")) {
-                return `https://www.youtube.com/embed/${parsed.pathname.split("/")[2]}`;
-            }
-        }
-
-
-        if (parsed.hostname === "youtu.be") {
-
-            const id = parsed.pathname.substring(1);
-
-            if (id) {
-                return `https://www.youtube.com/embed/${id}`;
-            }
-
-        }
-
-
-        return url;
-
-    } catch {
-
-        return "";
-
-    }
-
-}
-
-
-function safeUrl(url) {
-
-    if (!url) return "";
-
-    try {
-
-        const parsed = new URL(url);
-
-        if (
-            parsed.protocol === "https:" ||
-            parsed.protocol === "http:"
-        ) {
-            return parsed.href;
-        }
-
-    } catch {}
-
-    return "#";
-
-}
-
+/* VEILIG TEKST IN HTML ZETTEN */
 
 function escapeHtml(value) {
 
@@ -784,13 +59,543 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
-
 }
 
 
-function escapeAttribute(value) {
-    return escapeHtml(value);
+/* INSTELLINGEN */
+
+async function loadSettings() {
+
+    try {
+
+        const snapshot =
+            await getDoc(
+                doc(
+                    db,
+                    "settings",
+                    "main"
+                )
+            );
+
+
+        if (!snapshot.exists()) {
+            return;
+        }
+
+
+        const data =
+            snapshot.data();
+
+
+        document.getElementById(
+            "heroTitle"
+        ).textContent =
+            data.heroTitle ||
+            "Mistery Duo";
+
+
+        document.getElementById(
+            "heroText"
+        ).textContent =
+            data.heroText ||
+            "";
+
+
+        document.getElementById(
+            "aboutText"
+        ).textContent =
+            data.aboutText ||
+            "";
+
+
+        document.getElementById(
+            "footerText"
+        ).textContent =
+            data.footerText ||
+            "Muziek voor elk moment.";
+
+
+        if (data.logoUrl) {
+
+            document.getElementById(
+                "siteLogo"
+            ).src =
+                data.logoUrl;
+
+        }
+
+
+        const frame =
+            document.getElementById(
+                "livestreamFrame"
+            );
+
+        const placeholder =
+            document.getElementById(
+                "streamPlaceholder"
+            );
+
+        const status =
+            document.getElementById(
+                "streamStatus"
+            );
+
+
+        if (
+            data.livestreamActive === true &&
+            data.livestreamUrl
+        ) {
+
+            frame.src =
+                data.livestreamUrl;
+
+            frame.style.display =
+                "block";
+
+            placeholder.style.display =
+                "none";
+
+            status.classList.add(
+                "live"
+            );
+
+            status.innerHTML =
+                "<span></span> LIVE";
+
+        } else {
+
+            frame.src = "";
+
+            frame.style.display =
+                "none";
+
+            placeholder.style.display =
+                "flex";
+
+            status.classList.remove(
+                "live"
+            );
+
+            status.innerHTML =
+                "<span></span> Offline";
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Settings fout:",
+            error
+        );
+
+    }
 }
 
 
-$("year").textContent = new Date().getFullYear();
+/* AGENDA */
+
+async function loadAgenda() {
+
+    const container =
+        document.getElementById(
+            "agendaList"
+        );
+
+
+    try {
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "agenda"
+                ),
+                orderBy(
+                    "date",
+                    "asc"
+                )
+            );
+
+
+        const snapshot =
+            await getDocs(q);
+
+
+        container.innerHTML = "";
+
+
+        if (snapshot.empty) {
+
+            container.innerHTML =
+                `<div class="loading">
+                    Er staan momenteel geen optredens gepland.
+                </div>`;
+
+            return;
+        }
+
+
+        snapshot.forEach(item => {
+
+            const data =
+                item.data();
+
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+
+            card.className =
+                "agenda-card";
+
+
+            card.innerHTML = `
+
+                <div class="date">
+                    ${escapeHtml(
+                        data.date
+                    )}
+                </div>
+
+                <h3>
+                    ${escapeHtml(
+                        data.title ||
+                        "Optreden"
+                    )}
+                </h3>
+
+                <p>
+                    ${escapeHtml(
+                        data.location ||
+                        ""
+                    )}
+                </p>
+
+                ${
+                    data.description
+                    ?
+                    `<p>
+                        ${escapeHtml(
+                            data.description
+                        )}
+                    </p>`
+                    :
+                    ""
+                }
+
+            `;
+
+
+            container.appendChild(
+                card
+            );
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Agenda fout:",
+            error
+        );
+
+
+        container.innerHTML =
+            `<div class="loading">
+                Agenda kon niet worden geladen.
+            </div>`;
+    }
+}
+
+
+/* MEDIA */
+
+async function loadMedia() {
+
+    const container =
+        document.getElementById(
+            "mediaGrid"
+        );
+
+
+    try {
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "media"
+                ),
+                orderBy(
+                    "createdAt",
+                    "desc"
+                )
+            );
+
+
+        const snapshot =
+            await getDocs(q);
+
+
+        container.innerHTML = "";
+
+
+        if (snapshot.empty) {
+
+            container.innerHTML =
+                `<div class="loading">
+                    Er is nog geen media toegevoegd.
+                </div>`;
+
+            return;
+        }
+
+
+        snapshot.forEach(item => {
+
+            const data =
+                item.data();
+
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+
+            card.className =
+                "media-card";
+
+
+            let mediaHtml;
+
+
+            if (
+                data.type ===
+                "video"
+            ) {
+
+                mediaHtml = `
+
+                    <video
+                        src="${escapeHtml(
+                            data.url
+                        )}"
+                        controls
+                        preload="metadata">
+                    </video>
+
+                `;
+
+            } else {
+
+                mediaHtml = `
+
+                    <img
+                        src="${escapeHtml(
+                            data.url
+                        )}"
+                        alt="${escapeHtml(
+                            data.title ||
+                            "Mistery Duo"
+                        )}"
+                        loading="lazy">
+
+                `;
+            }
+
+
+            card.innerHTML = `
+
+                ${mediaHtml}
+
+                <div class="media-info">
+
+                    <h3>
+                        ${escapeHtml(
+                            data.title ||
+                            ""
+                        )}
+                    </h3>
+
+                    ${
+                        data.description
+                        ?
+                        `<p>
+                            ${escapeHtml(
+                                data.description
+                            )}
+                        </p>`
+                        :
+                        ""
+                    }
+
+                </div>
+
+            `;
+
+
+            container.appendChild(
+                card
+            );
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Media fout:",
+            error
+        );
+
+
+        container.innerHTML =
+            `<div class="loading">
+                Media kon niet worden geladen.
+            </div>`;
+    }
+}
+
+
+/* AANVRAAG VERSTUREN */
+
+async function submitRequest(event) {
+
+    event.preventDefault();
+
+
+    const form =
+        event.target;
+
+    const button =
+        document.getElementById(
+            "requestButton"
+        );
+
+    const status =
+        document.getElementById(
+            "requestStatus"
+        );
+
+
+    button.disabled = true;
+
+    status.textContent =
+        "Aanvraag wordt verstuurd...";
+
+
+    try {
+
+        await addDoc(
+            collection(
+                db,
+                "requests"
+            ),
+            {
+
+                name:
+                    document
+                        .getElementById(
+                            "requestName"
+                        )
+                        .value
+                        .trim(),
+
+                email:
+                    document
+                        .getElementById(
+                            "requestEmail"
+                        )
+                        .value
+                        .trim(),
+
+                phone:
+                    document
+                        .getElementById(
+                            "requestPhone"
+                        )
+                        .value
+                        .trim(),
+
+                date:
+                    document
+                        .getElementById(
+                            "requestDate"
+                        )
+                        .value,
+
+                location:
+                    document
+                        .getElementById(
+                            "requestLocation"
+                        )
+                        .value
+                        .trim(),
+
+                message:
+                    document
+                        .getElementById(
+                            "requestMessage"
+                        )
+                        .value
+                        .trim(),
+
+                status:
+                    "nieuw",
+
+                createdAt:
+                    Date.now()
+            }
+        );
+
+
+        form.reset();
+
+
+        status.textContent =
+            "✓ Je aanvraag is succesvol verstuurd!";
+
+
+    } catch (error) {
+
+        console.error(
+            "Aanvraag fout:",
+            error
+        );
+
+
+        status.textContent =
+            "Er ging iets mis. Probeer opnieuw.";
+
+    }
+
+
+    button.disabled = false;
+}
+
+
+/* START */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
+
+        document
+            .getElementById(
+                "requestForm"
+            )
+            .addEventListener(
+                "submit",
+                submitRequest
+            );
+
+
+        await Promise.all([
+            loadSettings(),
+            loadAgenda(),
+            loadMedia()
+        ]);
+
+    }
+);
