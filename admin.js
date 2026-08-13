@@ -1,1505 +1,94 @@
-import { db, auth } from "./firebase.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
 import {
-    ref,
-    onValue,
-    push,
-    set,
-    update,
-    remove
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-
-import {
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
+    getAuth,
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-
-const $ = (id) => document.getElementById(id);
-
-
-/* =========================
-   AUTHENTICATION
-========================= */
-
-onAuthStateChanged(auth, (user) => {
-
-    if (user) {
-
-        $("loginScreen").classList.add("hidden");
-        $("adminApp").classList.remove("hidden");
-
-        $("userEmail").textContent = user.email || "";
-
-        loadEverything();
-
-    } else {
-
-        $("loginScreen").classList.remove("hidden");
-        $("adminApp").classList.add("hidden");
-
-    }
-
-});
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    collection,
+    addDoc,
+    getDocs,
+    deleteDoc,
+    updateDoc,
+    query,
+    orderBy
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 
-$("loginForm").addEventListener("submit", async (event) => {
+/* FIREBASE */
 
-    event.preventDefault();
+const firebaseConfig = {
 
-    const email = $("loginEmail").value.trim();
-    const password = $("loginPassword").value;
+    apiKey:
+        "AIzaSyDf15-6xqLR32Hq4xXeW5hvfUTqPzi52Vs",
 
-    const message = $("loginMessage");
+    authDomain:
+        "mistery-duo.firebaseapp.com",
 
-    message.textContent = "Inloggen...";
-    message.style.color = "#aaa";
+    databaseURL:
+        "https://mistery-duo-default-rtdb.europe-west1.firebasedatabase.app",
 
-    try {
+    projectId:
+        "mistery-duo",
 
-        await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
+    storageBucket:
+        "mistery-duo.firebasestorage.app",
 
-        message.textContent = "";
+    messagingSenderId:
+        "36695107825",
 
-    } catch (error) {
+    appId:
+        "1:36695107825:web:d92d202a3dd50c1f932150",
 
-        console.error(error);
-
-        message.style.color = "#ff6178";
-
-        message.textContent =
-            getAuthError(error);
-
-    }
-
-});
+    measurementId:
+        "G-P37CVN099B"
+};
 
 
-$("logoutButton").addEventListener("click", async () => {
-
-    await signOut(auth);
-
-});
+const app =
+    initializeApp(firebaseConfig);
 
 
-function getAuthError(error) {
+const auth =
+    getAuth(app);
 
-    if (error.code === "auth/invalid-credential") {
-        return "E-mailadres of wachtwoord is incorrect.";
-    }
 
-    if (error.code === "auth/too-many-requests") {
-        return "Te veel pogingen. Probeer later opnieuw.";
-    }
+const db =
+    getFirestore(app);
 
-    return "Inloggen mislukt. Controleer je gegevens.";
 
+/* CLOUDINARY */
+
+const CLOUDINARY_CLOUD_NAME =
+    "aorisbce";
+
+const CLOUDINARY_UPLOAD_PRESET =
+    "mistery_duo_upload";
+
+
+/* HELPERS */
+
+function get(id) {
+    return document.getElementById(id);
 }
 
 
-/* =========================
-   NAVIGATION
-========================= */
+function status(id, text) {
 
-document.querySelectorAll(".nav-button").forEach(button => {
+    const element =
+        get(id);
 
-    button.addEventListener("click", () => {
-
-        const target = button.dataset.section;
-
-        document.querySelectorAll(".nav-button")
-            .forEach(item => item.classList.remove("active"));
-
-        button.classList.add("active");
-
-        document.querySelectorAll(".admin-section")
-            .forEach(section => section.classList.remove("active"));
-
-        $(target).classList.add("active");
-
-        const title =
-            button.textContent.trim();
-
-        $("pageTitle").textContent = title;
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-
-    });
-
-});
-
-
-/* =========================
-   LOAD EVERYTHING
-========================= */
-
-function loadEverything() {
-
-    loadSettings();
-    loadShows();
-    loadNews();
-    loadVideos();
-    loadPhotos();
-    loadLive();
-    loadMerchandise();
-    loadBookings();
-
-}
-
-
-/* =========================
-   SETTINGS
-========================= */
-
-function loadSettings() {
-
-    onValue(ref(db, "settings"), (snapshot) => {
-
-        const data = snapshot.val() || {};
-
-        $("siteName").value =
-            data.name || "Mistery Duo";
-
-        $("siteLogo").value =
-            data.logoUrl || "";
-
-        $("siteHeroTitle").value =
-            data.heroTitle || "MISTERY DUO";
-
-        $("siteHeroText").value =
-            data.heroText || "Twee stemmen. Eén passie. Muziek voor iedereen.";
-
-        $("siteAboutText").value =
-            data.aboutText || "";
-
-        $("siteFooterText").value =
-            data.footerText || "Muziek van toen en nu.";
-
-        updateLogoPreview();
-
-    });
-
-}
-
-
-$("siteLogo").addEventListener(
-    "input",
-    updateLogoPreview
-);
-
-
-function updateLogoPreview() {
-
-    const url = $("siteLogo").value.trim();
-    const image = $("logoPreview");
-
-    if (url) {
-
-        image.src = url;
-        image.style.display = "block";
-
-    } else {
-
-        image.removeAttribute("src");
-        image.style.display = "none";
-
+    if (element) {
+        element.textContent = text;
     }
-
-}
-
-
-$("websiteForm").addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const message = $("websiteMessage");
-
-    try {
-
-        await update(ref(db, "settings"), {
-
-            name: $("siteName").value.trim(),
-
-            logoUrl: $("siteLogo").value.trim(),
-
-            heroTitle: $("siteHeroTitle").value.trim(),
-
-            heroText: $("siteHeroText").value.trim(),
-
-            aboutText: $("siteAboutText").value.trim(),
-
-            footerText: $("siteFooterText").value.trim()
-
-        });
-
-        showMessage(
-            message,
-            "✓ Website-instellingen opgeslagen.",
-            true
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-        showMessage(
-            message,
-            "Opslaan mislukt.",
-            false
-        );
-
-    }
-
-});
-
-
-/* =========================
-   SHOWS
-========================= */
-
-let showsCache = {};
-
-function loadShows() {
-
-    onValue(ref(db, "shows"), (snapshot) => {
-
-        showsCache = snapshot.val() || {};
-
-        const count =
-            Object.keys(showsCache).length;
-
-        $("statShows").textContent = count;
-
-        renderAdminShows();
-
-    });
-
-}
-
-
-$("showForm").addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const id = $("showId").value;
-
-    const data = {
-
-        title: $("showTitle").value.trim(),
-
-        date: $("showDate").value,
-
-        time: $("showTime").value,
-
-        location: $("showLocation").value.trim(),
-
-        description: $("showDescription").value.trim(),
-
-        ticketUrl: $("showTicket").value.trim(),
-
-        published: $("showPublished").checked,
-
-        updatedAt: Date.now()
-
-    };
-
-
-    try {
-
-        if (id) {
-
-            await update(
-                ref(db, `shows/${id}`),
-                data
-            );
-
-        } else {
-
-            const newRef =
-                push(ref(db, "shows"));
-
-            await set(newRef, {
-                ...data,
-                createdAt: Date.now()
-            });
-
-        }
-
-        clearShowForm();
-
-        showMessage(
-            $("showMessage"),
-            "✓ Optreden opgeslagen.",
-            true
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-        showMessage(
-            $("showMessage"),
-            "Opslaan mislukt.",
-            false
-        );
-
-    }
-
-});
-
-
-function renderAdminShows() {
-
-    const container = $("showsList");
-
-    const entries = Object.entries(showsCache);
-
-    if (!entries.length) {
-
-        container.innerHTML =
-            `<div class="empty-admin">Nog geen optredens.</div>`;
-
-        return;
-    }
-
-    container.innerHTML = entries.map(([id, item]) => `
-
-        <div class="admin-item">
-
-            <div class="admin-item-info">
-
-                <strong>
-                    ${escapeHtml(item.title || "Optreden")}
-                </strong>
-
-                <span>
-                    ${escapeHtml(item.date || "")}
-                    ·
-                    ${escapeHtml(item.location || "")}
-                </span>
-
-            </div>
-
-            <div class="admin-item-actions">
-
-                <button
-                    class="small-button"
-                    data-edit-show="${id}"
-                >
-                    Bewerken
-                </button>
-
-                <button
-                    class="small-button delete"
-                    data-delete-show="${id}"
-                >
-                    Verwijderen
-                </button>
-
-            </div>
-
-        </div>
-
-    `).join("");
-
-
-    container.querySelectorAll("[data-edit-show]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                editShow(button.dataset.editShow);
-
-            });
-
-        });
-
-
-    container.querySelectorAll("[data-delete-show]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                deleteShow(button.dataset.deleteShow);
-
-            });
-
-        });
-
-}
-
-
-function editShow(id) {
-
-    const item = showsCache[id];
-
-    if (!item) return;
-
-    $("showId").value = id;
-
-    $("showTitle").value = item.title || "";
-    $("showDate").value = item.date || "";
-    $("showTime").value = item.time || "";
-    $("showLocation").value = item.location || "";
-    $("showDescription").value = item.description || "";
-    $("showTicket").value = item.ticketUrl || "";
-    $("showPublished").checked =
-        item.published !== false;
-
-    $("cancelShowEdit").classList.remove("hidden");
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-}
-
-
-$("cancelShowEdit").addEventListener(
-    "click",
-    clearShowForm
-);
-
-
-function clearShowForm() {
-
-    $("showForm").reset();
-    $("showId").value = "";
-    $("showPublished").checked = true;
-
-    $("cancelShowEdit").classList.add("hidden");
-
-}
-
-
-async function deleteShow(id) {
-
-    if (!confirm("Dit optreden verwijderen?")) {
-        return;
-    }
-
-    try {
-
-        await remove(ref(db, `shows/${id}`));
-
-    } catch (error) {
-
-        console.error(error);
-        alert("Verwijderen mislukt.");
-
-    }
-
-}
-
-
-/* =========================
-   NEWS
-========================= */
-
-let newsCache = {};
-
-function loadNews() {
-
-    onValue(ref(db, "news"), (snapshot) => {
-
-        newsCache = snapshot.val() || {};
-
-        $("statNews").textContent =
-            Object.keys(newsCache).length;
-
-        renderAdminNews();
-
-    });
-
-}
-
-
-$("newsForm").addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const id = $("newsId").value;
-
-    const data = {
-
-        title: $("newsTitle").value.trim(),
-
-        date: $("newsDate").value,
-
-        imageUrl: $("newsImage").value.trim(),
-
-        text: $("newsText").value.trim(),
-
-        published: $("newsPublished").checked,
-
-        updatedAt: Date.now()
-
-    };
-
-
-    try {
-
-        if (id) {
-
-            await update(ref(db, `news/${id}`), data);
-
-        } else {
-
-            const newRef =
-                push(ref(db, "news"));
-
-            await set(newRef, {
-                ...data,
-                createdAt: Date.now()
-            });
-
-        }
-
-        $("newsForm").reset();
-        $("newsId").value = "";
-
-        showMessage(
-            $("newsMessage"),
-            "✓ Nieuws opgeslagen.",
-            true
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-        showMessage(
-            $("newsMessage"),
-            "Opslaan mislukt.",
-            false
-        );
-
-    }
-
-});
-
-
-function renderAdminNews() {
-
-    const container = $("newsList");
-
-    const entries = Object.entries(newsCache);
-
-    if (!entries.length) {
-
-        container.innerHTML =
-            `<div class="empty-admin">Nog geen nieuws.</div>`;
-
-        return;
-    }
-
-    container.innerHTML = entries.map(([id, item]) => `
-
-        <div class="admin-item">
-
-            <div class="admin-item-info">
-
-                <strong>
-                    ${escapeHtml(item.title || "Nieuws")}
-                </strong>
-
-                <span>
-                    ${escapeHtml(item.date || "")}
-                </span>
-
-            </div>
-
-            <div class="admin-item-actions">
-
-                <button
-                    class="small-button"
-                    data-edit-news="${id}"
-                >
-                    Bewerken
-                </button>
-
-                <button
-                    class="small-button delete"
-                    data-delete-news="${id}"
-                >
-                    Verwijderen
-                </button>
-
-            </div>
-
-        </div>
-
-    `).join("");
-
-
-    container.querySelectorAll("[data-edit-news]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                const item =
-                    newsCache[button.dataset.editNews];
-
-                $("newsId").value =
-                    button.dataset.editNews;
-
-                $("newsTitle").value =
-                    item.title || "";
-
-                $("newsDate").value =
-                    item.date || "";
-
-                $("newsImage").value =
-                    item.imageUrl || "";
-
-                $("newsText").value =
-                    item.text || "";
-
-                $("newsPublished").checked =
-                    item.published !== false;
-
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth"
-                });
-
-            });
-
-        });
-
-
-    container.querySelectorAll("[data-delete-news]")
-        .forEach(button => {
-
-            button.addEventListener("click", async () => {
-
-                if (!confirm("Nieuwsbericht verwijderen?")) {
-                    return;
-                }
-
-                await remove(
-                    ref(
-                        db,
-                        `news/${button.dataset.deleteNews}`
-                    )
-                );
-
-            });
-
-        });
-
-}
-
-
-/* =========================
-   VIDEOS
-========================= */
-
-let videosCache = {};
-
-function loadVideos() {
-
-    onValue(ref(db, "videos"), (snapshot) => {
-
-        videosCache = snapshot.val() || {};
-
-        $("statVideos").textContent =
-            Object.keys(videosCache).length;
-
-        renderAdminVideos();
-
-    });
-
-}
-
-
-$("videoForm").addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const id = $("videoId").value;
-
-    const data = {
-
-        title: $("videoTitle").value.trim(),
-
-        url: $("videoUrl").value.trim(),
-
-        description:
-            $("videoDescription").value.trim(),
-
-        published:
-            $("videoPublished").checked,
-
-        updatedAt: Date.now()
-
-    };
-
-
-    try {
-
-        if (id) {
-
-            await update(
-                ref(db, `videos/${id}`),
-                data
-            );
-
-        } else {
-
-            const newRef =
-                push(ref(db, "videos"));
-
-            await set(newRef, {
-                ...data,
-                createdAt: Date.now()
-            });
-
-        }
-
-        $("videoForm").reset();
-        $("videoId").value = "";
-
-        showMessage(
-            $("videoMessage"),
-            "✓ Video opgeslagen.",
-            true
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-        showMessage(
-            $("videoMessage"),
-            "Opslaan mislukt.",
-            false
-        );
-
-    }
-
-});
-
-
-function renderAdminVideos() {
-
-    const container = $("videosList");
-
-    const entries = Object.entries(videosCache);
-
-    if (!entries.length) {
-
-        container.innerHTML =
-            `<div class="empty-admin">Nog geen video's.</div>`;
-
-        return;
-    }
-
-    container.innerHTML = entries.map(([id, item]) => `
-
-        <div class="admin-item">
-
-            <div class="admin-item-info">
-
-                <strong>
-                    ${escapeHtml(item.title || "Video")}
-                </strong>
-
-                <span>
-                    ${escapeHtml(item.url || "")}
-                </span>
-
-            </div>
-
-            <div class="admin-item-actions">
-
-                <button
-                    class="small-button"
-                    data-edit-video="${id}"
-                >
-                    Bewerken
-                </button>
-
-                <button
-                    class="small-button delete"
-                    data-delete-video="${id}"
-                >
-                    Verwijderen
-                </button>
-
-            </div>
-
-        </div>
-
-    `).join("");
-
-
-    container.querySelectorAll("[data-edit-video]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                const id = button.dataset.editVideo;
-                const item = videosCache[id];
-
-                $("videoId").value = id;
-                $("videoTitle").value = item.title || "";
-                $("videoUrl").value = item.url || "";
-                $("videoDescription").value =
-                    item.description || "";
-                $("videoPublished").checked =
-                    item.published !== false;
-
-            });
-
-        });
-
-
-    container.querySelectorAll("[data-delete-video]")
-        .forEach(button => {
-
-            button.addEventListener("click", async () => {
-
-                if (!confirm("Video verwijderen?")) return;
-
-                await remove(
-                    ref(
-                        db,
-                        `videos/${button.dataset.deleteVideo}`
-                    )
-                );
-
-            });
-
-        });
-
-}
-
-
-/* =========================
-   PHOTOS
-========================= */
-
-let photosCache = {};
-
-function loadPhotos() {
-
-    onValue(ref(db, "photos"), (snapshot) => {
-
-        photosCache = snapshot.val() || {};
-
-        renderAdminPhotos();
-
-    });
-
-}
-
-
-$("photoForm").addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const id = $("photoId").value;
-
-    const data = {
-
-        title: $("photoTitle").value.trim(),
-
-        imageUrl: $("photoUrl").value.trim(),
-
-        published:
-            $("photoPublished").checked,
-
-        updatedAt: Date.now()
-
-    };
-
-
-    try {
-
-        if (id) {
-
-            await update(
-                ref(db, `photos/${id}`),
-                data
-            );
-
-        } else {
-
-            const newRef =
-                push(ref(db, "photos"));
-
-            await set(newRef, {
-                ...data,
-                createdAt: Date.now()
-            });
-
-        }
-
-        $("photoForm").reset();
-        $("photoId").value = "";
-
-        showMessage(
-            $("photoMessage"),
-            "✓ Foto opgeslagen.",
-            true
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-        showMessage(
-            $("photoMessage"),
-            "Opslaan mislukt.",
-            false
-        );
-
-    }
-
-});
-
-
-function renderAdminPhotos() {
-
-    const container = $("photosList");
-
-    const entries = Object.entries(photosCache);
-
-    if (!entries.length) {
-
-        container.innerHTML =
-            `<div class="empty-admin">Nog geen foto's.</div>`;
-
-        return;
-    }
-
-    container.innerHTML = entries.map(([id, item]) => `
-
-        <div class="admin-item">
-
-            <div class="admin-item-info">
-
-                <strong>
-                    ${escapeHtml(item.title || "Foto")}
-                </strong>
-
-                <span>
-                    ${escapeHtml(item.imageUrl || "")}
-                </span>
-
-            </div>
-
-            <div class="admin-item-actions">
-
-                <button
-                    class="small-button"
-                    data-edit-photo="${id}"
-                >
-                    Bewerken
-                </button>
-
-                <button
-                    class="small-button delete"
-                    data-delete-photo="${id}"
-                >
-                    Verwijderen
-                </button>
-
-            </div>
-
-        </div>
-
-    `).join("");
-
-
-    container.querySelectorAll("[data-edit-photo]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                const id = button.dataset.editPhoto;
-                const item = photosCache[id];
-
-                $("photoId").value = id;
-                $("photoTitle").value = item.title || "";
-                $("photoUrl").value =
-                    item.imageUrl || "";
-                $("photoPublished").checked =
-                    item.published !== false;
-
-            });
-
-        });
-
-
-    container.querySelectorAll("[data-delete-photo]")
-        .forEach(button => {
-
-            button.addEventListener("click", async () => {
-
-                if (!confirm("Foto verwijderen?")) return;
-
-                await remove(
-                    ref(
-                        db,
-                        `photos/${button.dataset.deletePhoto}`
-                    )
-                );
-
-            });
-
-        });
-
-}
-
-
-/* =========================
-   LIVESTREAM
-========================= */
-
-function loadLive() {
-
-    onValue(ref(db, "livestream"), (snapshot) => {
-
-        const data = snapshot.val() || {};
-
-        $("liveActive").checked =
-            data.active === true;
-
-        $("liveUrl").value =
-            data.url || "";
-
-    });
-
-}
-
-
-$("liveForm").addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    try {
-
-        await set(ref(db, "livestream"), {
-
-            active:
-                $("liveActive").checked,
-
-            url:
-                $("liveUrl").value.trim(),
-
-            updatedAt:
-                Date.now()
-
-        });
-
-        showMessage(
-            $("liveMessage"),
-            "✓ Livestream opgeslagen.",
-            true
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-        showMessage(
-            $("liveMessage"),
-            "Opslaan mislukt.",
-            false
-        );
-
-    }
-
-});
-
-
-/* =========================
-   MERCHANDISE
-========================= */
-
-let merchCache = {};
-
-function loadMerchandise() {
-
-    onValue(ref(db, "merchandise"), (snapshot) => {
-
-        merchCache = snapshot.val() || {};
-
-        renderAdminMerch();
-
-    });
-
-}
-
-
-$("merchForm").addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const id = $("merchId").value;
-
-    const data = {
-
-        name: $("merchName").value.trim(),
-
-        description:
-            $("merchDescription").value.trim(),
-
-        price:
-            $("merchPrice").value.trim(),
-
-        imageUrl:
-            $("merchImage").value.trim(),
-
-        orderUrl:
-            $("merchOrderUrl").value.trim(),
-
-        available:
-            $("merchAvailable").checked,
-
-        updatedAt:
-            Date.now()
-
-    };
-
-
-    try {
-
-        if (id) {
-
-            await update(
-                ref(db, `merchandise/${id}`),
-                data
-            );
-
-        } else {
-
-            const newRef =
-                push(ref(db, "merchandise"));
-
-            await set(newRef, {
-                ...data,
-                createdAt: Date.now()
-            });
-
-        }
-
-        $("merchForm").reset();
-        $("merchId").value = "";
-
-        showMessage(
-            $("merchMessage"),
-            "✓ Product opgeslagen.",
-            true
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-        showMessage(
-            $("merchMessage"),
-            "Opslaan mislukt.",
-            false
-        );
-
-    }
-
-});
-
-
-function renderAdminMerch() {
-
-    const container = $("merchList");
-
-    const entries = Object.entries(merchCache);
-
-    if (!entries.length) {
-
-        container.innerHTML =
-            `<div class="empty-admin">Nog geen producten.</div>`;
-
-        return;
-    }
-
-    container.innerHTML = entries.map(([id, item]) => `
-
-        <div class="admin-item">
-
-            <div class="admin-item-info">
-
-                <strong>
-                    ${escapeHtml(item.name || "Product")}
-                </strong>
-
-                <span>
-                    ${escapeHtml(item.price || "")}
-                </span>
-
-            </div>
-
-            <div class="admin-item-actions">
-
-                <button
-                    class="small-button"
-                    data-edit-merch="${id}"
-                >
-                    Bewerken
-                </button>
-
-                <button
-                    class="small-button delete"
-                    data-delete-merch="${id}"
-                >
-                    Verwijderen
-                </button>
-
-            </div>
-
-        </div>
-
-    `).join("");
-
-
-    container.querySelectorAll("[data-edit-merch]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                const id = button.dataset.editMerch;
-                const item = merchCache[id];
-
-                $("merchId").value = id;
-
-                $("merchName").value =
-                    item.name || "";
-
-                $("merchDescription").value =
-                    item.description || "";
-
-                $("merchPrice").value =
-                    item.price || "";
-
-                $("merchImage").value =
-                    item.imageUrl || "";
-
-                $("merchOrderUrl").value =
-                    item.orderUrl || "";
-
-                $("merchAvailable").checked =
-                    item.available !== false;
-
-            });
-
-        });
-
-
-    container.querySelectorAll("[data-delete-merch]")
-        .forEach(button => {
-
-            button.addEventListener("click", async () => {
-
-                if (!confirm("Product verwijderen?")) return;
-
-                await remove(
-                    ref(
-                        db,
-                        `merchandise/${button.dataset.deleteMerch}`
-                    )
-                );
-
-            });
-
-        });
-
-}
-
-
-/* =========================
-   BOOKINGS
-========================= */
-
-function loadBookings() {
-
-    onValue(ref(db, "bookings"), (snapshot) => {
-
-        const data = snapshot.val() || {};
-
-        const entries = Object.entries(data)
-            .map(([id, value]) => ({
-                id,
-                ...value
-            }))
-            .sort((a, b) =>
-                (b.createdAt || 0) -
-                (a.createdAt || 0)
-            );
-
-        $("statBookings").textContent =
-            entries.filter(item =>
-                item.status === "nieuw"
-            ).length;
-
-        renderBookings(entries);
-
-    });
-
-}
-
-
-function renderBookings(bookings) {
-
-    const container = $("bookingsList");
-
-    if (!bookings.length) {
-
-        container.innerHTML =
-            `<div class="empty-admin">Geen boekingen.</div>`;
-
-        return;
-    }
-
-    container.innerHTML = bookings.map(item => `
-
-        <article class="booking-card">
-
-            <div class="booking-card-header">
-
-                <div>
-
-                    <h3>
-                        ${escapeHtml(item.name || "Onbekend")}
-                    </h3>
-
-                    <div class="booking-meta">
-
-                        ${escapeHtml(item.email || "")}
-                        <br>
-
-                        ${escapeHtml(item.phone || "")}
-                        <br>
-
-                        Datum:
-                        ${escapeHtml(item.date || "")}
-                        <br>
-
-                        Locatie:
-                        ${escapeHtml(item.location || "")}
-
-                    </div>
-
-                </div>
-
-                <span class="booking-status">
-                    ${escapeHtml(item.status || "nieuw")}
-                </span>
-
-            </div>
-
-
-            ${
-                item.message
-                ? `
-                    <div class="booking-message">
-                        ${escapeHtml(item.message)}
-                    </div>
-                `
-                : ""
-            }
-
-
-            <div class="admin-item-actions" style="margin-top:15px;">
-
-                <button
-                    class="small-button"
-                    data-booking-status="${item.id}|beantwoord"
-                >
-                    Beantwoord
-                </button>
-
-                <button
-                    class="small-button delete"
-                    data-delete-booking="${item.id}"
-                >
-                    Verwijderen
-                </button>
-
-            </div>
-
-        </article>
-
-    `).join("");
-
-
-    container.querySelectorAll("[data-booking-status]")
-        .forEach(button => {
-
-            button.addEventListener("click", async () => {
-
-                const [id, status] =
-                    button.dataset.bookingStatus.split("|");
-
-                await update(
-                    ref(db, `bookings/${id}`),
-                    { status }
-                );
-
-            });
-
-        });
-
-
-    container.querySelectorAll("[data-delete-booking]")
-        .forEach(button => {
-
-            button.addEventListener("click", async () => {
-
-                if (!confirm("Deze boeking verwijderen?")) {
-                    return;
-                }
-
-                await remove(
-                    ref(
-                        db,
-                        `bookings/${button.dataset.deleteBooking}`
-                    )
-                );
-
-            });
-
-        });
-
-}
-
-
-/* =========================
-   HELPERS
-========================= */
-
-function showMessage(element, text, success) {
-
-    element.textContent = text;
-
-    element.style.color =
-        success ? "#65dfa0" : "#ff6178";
-
-    setTimeout(() => {
-
-        element.textContent = "";
-
-    }, 4000);
-
 }
 
 
@@ -1511,5 +100,1394 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
-
 }
+
+
+/* CLOUDINARY UPLOAD */
+
+async function uploadToCloudinary(file) {
+
+    if (!file) {
+        throw new Error(
+            "Geen bestand geselecteerd."
+        );
+    }
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "file",
+        file
+    );
+
+
+    formData.append(
+        "upload_preset",
+        CLOUDINARY_UPLOAD_PRESET
+    );
+
+
+    const response =
+        await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+
+    if (!response.ok) {
+
+        const error =
+            await response.text();
+
+        console.error(
+            "Cloudinary fout:",
+            error
+        );
+
+        throw new Error(
+            "Cloudinary upload mislukt."
+        );
+    }
+
+
+    return await response.json();
+}
+
+
+/* SETTINGS LADEN */
+
+async function loadSettings() {
+
+    try {
+
+        const snapshot =
+            await getDoc(
+                doc(
+                    db,
+                    "settings",
+                    "main"
+                )
+            );
+
+
+        if (!snapshot.exists()) {
+            return;
+        }
+
+
+        const data =
+            snapshot.data();
+
+
+        get("heroTitle").value =
+            data.heroTitle || "";
+
+
+        get("heroText").value =
+            data.heroText || "";
+
+
+        get("aboutText").value =
+            data.aboutText || "";
+
+
+        get("footerText").value =
+            data.footerText || "";
+
+
+        get("logoUrl").value =
+            data.logoUrl || "";
+
+
+        get("livestreamUrl").value =
+            data.livestreamUrl || "";
+
+
+        get("livestreamActive").checked =
+            data.livestreamActive === true;
+
+    } catch (error) {
+
+        console.error(
+            "Settings laden:",
+            error
+        );
+
+    }
+}
+
+
+/* SETTINGS OPSLAAN */
+
+async function saveSettings(event) {
+
+    event.preventDefault();
+
+
+    status(
+        "settingsStatus",
+        "Opslaan..."
+    );
+
+
+    try {
+
+        await setDoc(
+            doc(
+                db,
+                "settings",
+                "main"
+            ),
+            {
+
+                heroTitle:
+                    get("heroTitle")
+                        .value
+                        .trim(),
+
+                heroText:
+                    get("heroText")
+                        .value
+                        .trim(),
+
+                aboutText:
+                    get("aboutText")
+                        .value
+                        .trim(),
+
+                footerText:
+                    get("footerText")
+                        .value
+                        .trim(),
+
+                logoUrl:
+                    get("logoUrl")
+                        .value
+                        .trim()
+
+            },
+            {
+                merge: true
+            }
+        );
+
+
+        status(
+            "settingsStatus",
+            "✓ Instellingen opgeslagen."
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        status(
+            "settingsStatus",
+            "❌ Opslaan mislukt."
+        );
+    }
+}
+
+
+/* LOGO UPLOADEN */
+
+async function uploadLogo() {
+
+    const file =
+        get("logoInput")
+            .files[0];
+
+
+    if (!file) {
+
+        alert(
+            "Selecteer eerst een logo."
+        );
+
+        return;
+    }
+
+
+    const button =
+        get("uploadLogoBtn");
+
+
+    button.disabled = true;
+
+
+    status(
+        "logoStatus",
+        "Logo uploaden..."
+    );
+
+
+    try {
+
+        const result =
+            await uploadToCloudinary(
+                file
+            );
+
+
+        await setDoc(
+            doc(
+                db,
+                "settings",
+                "main"
+            ),
+            {
+
+                logoUrl:
+                    result.secure_url,
+
+                logoPublicId:
+                    result.public_id
+
+            },
+            {
+                merge: true
+            }
+        );
+
+
+        get("logoUrl").value =
+            result.secure_url;
+
+
+        get("logoInput").value =
+            "";
+
+
+        status(
+            "logoStatus",
+            "✓ Logo gewijzigd."
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        status(
+            "logoStatus",
+            "❌ Logo upload mislukt."
+        );
+
+    }
+
+
+    button.disabled = false;
+}
+
+
+/* FOTO UPLOAD */
+
+async function uploadPhoto() {
+
+    const file =
+        get("photoInput")
+            .files[0];
+
+
+    if (!file) {
+
+        alert(
+            "Selecteer eerst een foto."
+        );
+
+        return;
+    }
+
+
+    const button =
+        get("uploadPhotoBtn");
+
+
+    button.disabled = true;
+
+
+    status(
+        "photoStatus",
+        "Foto uploaden..."
+    );
+
+
+    try {
+
+        const result =
+            await uploadToCloudinary(
+                file
+            );
+
+
+        await addDoc(
+            collection(
+                db,
+                "media"
+            ),
+            {
+
+                type:
+                    "image",
+
+                url:
+                    result.secure_url,
+
+                publicId:
+                    result.public_id,
+
+                title:
+                    get("photoTitle")
+                        .value
+                        .trim(),
+
+                description:
+                    get("photoDescription")
+                        .value
+                        .trim(),
+
+                createdAt:
+                    Date.now()
+
+            }
+        );
+
+
+        get("photoInput").value =
+            "";
+
+        get("photoTitle").value =
+            "";
+
+        get("photoDescription").value =
+            "";
+
+
+        status(
+            "photoStatus",
+            "✓ Foto toegevoegd aan de website."
+        );
+
+
+        await loadMedia();
+
+    } catch (error) {
+
+        console.error(error);
+
+        status(
+            "photoStatus",
+            "❌ Foto upload mislukt."
+        );
+    }
+
+
+    button.disabled = false;
+}
+
+
+/* VIDEO UPLOAD */
+
+async function uploadVideo() {
+
+    const file =
+        get("videoInput")
+            .files[0];
+
+
+    if (!file) {
+
+        alert(
+            "Selecteer eerst een video."
+        );
+
+        return;
+    }
+
+
+    const button =
+        get("uploadVideoBtn");
+
+
+    button.disabled = true;
+
+
+    status(
+        "videoStatus",
+        "Video uploaden..."
+    );
+
+
+    try {
+
+        const result =
+            await uploadToCloudinary(
+                file
+            );
+
+
+        await addDoc(
+            collection(
+                db,
+                "media"
+            ),
+            {
+
+                type:
+                    "video",
+
+                url:
+                    result.secure_url,
+
+                publicId:
+                    result.public_id,
+
+                title:
+                    get("videoTitle")
+                        .value
+                        .trim(),
+
+                description:
+                    get("videoDescription")
+                        .value
+                        .trim(),
+
+                createdAt:
+                    Date.now()
+
+            }
+        );
+
+
+        get("videoInput").value =
+            "";
+
+        get("videoTitle").value =
+            "";
+
+        get("videoDescription").value =
+            "";
+
+
+        status(
+            "videoStatus",
+            "✓ Video toegevoegd aan de website."
+        );
+
+
+        await loadMedia();
+
+    } catch (error) {
+
+        console.error(error);
+
+        status(
+            "videoStatus",
+            "❌ Video upload mislukt."
+        );
+    }
+
+
+    button.disabled = false;
+}
+
+
+/* LIVESTREAM */
+
+async function saveStream(event) {
+
+    event.preventDefault();
+
+
+    status(
+        "streamStatus",
+        "Opslaan..."
+    );
+
+
+    try {
+
+        await setDoc(
+            doc(
+                db,
+                "settings",
+                "main"
+            ),
+            {
+
+                livestreamUrl:
+                    get("livestreamUrl")
+                        .value
+                        .trim(),
+
+                livestreamActive:
+                    get("livestreamActive")
+                        .checked
+
+            },
+            {
+                merge: true
+            }
+        );
+
+
+        status(
+            "streamStatus",
+            "✓ Livestream opgeslagen."
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        status(
+            "streamStatus",
+            "❌ Opslaan mislukt."
+        );
+    }
+}
+
+
+/* AGENDA TOEVOEGEN */
+
+async function addAgenda(event) {
+
+    event.preventDefault();
+
+
+    status(
+        "agendaStatus",
+        "Optreden toevoegen..."
+    );
+
+
+    try {
+
+        await addDoc(
+            collection(
+                db,
+                "agenda"
+            ),
+            {
+
+                date:
+                    get("agendaDate")
+                        .value,
+
+                title:
+                    get("agendaTitle")
+                        .value
+                        .trim(),
+
+                location:
+                    get("agendaLocation")
+                        .value
+                        .trim(),
+
+                description:
+                    get("agendaDescription")
+                        .value
+                        .trim(),
+
+                createdAt:
+                    Date.now()
+
+            }
+        );
+
+
+        event.target.reset();
+
+
+        status(
+            "agendaStatus",
+            "✓ Optreden toegevoegd."
+        );
+
+
+        await loadAgenda();
+
+    } catch (error) {
+
+        console.error(error);
+
+        status(
+            "agendaStatus",
+            "❌ Optreden toevoegen mislukt."
+        );
+    }
+}
+
+
+/* AGENDA LADEN */
+
+async function loadAgenda() {
+
+    const container =
+        get("adminAgendaList");
+
+
+    container.innerHTML =
+        "Agenda laden...";
+
+
+    try {
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "agenda"
+                ),
+                orderBy(
+                    "date",
+                    "asc"
+                )
+            );
+
+
+        const snapshot =
+            await getDocs(q);
+
+
+        container.innerHTML =
+            "";
+
+
+        if (snapshot.empty) {
+
+            container.innerHTML =
+                "<p>Geen optredens.</p>";
+
+            return;
+        }
+
+
+        snapshot.forEach(item => {
+
+            const data =
+                item.data();
+
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+                "admin-agenda-item";
+
+
+            row.innerHTML = `
+
+                <div>
+
+                    <strong>
+                        ${escapeHtml(
+                            data.title
+                        )}
+                    </strong>
+
+                    <p>
+                        ${escapeHtml(
+                            data.date
+                        )}
+                        —
+                        ${escapeHtml(
+                            data.location
+                        )}
+                    </p>
+
+                </div>
+
+                <button
+                    class="delete-button">
+
+                    Verwijderen
+
+                </button>
+
+            `;
+
+
+            row.querySelector(
+                ".delete-button"
+            ).addEventListener(
+                "click",
+                () => deleteAgenda(
+                    item.id
+                )
+            );
+
+
+            container.appendChild(
+                row
+            );
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+            "<p>Agenda laden mislukt.</p>";
+    }
+}
+
+
+/* AGENDA VERWIJDEREN */
+
+async function deleteAgenda(id) {
+
+    if (
+        !confirm(
+            "Dit optreden verwijderen?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await deleteDoc(
+            doc(
+                db,
+                "agenda",
+                id
+            )
+        );
+
+
+        await loadAgenda();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Verwijderen mislukt."
+        );
+    }
+}
+
+
+/* AANVRAGEN LADEN */
+
+async function loadRequests() {
+
+    const container =
+        get("requestsList");
+
+
+    container.innerHTML =
+        "Aanvragen laden...";
+
+
+    try {
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "requests"
+                ),
+                orderBy(
+                    "createdAt",
+                    "desc"
+                )
+            );
+
+
+        const snapshot =
+            await getDocs(q);
+
+
+        container.innerHTML =
+            "";
+
+
+        if (snapshot.empty) {
+
+            container.innerHTML =
+                "<p>Geen aanvragen.</p>";
+
+            return;
+        }
+
+
+        snapshot.forEach(item => {
+
+            const data =
+                item.data();
+
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "request-card";
+
+
+            card.innerHTML = `
+
+                <h3>
+                    ${escapeHtml(
+                        data.name
+                    )}
+                </h3>
+
+                <p>
+                    <strong>E-mail:</strong>
+                    ${escapeHtml(
+                        data.email
+                    )}
+                </p>
+
+                <p>
+                    <strong>Telefoon:</strong>
+                    ${escapeHtml(
+                        data.phone
+                    )}
+                </p>
+
+                <p>
+                    <strong>Datum:</strong>
+                    ${escapeHtml(
+                        data.date
+                    )}
+                </p>
+
+                <p>
+                    <strong>Locatie:</strong>
+                    ${escapeHtml(
+                        data.location
+                    )}
+                </p>
+
+                <p>
+                    <strong>Bericht:</strong>
+                    ${escapeHtml(
+                        data.message
+                    )}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    ${escapeHtml(
+                        data.status ||
+                        "nieuw"
+                    )}
+                </p>
+
+                <div class="request-actions">
+
+                    <button
+                        class="status-button"
+                        data-status="bekeken">
+
+                        Bekeken
+
+                    </button>
+
+                    <button
+                        class="status-button"
+                        data-status="beantwoord">
+
+                        Beantwoord
+
+                    </button>
+
+                    <button
+                        class="delete-button">
+
+                        Verwijderen
+
+                    </button>
+
+                </div>
+
+            `;
+
+
+            card
+                .querySelectorAll(
+                    ".status-button"
+                )
+                .forEach(button => {
+
+                    button.addEventListener(
+                        "click",
+                        () =>
+                            updateRequestStatus(
+                                item.id,
+                                button.dataset.status
+                            )
+                    );
+
+                });
+
+
+            card.querySelector(
+                ".delete-button"
+            ).addEventListener(
+                "click",
+                () =>
+                    deleteRequest(
+                        item.id
+                    )
+            );
+
+
+            container.appendChild(
+                card
+            );
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+            "<p>Aanvragen laden mislukt.</p>";
+    }
+}
+
+
+/* AANVRAAG STATUS */
+
+async function updateRequestStatus(
+    id,
+    newStatus
+) {
+
+    try {
+
+        await updateDoc(
+            doc(
+                db,
+                "requests",
+                id
+            ),
+            {
+                status:
+                    newStatus
+            }
+        );
+
+
+        await loadRequests();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Status wijzigen mislukt."
+        );
+    }
+}
+
+
+/* AANVRAAG VERWIJDEREN */
+
+async function deleteRequest(id) {
+
+    if (
+        !confirm(
+            "Deze aanvraag verwijderen?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await deleteDoc(
+            doc(
+                db,
+                "requests",
+                id
+            )
+        );
+
+
+        await loadRequests();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Aanvraag verwijderen mislukt."
+        );
+    }
+}
+
+
+/* MEDIA LADEN */
+
+async function loadMedia() {
+
+    const container =
+        get("adminMediaList");
+
+
+    container.innerHTML =
+        "Media laden...";
+
+
+    try {
+
+        const q =
+            query(
+                collection(
+                    db,
+                    "media"
+                ),
+                orderBy(
+                    "createdAt",
+                    "desc"
+                )
+            );
+
+
+        const snapshot =
+            await getDocs(q);
+
+
+        container.innerHTML =
+            "";
+
+
+        if (snapshot.empty) {
+
+            container.innerHTML =
+                "<p>Geen media.</p>";
+
+            return;
+        }
+
+
+        snapshot.forEach(item => {
+
+            const data =
+                item.data();
+
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "admin-media-card";
+
+
+            let media;
+
+
+            if (
+                data.type ===
+                "video"
+            ) {
+
+                media = `
+
+                    <video
+                        src="${escapeHtml(
+                            data.url
+                        )}"
+                        controls>
+                    </video>
+
+                `;
+
+            } else {
+
+                media = `
+
+                    <img
+                        src="${escapeHtml(
+                            data.url
+                        )}"
+                        alt="">
+
+                `;
+            }
+
+
+            card.innerHTML = `
+
+                ${media}
+
+                <div
+                    class="admin-media-info">
+
+                    <strong>
+                        ${escapeHtml(
+                            data.title
+                        )}
+                    </strong>
+
+                    <p>
+                        ${escapeHtml(
+                            data.description
+                        )}
+                    </p>
+
+                    <button
+                        class="delete-button">
+
+                        Verwijderen
+
+                    </button>
+
+                </div>
+
+            `;
+
+
+            card.querySelector(
+                ".delete-button"
+            ).addEventListener(
+                "click",
+                () =>
+                    deleteMedia(
+                        item.id
+                    )
+            );
+
+
+            container.appendChild(
+                card
+            );
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+            "<p>Media laden mislukt.</p>";
+    }
+}
+
+
+/* MEDIA VERWIJDEREN */
+
+async function deleteMedia(id) {
+
+    if (
+        !confirm(
+            "Deze media uit de website verwijderen?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        /*
+         * We verwijderen de verwijzing uit Firestore.
+         *
+         * Het bestand op Cloudinary blijft bestaan.
+         * Dat is expres: een Cloudinary API Secret mag
+         * nooit in browser-JavaScript worden geplaatst.
+         */
+
+        await deleteDoc(
+            doc(
+                db,
+                "media",
+                id
+            )
+        );
+
+
+        await loadMedia();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Media verwijderen mislukt."
+        );
+    }
+}
+
+
+/* UITLOGGEN */
+
+async function logout() {
+
+    try {
+
+        await signOut(auth);
+
+        location.reload();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Uitloggen mislukt."
+        );
+    }
+}
+
+
+/* AUTHENTICATION */
+
+onAuthStateChanged(
+    auth,
+    async user => {
+
+        if (!user) {
+
+            document.body.innerHTML = `
+
+                <div style="
+                    min-height:100vh;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    background:#070707;
+                    color:white;
+                    font-family:Arial;
+                    text-align:center;
+                    padding:30px;
+                ">
+
+                    <div>
+
+                        <h1>
+                            Geen toegang
+                        </h1>
+
+                        <p style="
+                            color:#aaa;
+                            margin-top:10px;
+                        ">
+                            Je moet ingelogd zijn
+                            om het beheerplatform
+                            te gebruiken.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        await Promise.all([
+            loadSettings(),
+            loadAgenda(),
+            loadRequests(),
+            loadMedia()
+        ]);
+
+    }
+);
+
+
+/* KNOPPEN */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        get(
+            "settingsForm"
+        ).addEventListener(
+            "submit",
+            saveSettings
+        );
+
+
+        get(
+            "streamForm"
+        ).addEventListener(
+            "submit",
+            saveStream
+        );
+
+
+        get(
+            "agendaForm"
+        ).addEventListener(
+            "submit",
+            addAgenda
+        );
+
+
+        get(
+            "uploadPhotoBtn"
+        ).addEventListener(
+            "click",
+            uploadPhoto
+        );
+
+
+        get(
+            "uploadVideoBtn"
+        ).addEventListener(
+            "click",
+            uploadVideo
+        );
+
+
+        get(
+            "uploadLogoBtn"
+        ).addEventListener(
+            "click",
+            uploadLogo
+        );
+
+
+        get(
+            "refreshRequestsBtn"
+        ).addEventListener(
+            "click",
+            loadRequests
+        );
+
+
+        get(
+            "refreshMediaBtn"
+        ).addEventListener(
+            "click",
+            loadMedia
+        );
+
+
+        get(
+            "logoutBtn"
+        ).addEventListener(
+            "click",
+            logout
+        );
+
+    }
+);
